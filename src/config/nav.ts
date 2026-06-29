@@ -2,6 +2,7 @@ import {
   BarChart3,
   Boxes,
   Dumbbell,
+  FlaskConical,
   Home,
   Info,
   type LucideIcon,
@@ -26,7 +27,9 @@ export const bottomNav: NavItem[] = [
 
 /** Secondary destinations shown in the slide-in drawer. */
 export const drawerNav: NavItem[] = [
+  { to: '/', label: 'Home', icon: Home },
   { to: '/tv', label: 'Verbind met TV', icon: Tv },
+  { to: '/lab', label: 'Labs', icon: FlaskConical },
   { to: '/integrations', label: 'Integraties', icon: Share2 },
   { to: '/settings', label: 'Instellingen', icon: Settings },
   { to: '/about', label: 'Over SOLO.', icon: Info },
