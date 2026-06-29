@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+/*
+  SOLO. design tokens — brutalist-chic, near-black canvas, pastel-blue accent.
+  "Solo training. Zero noise." High contrast, minimal, fast.
+*/
+@theme {
+  /* Surfaces — near-black charcoal stack */
+  --color-ink: #0b0e11;
+  --color-surface: #14181d;
+  --color-surface-2: #1c2128;
+  --color-surface-3: #252c35;
+  --color-line: #2a313a;
+
+  /* Text */
+  --color-fg: #e8edf2;
+  --color-muted: #8a97a6;
+  --color-faint: #5a6573;
+
+  /* Brand — pastel blue (the MediaPipe skeleton blue) */
+  --color-solo-300: #a9cbf5;
+  --color-solo-400: #7cb3f0;
+  --color-solo-500: #5b9be8;
+  --color-solo-600: #3e7fd6;
+  --color-accent: #9bd0ff;
+
+  /* Semantic / coach states */
+  --color-danger: #ff6b6b; /* form deviation */
+  --color-warn: #ff8a3d; /* screamer */
+  --color-calm: #6fd7c7; /* ambient */
+  --color-success: #5fd39a;
+
+  /* Typography — privacy-first: system stack, no external CDN fonts */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Menlo, Consolas,
+    monospace;
+
+  /* Radii — soft but not pill, keeps the brutalist edge */
+  --radius-card: 1rem;
+
+  /* Mobile chrome heights */
+  --header-h: 3.5rem;
+  --bottomnav-h: 4.25rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-ink);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Avoid pull-to-refresh / overscroll glow on mobile */
+    overscroll-behavior-y: none;
+  }
+
+  /* Disable tap highlight for an app-like feel */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Slim, dark scrollbars */
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 9999px;
+  }
+}
+
+@layer utilities {
+  /* Safe-area helpers for notches / home indicators */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .h-safe-top {
+    height: env(safe-area-inset-top);
+  }
+
+  /* Brutalist uppercase label */
+  .label-mono {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+  }
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="SOLO.">
+  <rect width="512" height="512" fill="#0B0E11" />
+  <g transform="translate(256 256) scale(0.6) translate(-256 -256)">
+    <g stroke="#7CB3F0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <circle cx="256" cy="104" r="48" />
+      <path d="M256 152 V336" />
+      <path d="M160 240 H352" />
+      <path d="M160 240 L104 144" />
+      <path d="M352 240 L408 144" />
+      <path d="M256 336 L184 456" />
+      <path d="M256 336 L328 456" />
+    </g>
+    <g fill="#9BD0FF">
+      <circle cx="104" cy="144" r="22" />
+      <circle cx="408" cy="144" r="22" />
+      <circle cx="160" cy="240" r="22" />
+      <circle cx="352" cy="240" r="22" />
+      <circle cx="256" cy="336" r="22" />
+      <circle cx="184" cy="456" r="22" />
+      <circle cx="328" cy="456" r="22" />
+    </g>
+  </g>
+</svg>
