@@ -1,146 +1,96 @@
-# SOLO.
+<p align="center">
+  <img src="public/icon.svg" width="96" alt="SOLO." />
+</p>
 
-> **Solo training. Zero noise.**
+<h1 align="center">SOLO.</h1>
 
-SOLO. is a 100% open-source, privacy-first Progressive Web Application (PWA) designed for autonomous home workouts. By transforming your smartphone or tablet into an Edge AI workstation and syncing it live with your Garmin wearable, SOLO. supports sovereign home training without App Store approvals, cloud infrastructure costs, or subscriptions.
+<p align="center">
+  <strong>Solo training. Zero noise.</strong><br/>
+  Privacy-first home workouts — your phone controls the session, your TV shows the board.
+</p>
 
-No cloud. No subscriptions. Just you, your iron, and zero noise.
-
----
-
-## The 4 Pillars of SOLO.
-
-1. **Physical Sovereignty (`Home Locker`)**  
-   Adapts progressive overload directly to your available home equipment. If you hit your home weight ceiling, the engine shifts progression variables to biomechanical adaptations such as *Time Under Tension (TUT)*.
-
-2. **Technological Synergy (`Garmin Live Sync`)**  
-   Leverages your Garmin wearable via Bluetooth Low Energy (BLE) as an active biological sensor station. Real-time heart rate, rep counts, and velocity loss are streamed directly into your screen layout.
-
-3. **Visual Support (`Edge AI Form Check & Studio Loops`)**  
-   Splits your dashboard 50/50 during active sets. The left side uses computer vision to track your body mechanics, while the right side displays smooth, lo-fi exercise loops sourced from curated, real, licensed demonstration media — never AI-generated or AI-altered reference footage.
-
-4. **Mental Presence (`The Ambient Coach`)**  
-   An algorithmic coach triggered by biological strain. When your velocity drops by >35% and heart rate crosses 85% of your max, the local audio engine kicks in with your preferred coaching style (Screamer, Mid-Line, or Ambient).
+<p align="center">
+  React 19 · TypeScript · Vite PWA · localStorage · BroadcastChannel TV sync · Offline-first · No account · No cloud
+</p>
 
 ---
 
-## Edge AI Features (0-Euro Cloud Footprint)
+SOLO. is an open-source Progressive Web App for autonomous home training. Build workouts, match weights to your home locker, run live sessions with an optional TV dashboard, and review detailed summaries — all on-device. No subscriptions, no vendor backend.
 
-To maintain absolute data privacy and keep infrastructure costs at exactly **0 euros**, all heavy lifting runs locally on the user's device using cutting-edge web technologies:
+For planned features (Garmin live sync, MediaPipe pose, WebLLM analytics, canvas cast pipeline), see **[ROADMAP.md](ROADMAP.md)**.
 
-* **Real-time Computer Vision:** Powered by **Google MediaPipe Pose Landmarker WebAssembly**, rendering a thin, elegant, pastel-blue 3D skeleton over your body to detect form breakdowns (e.g., knee valgus, lumbar flexion) locally on the GPU. Form feedback is guidance, not diagnosis.
-* **Velocity-Based Tracking:** Monitors the meters-per-second velocity of your dumbbells/barbell via an optimized canvas vector overlay to detect neural fatigue.
-* **On-Device Analytics:** Runs a compressed **Google Gemma 3 (2B) TinyLLM** completely offline inside the browser cache via the **WebLLM Framework (WebGPU)**. Generates personalized post-workout coaching reports without sending a single byte to an external cloud server.
+## The 5 Pillars of SOLO.
 
----
+| # | Pillar | Today | Roadmap |
+|---|---|---|---|
+| 1 | **Physical Sovereignty** — Home Locker drives progressive overload to your real equipment | **Shipped** — locker profiles, overload planner, plate configurator | Time-under-tension progression when weight ceiling is hit |
+| 2 | **Technological Synergy** — Garmin as live biological sensor (HR, reps, velocity) | Lab probe only | Live BLE sync into session + TV HUD |
+| 3 | **Visual Support** — form cues on phone, exercise visuals on TV | **Partial** — camera preview on phone; icon visuals + session HUD on TV (BroadcastChannel) | Pose form cues, licensed exercise loops, canvas compositor, cast stream |
+| 4 | **Mental Presence** — coach during the session | **Partial** — speech announcements, rest countdown, male/female voice | Strain-triggered coach, style matrix, screen-edge feedback |
+| 5 | **On-Device Intelligence** — post-workout analysis and shareable proof | **Partial** — session summary, history, trends, sparklines | WebLLM report, RPE logging, FFmpeg proof reels |
 
-## Web-to-Cast Architecture
+All pillars are detailed in **[ROADMAP.md](ROADMAP.md)**.
 
-SOLO. bypasses the limitations of sluggish smart TV web browsers. The phone renders a 16:9 high-fidelity horizontal video composite (combining the studio loop, the AI skeleton vectors, and the oversized Garmin telemetry data) on a hidden HTML5 Canvas element.
+## Features
 
-Using native browser media capabilities (`canvas.captureStream`), the composited dashboard can be sent to a TV screen via **Apple AirPlay** or **Google Chromecast**. Latency and protocol support vary by browser and device — this is a research-gated capability, not a guaranteed product promise on day one.
+- **Workouts** — create, edit, delete, and favorite templates; strength sets or circuit rounds; Wger exercise import with search and infinite scroll; Garmin `.fit` import; JSON export/import
+- **Home Locker** — multiple locker profiles; equipment inventory drives the overload planner and plate configurator (barbell, dumbbell, kettlebell)
+- **Workout Prep** — recovery-aware target weights; prep insights per exercise; multi-workout queue; optional TV preview before start
+- **Live session** — tap-to-complete exercises; set/round progression; per-exercise and phase rest timers; optional front-camera preview on phone
+- **Coach** — Web Speech API announcements for next exercise and set transitions; male/female voice; rest countdown in the last 5 seconds (toggle in session)
+- **TV receiver** — passive `/tv` surface synced via `BroadcastChannel`; shows session HUD, prep, summary, or idle; connect/disconnect from session with receiver handshake (reuses an already-open TV tab)
+- **Exercise visuals** — lightweight icon-based visuals today; curated licensed demo loops are planned once asset licenses and attribution are verified
+- **History** — completed sessions stored with full summary (set times, trends, sparklines); browse, open, delete per entry or clear all; cancelled sessions are not recorded
+- **Home** — recovery ring (mock score until Health API), weekly stats, workout suggestion, resume active session
+- **Themes** — automatic time-of-day themes or manual override in Settings
+- **Labs** — isolated feasibility pages for Garmin BLE, pose/camera, canvas compositor, and cast stream (not part of the main session flow yet)
 
-```mermaid
-graph TD
-    A[Garmin Wearable BLE Stream] --> B[React PWA Browser]
-    C[Front Camera Video Stream] --> B
-    B --> D[HTML5 Canvas Core Compositor]
-    D --> E[MediaStream Engine 30FPS]
-    E --> F[Native AirPlay / Chromecast Protocol]
-    F --> G[TV Screen: Full 16:9 Minimalist HUD]
+## Apps & Routes
+
+| Surface | Route | Role |
+|---|---|---|
+| Mobile shell | `/` | Controller — home, workouts, locker, history, session |
+| TV receiver | `/tv` | Passive display — open on TV or cast this tab |
+| Workout prep | `/workouts/prep?ids=…` | Targets, insights, TV connect, start |
+| Live session | `/session` | Active workout controller |
+| Summary | `/session/summary` or `/history/:id` | Post-workout or historical recap |
+| Labs | `/lab/*` | Architecture experiments |
+
+## Tech Stack
+
+| Layer | Choice |
+|---|---|
+| UI | React 19, React Router 7, Tailwind CSS 4, Lucide icons |
+| Build | Vite 8, TypeScript 6, `vite-plugin-pwa` |
+| State & storage | `localStorage` snapshots with stable `useSyncExternalStore` sources |
+| TV transport | `BroadcastChannel` (`solo-tv-sync` + control ping/pong) |
+| Coach voice | Web Speech API |
+| Exercise data | [Wger API](https://wger.de) (`/exerciseinfo/`, `name__search`) |
+| FIT import | `@garmin/fitsdk` |
+| BLE (lab) | Web Bluetooth API — Garmin feasibility probe |
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
 ```
 
----
+Open the dev server on your phone or tablet. For TV sync during a session:
 
-## User Flows & Architecture
+1. Go to **Workout Prep** → **Verbind TV-scherm** (or tap **TV** in an active session).
+2. Open `/tv` on your TV browser (or cast that tab via AirPlay / Chromecast).
+3. The controller pushes live state; disconnect with **TV ●** without closing a TV tab you opened manually.
 
-### Pre-Workout & Calibration Flow
-
-The athlete starts the browser environment and prepares the autonomous training space in the living room.
-
-```mermaid
-graph TD
-A[Athlete opens SOLO on Mobile/Tablet] --> B[PWA starts fullscreen via Safari/Chrome]
-B --> C[LocalHealth Aggregator loads HRV and Sleep Score from Google Health/Apple Health via Web API]
-C --> D[Athlete selects Workout from Open-Source Wger DB]
-D --> E[Overload Planner calculates targets based on Home Locker Inventory]
-E --> F{Recovery Score Critical?}
-F -- Yes --> G[Reduce Target Weight by 5-10% and show recovery warning]
-F -- No --> H[Maintain Progressive Overload Target]
-G --> I[Weight Assistant shows brutalist vector weight plate configuration]
-H --> I
-I --> J[Athlete clicks Cast button in HTML5 Player]
-J --> K[Phone streams live generated 16:9 Canvas feed to TV via AirPlay/Chromecast]
+```bash
+npm run build    # production build
+npm run preview  # preview dist
+npm run lint     # tsc --noEmit
 ```
 
-### The Active Set, Edge AI & Live Feedback Loop
+No server required — all data stays in the browser.
 
-The interaction during the active training phase where the phone acts as the sensor and the TV serves as the main dashboard.
-
-```mermaid
-graph TD
-A[Athlete starts set on Garmin Watch] --> B[Garmin Connect IQ App opens BLE channel]
-B --> C[Web Bluetooth / Companion SDK streams reps + velocity + HR to Phone Browser]
-C --> D[Phone Browser splits processes locally]
-D --> E[Front camera executes Google MediaPipe Pose Engine via WebAssembly on GPU]
-D --> F[React Canvas Engine renders 16:9 video frame based on curated exercise loop]
-E --> G{AI Form Deviation or Knee Valgus detected?}
-G -- Yes --> H[Color joint pastel red on Phone + Show text cue on TV via Canvas]
-G -- No --> I[Maintain stable pastel blue AI skeleton]
-F --> J[Canvas Engine burns Oversized Garmin Rep Counter and HR data into the frame]
-H --> J
-I --> J
-J --> K[HTML5 MediaStream Engine shoots realtime video feed at 30FPS to TV via AirPlay/Chromecast]
-```
-
-### In-Set Biofeedback, AI Velocity & Mental Coach Matrix
-
-The live algorithm that drives the mental support style and detects fatigue.
-
-```mermaid
-graph TD
-A[Garmin Accelerometer + AI Velocity Tracker measure rep duration] --> B{Rep velocity drops > 35% and HR > 85%?}
-B -- No --> C[Maintain standard rhythm and video loops]
-B -- Yes --> D[Trigger Sticking Point Status in AmbientCoachEngine]
-D --> E{Which Coach Style is selected?}
-E -- 1. Screamer --> F[Screen edges flash orange + Start loud, raw gym motivation via audio]
-E -- 2. Mid-Line --> G[Start active, athletic personal trainer feedback via audio]
-E -- 3. Ambient --> H[Screen edges pulse calmly + Start lo-fi, deep, monotone AI voice via audio]
-F --> I[Athlete pushes out last reps or fails]
-G --> I
-H --> I
-I --> J[Athlete ends set on watch -> Screen switches directly to Rest and RPE Slider]
-```
-
-### Post-Workout & On-Device TinyLLM Analytics Flow
-
-The evaluation phase immediately following the workout where a local language model generates a report without internet access.
-
-```mermaid
-graph TD
-A[Athlete ends full workout on Tablet] --> B[React loads WebLLM Engine with Google Gemma 3 in the browser cache]
-B --> C[App collects: Garmin HR peaks + AI form deviations + RPE logs]
-C --> D[On-Device TinyLLM processes data locally via WebGPU]
-D --> E[Report appears in brutalist-chic console: SOLO. AI_ANALYSIS]
-E --> F[Athlete clicks GENERATE_PROOF]
-F --> G[FFmpeg compiles 15s MP4 Reel + burns AI analytics data over the frame]
-G --> H[Native Web Share API pushes video directly to Strava/Instagram/TikTok]
-```
-
----
-
-## Open-Source Tech Stack
-
-* **Frontend Framework:** React 19, Vite, TypeScript
-* **AI Computer Vision:** Google MediaPipe Web Tasks API (Wasm)
-* **Local LLM Infrastructure:** WebLLM (ONNX Runtime, WebGPU)
-* **Video Composite Engine:** HTML5 Canvas API
-* **Local Storage & State:** IndexedDB / RxDB (Local-First Design)
-* **Hardware Interfacing:** Web Bluetooth API / Garmin Connect IQ Mobile SDK
-* **External Exercise Data:** Wger REST API & `free-exercise-db` GitHub CDN
-* **Media Export:** FFmpeg WebAssembly Port & Web Share API
-
----
+User flows, system diagrams, data stores, and project layout: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ## License
 
@@ -148,4 +98,4 @@ MIT. See `LICENSE`.
 
 ---
 
-*Built for the sovereign home athlete. Powered by the open-source community.*
+*Built for the sovereign home athlete. Architecture in [ARCHITECTURE.md](ARCHITECTURE.md) · Future phases in [ROADMAP.md](ROADMAP.md).*
