@@ -15,7 +15,7 @@ export function ActiveSetLabPage() {
   const [reps, setReps] = useState(0)
   const [velocityLoss, setVelocityLoss] = useState(12)
   const [formDeviation, setFormDeviation] = useState(false)
-  const { logs, appendLog, clearLogs } = useLabLog()
+  const { appendLog, clearLogs } = useLabLog()
 
   const fatigueWarning = velocityLoss > 35 && heartRate > 145
 

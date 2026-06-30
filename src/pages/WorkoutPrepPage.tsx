@@ -1,5 +1,5 @@
-import { ArrowLeft, ChevronRight, Pencil, Play, Tv } from 'lucide-react'
-import { useMemo } from 'react'
+import { ArrowLeft, ChevronRight, Info, Pencil, Play, Tv } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
@@ -10,7 +10,9 @@ import { activateSessionPrep, prepareWorkouts } from '@/lib/workout/sessionPrep'
 import { structureSummary } from '@/lib/workout/workoutStructure'
 import { PrepInsightsPanel } from '@/components/workout/PrepInsightsPanel'
 import { ExerciseIcon, equipmentSummary, metricLabel } from '@/components/workout/ExerciseIcon'
+import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { LabActionButton } from '@/components/lab/LabPrimitives'
+import type { WorkoutExercise } from '@/types/workout'
 
 export function WorkoutPrepPage() {
   const navigate = useNavigate()
@@ -124,28 +126,9 @@ export function WorkoutPrepPage() {
           <p className="mb-3 text-xs text-muted">{structureSummary(workout)}</p>
 
           <ul className="flex flex-col gap-3">
-            {workout.exercises.map((ex, i) => {
-              const target = targets.find((t) => t.exerciseId === ex.id)
-              const weight = target?.adjustedWeightKg ?? ex.weightKg
-              const gear = equipmentSummary(ex.equipment)
-              return (
-                <li key={ex.id} className="flex gap-3">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-surface-2">
-                    <ExerciseIcon metric={ex.metric} kind={ex.kind} equipment={ex.equipment} icon={ex.icon} size={24} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold">{ex.name}</p>
-                    <p className="text-xs text-muted">
-                      {metricLabel(ex.metric, ex.target)}
-                      {weight > 0 && ` · ${weight} kg`}
-                      {gear && ` · ${gear}`}
-                      {ex.restSeconds > 0 && ` · rust ${ex.restSeconds}s`}
-                    </p>
-                  </div>
-                  <span className="label-mono shrink-0 text-faint">#{i + 1}</span>
-                </li>
-              )
-            })}
+            {workout.exercises.map((ex, i) => (
+              <PrepExerciseRow key={ex.id} ex={ex} index={i} targets={targets} />
+            ))}
           </ul>
         </section>
       ))}
@@ -170,5 +153,58 @@ export function WorkoutPrepPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+function PrepExerciseRow({
+  ex,
+  index,
+  targets,
+}: {
+  ex: WorkoutExercise
+  index: number
+  targets: import('@/types/workout').OverloadTarget[]
+}) {
+  const [showInfo, setShowInfo] = useState(false)
+  const target = targets.find((t) => t.exerciseId === ex.id)
+  const weight = target?.adjustedWeightKg ?? ex.weightKg
+  const gear = equipmentSummary(ex.equipment)
+
+  return (
+    <li className="flex gap-3">
+      <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-surface-2">
+        <ExerciseIcon metric={ex.metric} kind={ex.kind} equipment={ex.equipment} icon={ex.icon} size={24} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-semibold">{ex.name}</p>
+          {ex.description && (
+            <button
+              type="button"
+              onClick={() => setShowInfo(true)}
+              className="grid size-11 shrink-0 place-items-center rounded-xl text-muted active:bg-surface-2"
+              aria-label={`Uitleg ${ex.name}`}
+            >
+              <Info className="size-5" />
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-muted">
+          {metricLabel(ex.metric, ex.target)}
+          {weight > 0 && ` · ${weight} kg`}
+          {gear && ` · ${gear}`}
+          {ex.restSeconds > 0 && ` · rust ${ex.restSeconds}s`}
+        </p>
+      </div>
+      <span className="label-mono shrink-0 text-faint">#{index + 1}</span>
+
+      {showInfo && ex.description && (
+        <ExerciseInfoModal
+          name={ex.name}
+          description={ex.description}
+          onClose={() => setShowInfo(false)}
+        />
+      )}
+    </li>
   )
 }

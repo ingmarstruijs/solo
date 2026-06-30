@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Mic, Play, Scale, Square, TimerReset } from 'lucide-react'
+import { Check, ChevronRight, Info, Mic, Play, Scale, Square, TimerReset } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useActiveSession } from '@/hooks/useActiveSession'
@@ -26,6 +26,7 @@ import {
 } from '@/lib/tv/coachEngine'
 import { getPhaseInfo, getPhaseRestSeconds } from '@/lib/workout/workoutStructure'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
+import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { WeightAssistant } from '@/components/workout/WeightAssistant'
 import { useRestCoach } from '@/hooks/useRestCoach'
 import { useElapsedTimer } from '@/hooks/useElapsedTimer'
@@ -479,6 +480,7 @@ function SessionExerciseRow({
   const mediaRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const [showWeight, setShowWeight] = useState(false)
+  const [showInfo, setShowInfo] = useState(false)
   const exerciseTimer = useElapsedTimer(
     new Date(exerciseStartedAt).getTime(),
     isCurrent && !done,
@@ -542,6 +544,16 @@ function SessionExerciseRow({
               {ex.name}
             </p>
             <div className="flex shrink-0 items-center gap-2">
+              {ex.description && (
+                <button
+                  type="button"
+                  onClick={() => setShowInfo(true)}
+                  className="grid size-11 shrink-0 place-items-center rounded-xl text-muted active:bg-surface-2"
+                  aria-label={`Uitleg ${ex.name}`}
+                >
+                  <Info className="size-5" />
+                </button>
+              )}
               {isCurrent && !done && (
                 <span
                   className="font-mono text-sm font-bold tabular-nums text-solo-400"
@@ -658,6 +670,14 @@ function SessionExerciseRow({
             Ongedaan maken
           </button>
         </div>
+      )}
+
+      {showInfo && ex.description && (
+        <ExerciseInfoModal
+          name={ex.name}
+          description={ex.description}
+          onClose={() => setShowInfo(false)}
+        />
       )}
     </div>
   )

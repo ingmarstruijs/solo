@@ -121,6 +121,16 @@ const ICONS: Record<EquipmentCategory, ReactNode> = {
       <line x1="48" y1="48" x2="52" y2="52" />
     </>
   ),
+  bodyweight: (
+    <>
+      <circle cx="32" cy="12" r="7" />
+      <line x1="32" y1="19" x2="32" y2="42" />
+      <line x1="32" y1="28" x2="18" y2="38" />
+      <line x1="32" y1="28" x2="46" y2="38" />
+      <line x1="32" y1="42" x2="22" y2="58" />
+      <line x1="32" y1="42" x2="42" y2="58" />
+    </>
+  ),
   other: (
     <>
       <rect x="16" y="16" width="32" height="32" />

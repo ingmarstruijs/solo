@@ -52,6 +52,10 @@ export function ExerciseIcon({ metric, kind, equipment, icon, className, size = 
   }
 
   const resolved = kind ?? inferKind(metric)
+  if (resolved === 'strength') {
+    return <EquipmentIcon category="bodyweight" size={size} className={cn(EQUIP_COLOR, className)} />
+  }
+
   return (
     <svg
       viewBox="0 0 64 64"

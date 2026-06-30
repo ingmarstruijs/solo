@@ -1,7 +1,8 @@
 import type { ThemeId } from '@/lib/theme/themes'
+import { appUrl } from '@/lib/appBase'
 import type { SessionSummary } from '@/lib/workout/sessionSummary'
 import type { EquipmentCategory } from '@/types/locker'
-import type { ExerciseKind, OverloadTarget, SetMetric, WorkoutTemplate } from '@/types/workout'
+import type { ExerciseKind, ExerciseMedia, OverloadTarget, SetMetric, WorkoutTemplate } from '@/types/workout'
 import { getCoachEnabled } from '@/lib/storage/coachStore'
 import { computeMockSensor } from '@/lib/tv/coachEngine'
 import { computeWorkoutProgress, getPhaseInfo } from '@/lib/workout/workoutStructure'
@@ -41,6 +42,8 @@ export type TvSessionState = {
   metric?: SetMetric
   equipment?: EquipmentCategory[]
   icon?: EquipmentCategory
+  exerciseMedia?: ExerciseMedia
+  exerciseDescription?: string
   nextExerciseName?: string
   completedCount: number
   totalExercises: number
@@ -205,7 +208,7 @@ export function connectTvWindow(): Window | null {
     return tvWindowRef
   }
 
-  const url = `${window.location.origin}/tv`
+  const url = appUrl('/tv')
   // Reuse the same named target so the browser won't spawn duplicates, and keep
   // the ref (no noopener) so we can close it again on disconnect.
   tvWindowRef = window.open(url, TV_WINDOW_NAME, 'width=1280,height=720')
@@ -312,6 +315,8 @@ export function buildSessionTvState(
     metric: ex?.metric,
     equipment: ex?.equipment,
     icon: ex?.icon,
+    exerciseMedia: ex?.media,
+    exerciseDescription: ex?.description,
     nextExerciseName: nextEx?.name,
     completedCount: completed,
     totalExercises: workout.exercises.length,

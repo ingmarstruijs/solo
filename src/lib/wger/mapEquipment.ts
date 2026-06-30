@@ -10,6 +10,9 @@ const WGER_TO_LOCKER: Record<string, EquipmentCategory> = {
   'pull-up bar': 'pull_up_bar',
   'resistance band': 'resistance_band',
   'gym mat': 'other',
+  'none (bodyweight exercise)': 'bodyweight',
+  'none': 'bodyweight',
+  bodyweight: 'bodyweight',
   'swiss ball': 'medicine_ball',
   'sz-bar': 'barbell',
 }

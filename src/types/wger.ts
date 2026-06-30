@@ -11,6 +11,20 @@ export type WgerTranslation = {
   exercise: number
 }
 
+export type WgerExerciseImage = {
+  id: number
+  uuid: string
+  exercise: number
+  exercise_uuid: string
+  image: string
+  thumbnails?: {
+    small?: string
+    medium?: string
+  }
+  is_main: boolean
+  license_author?: string
+}
+
 export type WgerExerciseInfo = {
   id: number
   uuid: string
@@ -18,6 +32,7 @@ export type WgerExerciseInfo = {
   equipment: WgerEquipment[]
   translations: WgerTranslation[]
   muscles: { id: number; name: string; name_en: string }[]
+  images?: WgerExerciseImage[]
 }
 
 export type WgerPaginated<T> = {

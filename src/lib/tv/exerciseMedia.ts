@@ -1,5 +1,5 @@
 import type { EquipmentCategory } from '@/types/locker'
-import type { SetMetric, WorkoutExercise } from '@/types/workout'
+import type { ExerciseMedia, SetMetric, WorkoutExercise } from '@/types/workout'
 
 export type ExerciseVisualKind =
   | 'barbell'
@@ -16,16 +16,21 @@ export type ExerciseVisual = {
   subtitle: string
   gradient: string
   loopClass: string
+  media?: ExerciseMedia
+  /** Best URL for TV display: medium thumbnail, then full image. */
+  displayImageUrl?: string
 }
 
 type ResolveInput = Pick<
   WorkoutExercise,
-  'name' | 'kind' | 'metric' | 'equipment' | 'icon'
+  'name' | 'kind' | 'metric' | 'equipment' | 'icon' | 'media'
 >
 
 export function resolveExerciseVisual(exercise: ResolveInput): ExerciseVisual {
   const kind = inferVisualKind(exercise)
   const equipment = exercise.equipment.filter((c) => c !== 'other')
+  const displayImageUrl =
+    exercise.media?.thumbnailUrl ?? exercise.media?.imageUrl ?? undefined
 
   return {
     kind,
@@ -33,6 +38,8 @@ export function resolveExerciseVisual(exercise: ResolveInput): ExerciseVisual {
     subtitle: equipment.length > 0 ? equipment.join(' · ') : kindLabel(kind),
     gradient: GRADIENTS[kind],
     loopClass: `tv-loop-${kind}`,
+    media: exercise.media,
+    displayImageUrl,
   }
 }
 
@@ -43,17 +50,18 @@ function inferVisualKind(exercise: ResolveInput): ExerciseVisualKind {
   if (eq.includes('dumbbell')) return 'dumbbell'
   if (eq.includes('kettlebell') || eq.includes('medicine_ball')) return 'kettlebell'
   if (eq.includes('resistance_band') || eq.includes('cable')) return 'bands'
+  if (eq.includes('bodyweight') || eq.length === 0) return 'bodyweight'
   if (exercise.metric === 'distance' || eq.includes('rower') || eq.includes('jump_rope')) {
     return 'cardio'
   }
   const resolved = exercise.kind ?? (exercise.metric === 'time' ? 'cardio' : 'strength')
   if (resolved === 'mobility' || eq.includes('foam_roller')) return 'mobility'
   if (resolved === 'cardio' || exercise.metric !== 'reps') return 'cardio'
-  if (eq.length === 0) return 'bodyweight'
   return 'bodyweight'
 }
 
 function iconToVisual(icon: EquipmentCategory): ExerciseVisualKind {
+  if (icon === 'bodyweight') return 'bodyweight'
   if (icon === 'barbell' || icon === 'weight_plate') return 'barbell'
   if (icon === 'dumbbell') return 'dumbbell'
   if (icon === 'kettlebell' || icon === 'medicine_ball') return 'kettlebell'

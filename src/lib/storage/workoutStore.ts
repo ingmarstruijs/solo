@@ -1,4 +1,5 @@
 import type { WorkoutExport, WorkoutTemplate } from '@/types/workout'
+import { SEED_WORKOUTS } from '@/data/seedWorkouts'
 import { migrateWorkout, type LegacyWorkout } from '@/lib/workout/migrateWorkout'
 import { createId, readStore, subscribeStore, writeStore } from './localStore'
 
@@ -20,95 +21,6 @@ function markSeeded(): void {
     // ignore
   }
 }
-
-const SEED_WORKOUTS: WorkoutTemplate[] = [
-  {
-    id: 'seed-upper-push',
-    name: 'Upper Push',
-    description: 'Dumbbell bench, overhead press en triceps — thuisvriendelijk.',
-    favorite: true,
-    source: 'manual',
-    estimatedMinutes: 35,
-    tags: ['push', 'upper'],
-    sets: 4,
-    restBetweenSets: 90,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    exercises: [
-      {
-        id: 'ex-1',
-        name: 'Dumbbell Bench Press',
-        metric: 'reps',
-        target: 10,
-        weightKg: 20,
-        restSeconds: 90,
-        equipment: ['dumbbell', 'bench'],
-      },
-      {
-        id: 'ex-2',
-        name: 'Overhead Press',
-        metric: 'reps',
-        target: 12,
-        weightKg: 14,
-        restSeconds: 75,
-        equipment: ['dumbbell'],
-      },
-      {
-        id: 'ex-3',
-        name: 'Triceps Extension',
-        metric: 'reps',
-        target: 15,
-        weightKg: 10,
-        restSeconds: 60,
-        equipment: ['dumbbell'],
-      },
-    ],
-  },
-  {
-    id: 'seed-full-body',
-    name: 'Full Body Circuit',
-    description: 'Korte circuit met kettlebell, band en bodyweight.',
-    favorite: false,
-    source: 'manual',
-    estimatedMinutes: 25,
-    tags: ['circuit', 'full-body'],
-    sets: 1,
-    restBetweenSets: 0,
-    circuitRounds: 3,
-    restBetweenRounds: 60,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    exercises: [
-      {
-        id: 'ex-4',
-        name: 'Kettlebell Swing',
-        metric: 'reps',
-        target: 15,
-        weightKg: 16,
-        restSeconds: 45,
-        equipment: ['kettlebell'],
-      },
-      {
-        id: 'ex-5',
-        name: 'Band Row',
-        metric: 'reps',
-        target: 20,
-        weightKg: 0,
-        restSeconds: 45,
-        equipment: ['resistance_band'],
-      },
-      {
-        id: 'ex-6',
-        name: 'Goblet Squat',
-        metric: 'reps',
-        target: 12,
-        weightKg: 16,
-        restSeconds: 60,
-        equipment: ['kettlebell'],
-      },
-    ],
-  },
-]
 
 function ensureSeed(): WorkoutTemplate[] {
   const existing = readStore<LegacyWorkout[]>(KEY, [])
@@ -208,6 +120,16 @@ export function importWorkouts(data: WorkoutExport): number {
   }
   saveWorkouts(merged)
   return added
+}
+
+/** Import a shared workout with fresh ids so it never collides with existing data. */
+export function importSharedWorkout(workout: WorkoutTemplate): WorkoutTemplate {
+  const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = workout
+  return addWorkout({
+    ...rest,
+    favorite: false,
+    exercises: rest.exercises.map((ex) => ({ ...ex, id: createId() })),
+  })
 }
 
 export function subscribeWorkouts(onChange: () => void): () => void {

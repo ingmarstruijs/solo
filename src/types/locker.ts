@@ -12,6 +12,7 @@ export type EquipmentCategory =
   | 'cable'
   | 'foam_roller'
   | 'jump_rope'
+  | 'bodyweight'
   | 'other'
 
 export type LockerItem = {

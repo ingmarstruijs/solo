@@ -211,6 +211,18 @@ export function ExerciseBlock({
       </div>
 
       <ExerciseIconPicker value={exercise.icon} onChange={(icon) => patch({ icon })} />
+
+      <div className="mt-3">
+        <Field label="Uitleg" hint="Markdown ondersteund — zichtbaar op mobiel (popup) en op TV">
+          <textarea
+            value={exercise.description ?? ''}
+            onChange={(e) => patch({ description: e.target.value.trim() || undefined })}
+            placeholder="Instructies, tips of uitvoering…"
+            rows={3}
+            className={cn(inputClass, 'resize-y min-h-[4.5rem]')}
+          />
+        </Field>
+      </div>
     </div>
   )
 }

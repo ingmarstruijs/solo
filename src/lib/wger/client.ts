@@ -70,3 +70,33 @@ export function exerciseDisplayName(info: WgerExerciseInfo, language = WGER_LANG
 export function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 }
+
+/**
+ * Convert wger's HTML description into markdown so imported exercises behave
+ * like manually authored exercise instructions.
+ */
+export function htmlToMarkdown(html: string): string {
+  return html
+    .replace(/<strong[^>]*>|<b[^>]*>/gi, '**')
+    .replace(/<\/strong>|<\/b>/gi, '**')
+    .replace(/<em[^>]*>|<i[^>]*>/gi, '_')
+    .replace(/<\/em>|<\/i>/gi, '_')
+    .replace(/<h[1-6][^>]*>/gi, '\n### ')
+    .replace(/<\/h[1-6]>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '\n- ')
+    .replace(/<\/(p|li|ol|ul|div)>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/[ \t]+/g, ' ')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line, i, arr) => line !== '' || arr[i - 1] !== '')
+    .join('\n')
+    .trim()
+}

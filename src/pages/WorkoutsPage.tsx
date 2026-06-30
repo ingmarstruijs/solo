@@ -1,9 +1,10 @@
 import { CheckSquare, Dumbbell, Play, Square } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { WorkoutFilters } from '@/types/workout'
+import type { WorkoutFilters, WorkoutTemplate } from '@/types/workout'
 import { filterWorkouts } from '@/lib/workout/filters'
 import { parseFitFile } from '@/lib/workout/fitImport'
+import { shareWorkoutLink } from '@/lib/workout/shareLink'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useWorkouts } from '@/hooks/useWorkouts'
@@ -76,6 +77,15 @@ export function WorkoutsPage() {
       else next.add(id)
       return next
     })
+  }
+
+  async function handleShare(workout: WorkoutTemplate) {
+    try {
+      const result = await shareWorkoutLink(workout)
+      if (result === 'copied') alert('Workout-link gekopieerd naar klembord.')
+    } catch {
+      // gebruiker sloot het native share-sheet
+    }
   }
 
   function handleDelete(id: string) {
@@ -151,6 +161,7 @@ export function WorkoutsPage() {
             multiSelected={multiSelect.has(workout.id)}
             onOpen={(w) => (selectionMode ? toggleMulti(w.id) : openPrep(w.id))}
             onEdit={(w) => navigate(`/workouts/${w.id}/edit`)}
+            onShare={handleShare}
             onDelete={handleDelete}
             onToggleMulti={toggleMulti}
             onToggleFavorite={toggleFav}

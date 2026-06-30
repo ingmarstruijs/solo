@@ -261,9 +261,15 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
           </LabActionButton>
         </div>
         {onDelete && (
-          <LabActionButton variant="danger" onClick={onDelete} className="w-full">
-            Workout verwijderen
-          </LabActionButton>
+          <div className="mt-6 border-t border-line pt-4">
+            <button
+              type="button"
+              onClick={onDelete}
+              className="w-full rounded-xl border border-danger/25 px-4 py-2.5 text-sm font-medium text-danger active:bg-danger/10"
+            >
+              Workout verwijderen
+            </button>
+          </div>
         )}
       </div>
     </div>

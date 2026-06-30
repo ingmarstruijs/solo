@@ -24,6 +24,13 @@ export type SetMetric = 'reps' | 'time' | 'distance'
 
 export type ExerciseKind = 'strength' | 'cardio' | 'mobility'
 
+export type ExerciseMedia = {
+  imageUrl?: string
+  thumbnailUrl?: string
+  attribution?: string
+  source?: 'wger'
+}
+
 /** One exercise definition — sets are defined at workout level. */
 export type WorkoutExercise = {
   id: string
@@ -38,6 +45,9 @@ export type WorkoutExercise = {
   equipment: EquipmentCategory[]
   /** Optioneel eigen icoon; anders afgeleid van materiaal of type. */
   icon?: EquipmentCategory
+  media?: ExerciseMedia
+  /** Volledige uitleg/instructies (bijv. uit Wger), platte tekst met regeleindes. */
+  description?: string
   notes?: string
 }
 

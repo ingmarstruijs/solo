@@ -1,0 +1,228 @@
+{
+  "version": 1,
+  "exportedAt": "2026-06-30T18:17:38.345Z",
+  "workouts": [
+    {
+      "id": "seed-upper-push",
+      "name": "Upper Push",
+      "description": "Dumbbell bench, overhead press en triceps — thuisvriendelijk.",
+      "favorite": true,
+      "source": "manual",
+      "estimatedMinutes": 35,
+      "tags": [
+        "push",
+        "upper"
+      ],
+      "sets": 4,
+      "restBetweenSets": 90,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        {
+          "id": "seed-ex-bench",
+          "name": "Dumbbell Bench Press",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 10,
+          "weightKg": 20,
+          "restSeconds": 90,
+          "equipment": [
+            "dumbbell",
+            "bench"
+          ],
+          "description": "### Uitvoering\n- Ga plat op de bank met dumbbells op borsthoogte\n- Druk omhoog tot armen bijna gestrekt\n- Laat gecontroleerd zakken\n\n**Tip:** schouders blijven op de bank."
+        },
+        {
+          "id": "seed-ex-ohp",
+          "name": "Overhead Press",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 12,
+          "weightKg": 14,
+          "restSeconds": 75,
+          "equipment": [
+            "dumbbell"
+          ]
+        },
+        {
+          "id": "seed-ex-tri",
+          "name": "Triceps Extension",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 15,
+          "weightKg": 10,
+          "restSeconds": 60,
+          "equipment": [
+            "dumbbell"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seed-lower-body",
+      "name": "Lower Body",
+      "description": "Squat, deadlift en lunges met barbell en dumbbells.",
+      "favorite": true,
+      "source": "manual",
+      "estimatedMinutes": 40,
+      "tags": [
+        "legs",
+        "lower"
+      ],
+      "sets": 4,
+      "restBetweenSets": 120,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        {
+          "id": "seed-ex-squat",
+          "name": "Barbell Back Squat",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 8,
+          "weightKg": 60,
+          "restSeconds": 120,
+          "equipment": [
+            "barbell",
+            "weight_plate"
+          ],
+          "description": "### Uitvoering\n1. Sta met bar op de upper back\n2. Zak tot minstens parallel\n3. Drijf via de hielen omhoog"
+        },
+        {
+          "id": "seed-ex-rdl",
+          "name": "Romanian Deadlift",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 10,
+          "weightKg": 50,
+          "restSeconds": 90,
+          "equipment": [
+            "barbell",
+            "weight_plate"
+          ]
+        },
+        {
+          "id": "seed-ex-lunge",
+          "name": "Walking Lunges",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 12,
+          "weightKg": 14,
+          "restSeconds": 75,
+          "equipment": [
+            "dumbbell"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seed-full-body",
+      "name": "Full Body Circuit",
+      "description": "Korte circuit met kettlebell, band en bodyweight.",
+      "favorite": false,
+      "source": "manual",
+      "estimatedMinutes": 25,
+      "tags": [
+        "circuit",
+        "full-body"
+      ],
+      "sets": 1,
+      "restBetweenSets": 0,
+      "circuitRounds": 3,
+      "restBetweenRounds": 60,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        {
+          "id": "seed-ex-swing",
+          "name": "Kettlebell Swing",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 15,
+          "weightKg": 16,
+          "restSeconds": 45,
+          "equipment": [
+            "kettlebell"
+          ]
+        },
+        {
+          "id": "seed-ex-row",
+          "name": "Band Row",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 20,
+          "weightKg": 0,
+          "restSeconds": 45,
+          "equipment": [
+            "resistance_band"
+          ]
+        },
+        {
+          "id": "seed-ex-goblet",
+          "name": "Goblet Squat",
+          "kind": "strength",
+          "metric": "reps",
+          "target": 12,
+          "weightKg": 16,
+          "restSeconds": 60,
+          "equipment": [
+            "kettlebell"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seed-mobility",
+      "name": "Mobility Reset",
+      "description": "Korte mobiliteitssessie voor herstel en range of motion.",
+      "favorite": false,
+      "source": "manual",
+      "estimatedMinutes": 15,
+      "tags": [
+        "mobility",
+        "recovery"
+      ],
+      "sets": 2,
+      "restBetweenSets": 30,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "exercises": [
+        {
+          "id": "seed-ex-cat-cow",
+          "name": "Cat-Cow",
+          "kind": "mobility",
+          "metric": "time",
+          "target": 45,
+          "weightKg": 0,
+          "restSeconds": 20,
+          "equipment": [],
+          "description": "Langzaam wisselen tussen flexie en extensie van de wervelkolom."
+        },
+        {
+          "id": "seed-ex-hip-90",
+          "name": "90/90 Hip Switch",
+          "kind": "mobility",
+          "metric": "time",
+          "target": 60,
+          "weightKg": 0,
+          "restSeconds": 20,
+          "equipment": [
+            "foam_roller"
+          ]
+        },
+        {
+          "id": "seed-ex-band-pull",
+          "name": "Band Pull-Apart",
+          "kind": "mobility",
+          "metric": "reps",
+          "target": 20,
+          "weightKg": 0,
+          "restSeconds": 30,
+          "equipment": [
+            "resistance_band"
+          ]
+        }
+      ]
+    }
+  ]
+}

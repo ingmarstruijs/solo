@@ -167,7 +167,10 @@ export function looksLikeGarminName(name: string | undefined): boolean {
   )
 }
 
-export function buildDeviceDisplayName(device: BluetoothDevice, info: DeviceInfo): string {
+export function buildDeviceDisplayName(
+  device: BluetoothDevice,
+  info: Partial<Pick<DeviceInfo, 'manufacturer' | 'model'>>,
+): string {
   if (device.name) return device.name
   if (info.model && info.manufacturer) return `${info.manufacturer} ${info.model}`
   if (info.model) return info.model

@@ -1,7 +1,15 @@
+import { useEffect, useState } from 'react'
 import type { ExerciseVisual } from '@/lib/tv/exerciseMedia'
 import { cn } from '@/lib/cn'
 
 export function TvExerciseVisual({ visual }: { visual: ExerciseVisual }) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const showImage = Boolean(visual.displayImageUrl) && !imageFailed
+
+  useEffect(() => {
+    setImageFailed(false)
+  }, [visual.displayImageUrl])
+
   return (
     <div
       className={cn(
@@ -10,8 +18,18 @@ export function TvExerciseVisual({ visual }: { visual: ExerciseVisual }) {
       )}
       style={{ background: visual.gradient }}
     >
-      <ExerciseLoopSvg kind={visual.kind} />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/80 to-transparent p-[2vh]">
+      {showImage ? (
+        <img
+          src={visual.displayImageUrl}
+          alt={visual.title}
+          loading="eager"
+          className="absolute inset-0 h-full w-full object-contain p-[1.5vh]"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <ExerciseLoopSvg kind={visual.kind} />
+      )}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 via-ink/50 to-transparent p-[2vh]">
         <p className="text-[2.2vh] font-semibold">{visual.title}</p>
         <p className="text-[1.4vh] text-muted">{visual.subtitle}</p>
       </div>

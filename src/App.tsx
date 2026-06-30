@@ -18,11 +18,16 @@ import { SettingsPage } from '@/pages/SettingsPage'
 import { TvPage } from '@/pages/TvPage'
 import { WorkoutEditorPage } from '@/pages/WorkoutEditorPage'
 import { WorkoutPrepPage } from '@/pages/WorkoutPrepPage'
+import { WorkoutSharePage } from '@/pages/WorkoutSharePage'
 import { WorkoutsPage } from '@/pages/WorkoutsPage'
 
+import { appBasePath } from '@/lib/appBase'
+
 export function App() {
+  const routerBasename = appBasePath() || undefined
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename}>
       <Routes>
         {/* TV: passive 4K surface, rendered without the mobile shell */}
         <Route path="/tv" element={<TvPage />} />
@@ -31,6 +36,7 @@ export function App() {
         <Route element={<MobileShell />}>
           <Route index element={<HomePage />} />
           <Route path="workouts" element={<WorkoutsPage />} />
+          <Route path="workouts/share" element={<WorkoutSharePage />} />
           <Route path="workouts/new" element={<WorkoutEditorPage />} />
           <Route path="workouts/prep" element={<WorkoutPrepPage />} />
           <Route path="workouts/:id/edit" element={<WorkoutEditorPage />} />

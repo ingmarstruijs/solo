@@ -5,6 +5,7 @@ import { TvRestTimer } from '@/components/tv/TvRestTimer'
 import { TvExerciseVisual } from '@/components/tv/TvExerciseVisual'
 import { TvSensorStrip } from '@/components/tv/TvSensorStrip'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
+import { MarkdownText } from '@/components/MarkdownText'
 import { useAutoThemeWatcher } from '@/hooks/useTheme'
 import { formatDuration, normalizeSummary } from '@/lib/workout/sessionSummary'
 import { resolveExerciseVisual } from '@/lib/tv/exerciseMedia'
@@ -149,6 +150,7 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
     metric: state.metric ?? 'reps',
     equipment: state.equipment ?? [],
     icon: state.icon,
+    media: state.exerciseMedia,
   })
 
   const progress = state.progressPercent
@@ -170,7 +172,21 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
       </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-[1.3fr_1fr] gap-[2vh]">
-        <TvExerciseVisual visual={visual} />
+        <div className="flex min-h-0 flex-col gap-[1.5vh]">
+          <div className="min-h-0 flex-[3]">
+            <TvExerciseVisual visual={visual} />
+          </div>
+          {state.exerciseDescription && (
+            <div className="flex min-h-0 flex-[2] flex-col rounded-[1.5vh] border border-line bg-surface p-[1.5vh]">
+              <p className="label-mono shrink-0 text-[1.2vh] text-faint">Uitleg</p>
+              <MarkdownText
+                content={state.exerciseDescription}
+                variant="tv"
+                className="mt-[1vh] min-h-0 flex-1 overflow-hidden"
+              />
+            </div>
+          )}
+        </div>
 
         <div className="flex min-h-0 flex-col gap-[1.5vh]">
           <div className="shrink-0 rounded-[1.5vh] border border-line bg-surface p-[2vh]">

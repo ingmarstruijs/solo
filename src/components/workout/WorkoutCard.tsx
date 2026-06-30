@@ -1,4 +1,4 @@
-import { ChevronRight, Clock, Dumbbell, Pencil, Star, Trash2 } from 'lucide-react'
+import { ChevronRight, Clock, Dumbbell, Pencil, Share2, Star, Trash2 } from 'lucide-react'
 import type { WorkoutTemplate } from '@/types/workout'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { getWorkoutStructure } from '@/lib/workout/workoutStructure'
@@ -11,6 +11,7 @@ type WorkoutCardProps = {
   selectionMode?: boolean
   onOpen: (workout: WorkoutTemplate) => void
   onEdit?: (workout: WorkoutTemplate) => void
+  onShare?: (workout: WorkoutTemplate) => void
   onDelete?: (id: string) => void
   onToggleMulti?: (id: string) => void
   onToggleFavorite: (id: string) => void
@@ -23,6 +24,7 @@ export function WorkoutCard({
   selectionMode,
   onOpen,
   onEdit,
+  onShare,
   onDelete,
   onToggleMulti,
   onToggleFavorite,
@@ -75,6 +77,19 @@ export function WorkoutCard({
                   aria-label={`${workout.name} bewerken`}
                 >
                   <Pencil className="size-4" />
+                </button>
+              )}
+              {onShare && !selectionMode && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onShare(workout)
+                  }}
+                  className="p-1 text-faint active:text-solo-400"
+                  aria-label={`${workout.name} delen`}
+                >
+                  <Share2 className="size-4" />
                 </button>
               )}
               {onDelete && !selectionMode && (

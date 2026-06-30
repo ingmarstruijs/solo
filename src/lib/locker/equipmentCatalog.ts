@@ -22,6 +22,7 @@ export const EQUIPMENT_CATALOG: EquipmentMeta[] = [
   { category: 'cable', label: 'Cable Machine', labelNl: 'Kabel', hasWeight: false, hasResistance: false },
   { category: 'foam_roller', label: 'Foam Roller', labelNl: 'Foam roller', hasWeight: false, hasResistance: false },
   { category: 'jump_rope', label: 'Jump Rope', labelNl: 'Springtouw', hasWeight: false, hasResistance: false },
+  { category: 'bodyweight', label: 'Bodyweight', labelNl: 'Lichaamsgewicht', hasWeight: false, hasResistance: false },
   { category: 'other', label: 'Other', labelNl: 'Overig', hasWeight: false, hasResistance: false },
 ]
 

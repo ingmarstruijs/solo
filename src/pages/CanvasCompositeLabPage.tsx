@@ -128,7 +128,7 @@ export function CanvasCompositeLabPage() {
   )
 }
 
-function drawStudioLoop(context: CanvasRenderingContext2D, elapsed: number, width: number, height: number) {
+function drawStudioLoop(context: CanvasRenderingContext2D, elapsed: number, _width: number, height: number) {
   const x = 160 + Math.sin(elapsed * 1.8) * 36
   const y = height / 2 + Math.cos(elapsed * 1.3) * 18
 
