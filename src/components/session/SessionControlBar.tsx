@@ -101,7 +101,7 @@ export function SessionControlBar({
           <IconToggle
             label="Coach"
             active={coachEnabled}
-            activeClass="border-warn/40 bg-warn/10 text-warn"
+            activeClass="border-success/40 bg-success/10 text-success"
             onClick={onCoachToggle}
           >
             <Mic className="size-4" />
@@ -112,7 +112,6 @@ export function SessionControlBar({
             active={tvConnected}
             activeClass="border-success/40 bg-success/10 text-success"
             onClick={tvConnected ? onDisconnectTv : onConnectTv}
-            inactiveClass={onConnectTv ? 'text-solo-300' : undefined}
           >
             <Tv className="size-4" />
           </IconToggle>
@@ -134,14 +133,12 @@ function IconToggle({
   label,
   active,
   activeClass,
-  inactiveClass,
   onClick,
   children,
 }: {
   label: string
   active: boolean
   activeClass: string
-  inactiveClass?: string
   onClick?: () => void
   children: ReactNode
 }) {
@@ -156,7 +153,7 @@ function IconToggle({
         'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border px-1 py-1.5 text-[10px] font-medium leading-none transition-colors',
         active
           ? activeClass
-          : cn('border-line bg-surface-2 active:bg-surface-3', inactiveClass ?? 'text-muted'),
+          : 'border-line bg-surface-2 text-muted active:bg-surface-3',
         !onClick && 'cursor-default',
       )}
     >

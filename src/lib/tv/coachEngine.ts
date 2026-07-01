@@ -3,6 +3,7 @@ import { equipmentSummary, metricLabel } from '@/components/workout/ExerciseIcon
 
 export type TvSensorState = {
   cameraEnabled: boolean
+  garminConnected: boolean
   velocityDropPercent: number
   heartRatePercentMax: number
 }
@@ -13,6 +14,7 @@ type SensorInput = {
   recoveryScore: number
   elapsedMs: number
   cameraEnabled: boolean
+  garminConnected: boolean
 }
 
 /** Deterministic mock sensor values until Edge AI / wearables land. */
@@ -22,7 +24,17 @@ export function computeMockSensor({
   recoveryScore,
   elapsedMs,
   cameraEnabled,
+  garminConnected,
 }: SensorInput): TvSensorState {
+  if (!garminConnected) {
+    return {
+      cameraEnabled,
+      garminConnected: false,
+      velocityDropPercent: 0,
+      heartRatePercentMax: 0,
+    }
+  }
+
   const elapsedMin = elapsedMs / 60_000
   const fatigue = (100 - recoveryScore) * 0.35
   const velocityDropPercent = Math.min(
@@ -36,6 +48,7 @@ export function computeMockSensor({
 
   return {
     cameraEnabled,
+    garminConnected: true,
     velocityDropPercent,
     heartRatePercentMax,
   }

@@ -14,14 +14,16 @@ export function TvSensorStrip({ sensor }: { sensor: TvSensorState }) {
       <SensorTile
         icon={Heart}
         label="HR zone"
-        value={`${sensor.heartRatePercentMax}%`}
-        warn={sensor.heartRatePercentMax >= 85}
+        value={sensor.garminConnected ? `${sensor.heartRatePercentMax}%` : 'OFF'}
+        active={sensor.garminConnected}
+        warn={sensor.garminConnected && sensor.heartRatePercentMax >= 85}
       />
       <SensorTile
         icon={Zap}
         label="Velocity drop"
-        value={`-${sensor.velocityDropPercent}%`}
-        warn={sensor.velocityDropPercent > 35}
+        value={sensor.garminConnected ? `-${sensor.velocityDropPercent}%` : 'OFF'}
+        active={sensor.garminConnected}
+        warn={sensor.garminConnected && sensor.velocityDropPercent > 35}
       />
     </div>
   )
@@ -54,8 +56,9 @@ function SensorTile({
       <p
         className={cn(
           'text-[2vh] font-bold tabular-nums',
-          active && 'text-success',
+          active && !warn && 'text-success',
           warn && 'text-warn',
+          !active && !warn && 'text-muted',
         )}
       >
         {value}

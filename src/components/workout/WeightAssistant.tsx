@@ -14,7 +14,7 @@ export function WeightAssistant({ exerciseName, config, className }: WeightAssis
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="truncate text-xs font-semibold">{exerciseName}</p>
         <p className="shrink-0 font-mono text-sm font-bold tabular-nums text-solo-300">
-          {config.totalKg > 0 ? `${config.totalKg} kg` : 'BW'}
+          {config.totalKg > 0 ? `${config.totalKg} kg` : 'Lichaamsgewicht'}
         </p>
       </div>
 
@@ -22,7 +22,7 @@ export function WeightAssistant({ exerciseName, config, className }: WeightAssis
       {config.mode === 'dumbbell' && <DumbbellDiagram config={config} />}
       {config.mode === 'kettlebell' && <KettlebellDiagram config={config} />}
       {config.mode === 'bodyweight' && (
-        <p className="text-center text-xs text-muted">Bodyweight — geen gewicht nodig</p>
+        <p className="text-center text-xs text-muted">Lichaamsgewicht — geen gewicht nodig</p>
       )}
 
       {config.itemsUsed.length > 0 && (

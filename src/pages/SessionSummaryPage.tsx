@@ -1,6 +1,7 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Trash2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { PageBackButton } from '@/components/layout/PageBackButton'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { useHistory } from '@/hooks/useHistory'
 import { useSessionActions } from '@/hooks/useSessionActions'
@@ -11,6 +12,7 @@ import { publishToTvTransport, publishTvIdle } from '@/lib/tv/transport'
 import { loadWorkoutQueue, popNextQueuedWorkout } from '@/lib/workout/sessionPrep'
 import {
   clearLastSummary,
+  formatDuration,
   loadLastSummary,
   normalizeSummary,
   type SessionSummary,
@@ -56,7 +58,7 @@ export function SessionSummaryPage() {
 
   function handleDeleteHistory() {
     if (!sessionId || !historyRecord) return
-    if (!confirm(`"${historyRecord.workoutName}" uit je historie verwijderen?`)) return
+    if (!confirm(`"${historyRecord.workoutName}" uit je logboek verwijderen?`)) return
     removeHistory(sessionId)
     navigate('/history')
   }
@@ -89,7 +91,7 @@ export function SessionSummaryPage() {
         </h1>
         <p className="text-sm text-muted">
           {isHistoryView
-            ? 'Deze sessie staat niet meer in je historie.'
+            ? 'Deze sessie staat niet meer in je logboek.'
             : 'Rond eerst een workout af om het overzicht te zien.'}
         </p>
         <button
@@ -97,32 +99,50 @@ export function SessionSummaryPage() {
           onClick={() => navigate(isHistoryView ? '/history' : '/workouts')}
           className="rounded-xl bg-solo-400 py-3 text-sm font-semibold text-ink"
         >
-          {isHistoryView ? 'Terug naar historie' : 'Naar workouts'}
+          {isHistoryView ? 'Terug naar logboek' : 'Naar workouts'}
         </button>
       </section>
     )
   }
 
   return (
-    <section className="flex flex-col gap-5 py-2">
-      <header className="shrink-0">
-        <p className="label-mono text-success">● Klaar</p>
-        <h1 className="text-xl font-bold">Samenvatting</h1>
-        {isHistoryView && historyRecord && (
-          <p className="mt-1 text-xs text-muted">
-            {new Date(historyRecord.completedAt).toLocaleString('nl-NL', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+    <section className="flex flex-col gap-3 py-1">
+      <div className="flex items-center gap-2">
+        <PageBackButton
+          to={isHistoryView ? '/history' : '/workouts'}
+          label={isHistoryView ? 'Logboek' : undefined}
+        />
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-base font-bold">{summary.workoutName}</h1>
+          <p className="text-xs text-muted">
+            {formatDuration(summary.totalDurationSeconds)}
+            {isHistoryView && historyRecord && (
+              <>
+                {' · '}
+                {new Date(historyRecord.completedAt).toLocaleDateString('nl-NL', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </>
+            )}
           </p>
+        </div>
+        {isHistoryView && (
+          <button
+            type="button"
+            onClick={handleDeleteHistory}
+            className="grid size-11 shrink-0 place-items-center rounded-xl border border-danger/40 bg-danger/10 text-danger active:bg-danger/20"
+            aria-label="Verwijderen"
+          >
+            <Trash2 className="size-5" />
+          </button>
         )}
-      </header>
+      </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto pb-2">
-        <WorkoutSummary summary={summary} />
+        <WorkoutSummary summary={summary} showHeader={false} />
       </div>
 
       <div className="flex shrink-0 flex-col gap-2">
@@ -136,24 +156,13 @@ export function SessionSummaryPage() {
             <ChevronRight className="size-4" />
           </button>
         )}
-        <button
-          type="button"
-          onClick={handleDone}
-          className="rounded-xl border border-line py-3 text-sm font-semibold text-fg active:bg-surface-2"
-        >
-          {isHistoryView
-            ? 'Terug naar historie'
-            : hasNextWorkout
-              ? 'Stoppen'
-              : 'Terug naar workouts'}
-        </button>
-        {isHistoryView && (
+        {!isHistoryView && (
           <button
             type="button"
-            onClick={handleDeleteHistory}
-            className="rounded-xl border border-danger/40 bg-danger/10 py-3 text-sm font-semibold text-danger active:bg-danger/20"
+            onClick={handleDone}
+            className="rounded-xl border border-line py-3 text-sm font-semibold text-fg active:bg-surface-2"
           >
-            Verwijderen uit historie
+            {hasNextWorkout ? 'Stoppen' : 'Terug naar workouts'}
           </button>
         )}
       </div>

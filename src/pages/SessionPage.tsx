@@ -1,23 +1,33 @@
-import { Check, ChevronRight, Info, Mic, Play, Scale, Square, TimerReset } from 'lucide-react'
+import {
+  Check,
+  ChevronRight,
+  Mic,
+  Pause,
+  Play,
+  Scale,
+  Square,
+  TimerReset,
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useActiveSession } from '@/hooks/useActiveSession'
+import { useCameraEnabled } from '@/hooks/useCameraEnabled'
+import { useCoachEnabled } from '@/hooks/useCoachEnabled'
+import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useSessionActions } from '@/hooks/useSessionActions'
 import { useTheme } from '@/hooks/useTheme'
-import { loadWorkoutQueue } from '@/lib/workout/sessionPrep'
-import { useCoachEnabled } from '@/hooks/useCoachEnabled'
+import { loadWorkoutQueue, popNextQueuedWorkout } from '@/lib/workout/sessionPrep'
 import { useTvConnection } from '@/hooks/useTvConnection'
 import { useCoachAnnouncement } from '@/hooks/useCoachVoice'
 import { useRestCountdown, type RestTimer } from '@/hooks/useRestCountdown'
 import { SessionControlBar } from '@/components/session/SessionControlBar'
+import { SessionMaterialsChecklist } from '@/components/session/SessionMaterialsChecklist'
 import { RestTimerBar } from '@/components/session/RestTimerBar'
+import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { buildSessionTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
-import {
-  buildSessionSummary,
-  saveLastSummary,
-} from '@/lib/workout/sessionSummary'
+import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
 import { advanceToNextSet } from '@/lib/storage/sessionStore'
 import {
   buildCompletionAnnouncement,
@@ -25,8 +35,8 @@ import {
   getExerciseWeight,
 } from '@/lib/tv/coachEngine'
 import { getPhaseInfo, getPhaseRestSeconds } from '@/lib/workout/workoutStructure'
+import { collectWorkoutMaterials } from '@/lib/workout/sessionMaterials'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
-import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { WeightAssistant } from '@/components/workout/WeightAssistant'
 import { useRestCoach } from '@/hooks/useRestCoach'
 import { useElapsedTimer } from '@/hooks/useElapsedTimer'
@@ -36,15 +46,23 @@ import { cn } from '@/lib/cn'
 export function SessionPage() {
   const navigate = useNavigate()
   const { session } = useActiveSession()
-  const { toggleComplete, setNote, cancelSession, completeSession } = useSessionActions()
+  const {
+    toggleComplete,
+    setNote,
+    cancelSession,
+    completeSession,
+    startNextWorkout,
+    startExercises,
+    togglePause,
+  } = useSessionActions()
   const { score: recoveryScore } = useRecoveryScore()
+  const { connected: garminConnected } = useGarminConnected()
   const { theme } = useTheme()
   const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
+  const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
   const { status: tvStatus } = useTvConnection()
-  const activeRowRef = useRef<HTMLLIElement>(null)
   const listRef = useRef<HTMLOListElement>(null)
   const announcedSessionStartRef = useRef<string | null>(null)
-  const [sensorEnabled, setSensorEnabled] = useState(false)
   const [coachAnnouncement, setCoachAnnouncement] = useState<{
     text: string
     key: string
@@ -53,6 +71,13 @@ export function SessionPage() {
   const restCountdown = useRestCountdown(restTimer)
   useRestCoach(restCountdown, restTimer && restCountdown.active ? restTimer : null, coachEnabled)
   const queue = useMemo(() => loadWorkoutQueue(), [session?.workout.id])
+
+  const exercisesStarted = session?.exercisesStarted ?? Boolean(session?.currentExerciseStartedAt)
+
+  const sessionMaterials = useMemo(
+    () => (session ? collectWorkoutMaterials(session.workout, session.targets) : []),
+    [session],
+  )
 
   const activeIndex = useMemo(() => {
     if (!session) return 0
@@ -84,7 +109,7 @@ export function SessionPage() {
       recoveryScore,
       theme,
       {
-        cameraEnabled: sensorEnabled,
+        cameraEnabled,
         sessionStartedAt: session.startedAt,
         completedExerciseIds: session.completedExerciseIds,
         coachEnabled,
@@ -96,10 +121,11 @@ export function SessionPage() {
     activeIndex,
     recoveryScore,
     theme,
-    sensorEnabled,
+    cameraEnabled,
     coachEnabled,
     restTimer,
     restCountdown.active,
+    garminConnected,
   ])
 
   useCoachAnnouncement(
@@ -109,21 +135,18 @@ export function SessionPage() {
   )
 
   useEffect(() => {
-    if (!session || !coachEnabled) return
+    if (!session || !coachEnabled || !exercisesStarted) return
     if (session.completedExerciseIds.length > 0) return
     if (session.currentSet !== 1) return
 
-    const announceKey = `${session.startedAt}-${session.workout.id}`
+    const announceKey = `${session.startedAt}-${session.workout.id}-started`
     if (announcedSessionStartRef.current === announceKey) return
     announcedSessionStartRef.current = announceKey
 
     const text = buildCompletionAnnouncement(session)
     if (!text) return
-    setCoachAnnouncement({
-      text,
-      key: `session-start-${announceKey}`,
-    })
-  }, [session, coachEnabled])
+    setCoachAnnouncement({ text, key: `session-start-${announceKey}` })
+  }, [session, coachEnabled, exercisesStarted])
 
   useEffect(() => {
     if (!sessionTv) return
@@ -131,23 +154,7 @@ export function SessionPage() {
   }, [sessionTv, theme])
 
   useEffect(() => {
-    if (!session) return
-
-    const frame = requestAnimationFrame(() => {
-      const list = listRef.current
-      const row = activeRowRef.current
-      if (!list || !row) return
-
-      const target = row.offsetTop - (list.clientHeight - row.offsetHeight) / 2
-      list.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [session, activeIndex])
-
-  useEffect(() => {
-    if (restTimer && !restCountdown.active) {
-      setRestTimer(null)
-    }
+    if (restTimer && !restCountdown.active) setRestTimer(null)
   }, [restTimer, restCountdown.active])
 
   if (!session) {
@@ -178,16 +185,18 @@ export function SessionPage() {
 
   const activeSession = session
   const { workout, targets, completedExerciseIds, currentSet } = activeSession
+  const pausedIds = new Set(activeSession.pausedExerciseIds ?? [])
   const phase = getPhaseInfo(workout)
   const doneCount = completedExerciseIds.length
   const allDone = doneCount === workout.exercises.length
   const isLastPhase = currentSet >= phase.total
   const phaseRestSeconds = getPhaseRestSeconds(workout)
+  const activeExercise = workout.exercises[activeIndex]
 
   function handleCoachToggle() {
     const turningOn = !coachEnabled
     toggleCoach()
-    if (turningOn && !allDone) {
+    if (turningOn && exercisesStarted && !allDone) {
       const text = buildCompletionAnnouncement(activeSession)
       if (text) {
         setCoachAnnouncement({
@@ -199,12 +208,10 @@ export function SessionPage() {
   }
 
   function handleMarkDone(exerciseId: string) {
-    if (completedExerciseIds.includes(exerciseId)) return
-
+    if (!exercisesStarted || completedExerciseIds.includes(exerciseId)) return
     toggleComplete(exerciseId)
-
     if (coachEnabled) {
-      const projected: typeof activeSession = {
+      const projected = {
         ...activeSession,
         completedExerciseIds: [...completedExerciseIds, exerciseId],
       }
@@ -257,7 +264,6 @@ export function SessionPage() {
     setRestTimer(null)
     const nextSet = currentSet + 1
     advanceToNextSet()
-
     if (coachEnabled) {
       const text = buildCompletionAnnouncement({
         ...activeSession,
@@ -265,24 +271,32 @@ export function SessionPage() {
         completedExerciseIds: [],
       })
       if (text) {
-        setCoachAnnouncement({
-          text,
-          key: `next-set-${nextSet}-${Date.now()}`,
-        })
+        setCoachAnnouncement({ text, key: `next-set-${nextSet}-${Date.now()}` })
       }
     }
   }
 
   function handleFinish() {
     const summary = buildSessionSummary(activeSession)
-    const hasNextWorkout = loadWorkoutQueue().length > 0
-    saveLastSummary(summary, hasNextWorkout)
+    saveLastSummary(summary, false)
     publishToTvTransport(buildSummaryTvState(summary, theme), { theme })
+    completeSession(summary)
+    navigate('/session/summary', { state: { summary, hasNextWorkout: false } })
+  }
 
-    const result = completeSession(summary)
-    navigate('/session/summary', {
-      state: { summary, hasNextWorkout: result === 'next-workout' },
-    })
+  function handleNextWorkout() {
+    const summary = buildSessionSummary(activeSession)
+    completeSession(summary)
+    const next = popNextQueuedWorkout()
+    if (!next) {
+      saveLastSummary(summary, false)
+      publishToTvTransport(buildSummaryTvState(summary, theme), { theme })
+      navigate('/session/summary', { state: { summary, hasNextWorkout: false } })
+      return
+    }
+    setRestTimer(null)
+    announcedSessionStartRef.current = null
+    startNextWorkout(next)
   }
 
   function handleConnectTv() {
@@ -295,51 +309,94 @@ export function SessionPage() {
     disconnectTv()
   }
 
+  const showActiveSticky =
+    exercisesStarted && activeExercise && !allDone && !completedExerciseIds.includes(activeExercise.id)
+
   return (
-    <section className="flex h-[calc(100dvh-var(--header-h)-var(--bottomnav-h)-env(safe-area-inset-top)-env(safe-area-inset-bottom)-1rem)] flex-col gap-3 pt-2">
-      <header className="shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <p className="label-mono text-success">● Live sessie</p>
-            <h1 className="text-xl font-bold">{workout.name}</h1>
-          </div>
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="flex items-center gap-1.5 rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs font-semibold text-danger active:bg-danger/20"
-          >
-            <Square className="size-3.5 fill-current" />
-            Stop
-          </button>
+    <section className="flex h-[calc(100dvh-var(--header-h)-var(--bottomnav-h)-env(safe-area-inset-top)-env(safe-area-inset-bottom)-0.5rem)] flex-col gap-2 pt-1">
+      <header className="flex shrink-0 items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="label-mono text-[10px] text-success">● Live</p>
+          <h1 className="truncate text-base font-bold">{workout.name}</h1>
+          <p className="text-[10px] text-muted">
+            {phase.label} {currentSet}/{phase.total} · {doneCount}/{workout.exercises.length}
+          </p>
         </div>
-        <p className="mt-1 text-xs text-muted">
-          {phase.label} {currentSet}/{phase.total} · {doneCount}/{workout.exercises.length} klaar ·
-          Recovery {recoveryScore}%
-        </p>
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="grid size-11 shrink-0 place-items-center rounded-xl border border-danger/40 bg-danger/10 text-danger active:bg-danger/20"
+          aria-label="Stop sessie"
+        >
+          <Square className="size-5 fill-current" />
+        </button>
       </header>
 
-      <div className="shrink-0">
-        <SessionControlBar
-          cameraEnabled={sensorEnabled}
-          onCameraChange={setSensorEnabled}
-          coachEnabled={coachEnabled}
-          onCoachToggle={handleCoachToggle}
-          tvStatus={tvStatus}
-          onConnectTv={handleConnectTv}
-          onDisconnectTv={handleDisconnectTv}
-        />
-      </div>
+      <SessionControlBar
+        cameraEnabled={cameraEnabled}
+        onCameraChange={setCameraEnabled}
+        coachEnabled={coachEnabled}
+        onCoachToggle={handleCoachToggle}
+        tvStatus={tvStatus}
+        onConnectTv={handleConnectTv}
+        onDisconnectTv={handleDisconnectTv}
+      />
 
       <RestTimerBar countdown={restCountdown} onSkip={() => setRestTimer(null)} className="shrink-0" />
 
-      {queue.length > 0 && (
-        <div className="shrink-0 rounded-card border border-solo-400/30 bg-solo-400/5 p-3">
-          <p className="label-mono text-[10px] text-faint">Wachtrij</p>
-          <p className="text-sm text-muted">{queue.map((q) => q.workout.name).join(' → ')}</p>
+      {!exercisesStarted && (
+        <div className="shrink-0 rounded-card border border-solo-400/40 bg-solo-400/10 p-4">
+          <p className="text-sm font-semibold">Klaar om te beginnen?</p>
+          <p className="mt-1 text-xs text-muted">
+            Stel camera, coach en TV in. Leg je materiaal klaar en druk op start voor de eerste
+            oefening.
+          </p>
+          <SessionMaterialsChecklist materials={sessionMaterials} />
+          <button
+            type="button"
+            onClick={startExercises}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-solo-400 py-3.5 text-sm font-bold text-ink active:bg-solo-500"
+          >
+            <Play className="size-5 fill-ink" />
+            Start workout
+          </button>
         </div>
       )}
 
-      {allDone && !isLastPhase && (
+      {showActiveSticky && (
+        <div className="shrink-0 rounded-card border-2 border-solo-400 bg-solo-400/[0.08] p-3 shadow-lg shadow-solo-400/10">
+          <SessionExerciseRow
+            ex={activeExercise}
+            index={activeIndex}
+            weight={getExerciseWeight(activeExercise, targets)}
+            done={false}
+            isCurrent
+            isPaused={pausedIds.has(activeExercise.id)}
+            exercisesStarted
+            reason={targets.find((t) => t.exerciseId === activeExercise.id)?.reason}
+            plateConfig={targets.find((t) => t.exerciseId === activeExercise.id)?.plateConfig}
+            note={activeSession.exerciseNotes[activeExercise.id]}
+            exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
+            restSeconds={activeExercise.restSeconds}
+            restActive={restCountdown.active}
+            onStartRest={handleStartRest}
+            onMarkDone={() => handleMarkDone(activeExercise.id)}
+            onUndo={() => handleUndo(activeExercise.id)}
+            onTogglePause={() => togglePause(activeExercise.id)}
+            onNoteChange={(n) => setNote(activeExercise.id, n)}
+            compact={false}
+            sticky
+          />
+        </div>
+      )}
+
+      {queue.length > 0 && (
+        <p className="shrink-0 truncate text-[10px] text-faint">
+          Wachtrij: {queue.map((q) => q.workout.name).join(' → ')}
+        </p>
+      )}
+
+      {exercisesStarted && allDone && !isLastPhase && (
         <div className="flex shrink-0 items-stretch gap-2">
           {phaseRestSeconds > 0 && (
             <button
@@ -347,92 +404,91 @@ export function SessionPage() {
               onClick={handleStartPhaseRest}
               disabled={restCountdown.active}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-3 text-base font-bold transition-colors',
-                restCountdown.active
-                  ? 'bg-calm/20 text-calm'
-                  : 'bg-calm text-ink active:opacity-90',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-2.5 text-sm font-bold',
+                restCountdown.active ? 'bg-calm/20 text-calm' : 'bg-calm text-ink active:opacity-90',
               )}
             >
-              <span className="flex items-center gap-2">
-                <TimerReset className="size-5" strokeWidth={2.5} />
-                {restCountdown.active ? 'Rust loopt' : 'Rust'}
-              </span>
-              <span
-                className={cn(
-                  'font-mono text-xs font-semibold',
-                  restCountdown.active ? 'text-calm/80' : 'text-ink/80',
-                )}
-              >
-                {formatRestSeconds(phaseRestSeconds)}
-              </span>
+              <TimerReset className="size-4" />
+              Rust {formatRestSeconds(phaseRestSeconds)}
             </button>
           )}
           <button
             type="button"
             onClick={handleNextSet}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl border border-solo-400/40 bg-solo-400/10 py-3 text-base font-bold text-solo-300 active:bg-solo-400/20"
+            className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-solo-400/40 bg-solo-400/10 py-2.5 text-sm font-bold text-solo-300"
           >
-            <span className="flex items-center gap-2">
-              Volgende
-              <ChevronRight className="size-5" />
-            </span>
-            <span className="text-xs font-medium text-solo-300/80">
-              {phase.label} {currentSet + 1}/{phase.total}
-            </span>
+            Volgende {phase.label.toLowerCase()}
+            <ChevronRight className="size-4" />
           </button>
         </div>
       )}
 
-      {allDone && isLastPhase && (
-        <button
-          type="button"
-          onClick={handleFinish}
-          className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-success py-3.5 text-sm font-bold text-ink active:opacity-90"
-        >
-          <Check className="size-5" />
-          Workout afronden
-        </button>
+      {exercisesStarted && allDone && isLastPhase && (
+        queue.length > 0 ? (
+          <button
+            type="button"
+            onClick={handleNextWorkout}
+            className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-solo-400 py-3 text-sm font-bold text-ink active:bg-solo-500"
+          >
+            <span className="flex items-center gap-2">
+              Volgende workout
+              <ChevronRight className="size-5" />
+            </span>
+            <span className="text-xs font-medium text-ink/80">{queue[0].workout.name}</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleFinish}
+            className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-success py-3 text-sm font-bold text-ink"
+          >
+            <Check className="size-5" />
+            Workout afronden
+          </button>
+        )
       )}
 
-      <ol ref={listRef} className="-mx-1 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-1 pb-2">
+      <ol ref={listRef} className="-mx-1 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-1 pb-2">
         {workout.exercises.map((ex, i) => {
           const weight = getExerciseWeight(ex, targets)
           const done = completedExerciseIds.includes(ex.id)
-          const note = activeSession.exerciseNotes[ex.id]
-          const isCurrent = i === activeIndex && !allDone
+          const isCurrent = exercisesStarted && i === activeIndex && !allDone
+          const isPaused = pausedIds.has(ex.id)
           const target = targets.find((t) => t.exerciseId === ex.id)
+          const hideDuplicate = showActiveSticky && isCurrent
+
+          if (hideDuplicate) return null
 
           return (
             <li
               key={ex.id}
-              ref={isCurrent ? activeRowRef : undefined}
               className={cn(
-                'relative rounded-card border bg-surface p-4 transition-all',
-                done && !isCurrent && 'border-success/30 opacity-60',
+                'rounded-card border bg-surface p-3 transition-all',
+                done && 'border-success/30 opacity-60',
                 !done && !isCurrent && 'border-line',
-                isCurrent &&
-                  'border-solo-400 bg-solo-400/[0.07] shadow-lg shadow-solo-400/10 ring-2 ring-solo-400/50',
+                isCurrent && 'border-solo-400/50 bg-solo-400/[0.04]',
               )}
             >
-              {isCurrent && (
-                <span className="absolute -left-px top-4 h-[calc(100%-2rem)] w-1 rounded-full bg-solo-400" />
-              )}
               <SessionExerciseRow
                 ex={ex}
                 index={i}
                 weight={weight}
                 done={done}
                 isCurrent={isCurrent}
+                isPaused={isPaused}
+                exercisesStarted={exercisesStarted}
                 reason={target?.reason}
                 plateConfig={target?.plateConfig}
-                note={note}
+                note={activeSession.exerciseNotes[ex.id]}
                 exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
                 restSeconds={ex.restSeconds}
                 restActive={restCountdown.active}
                 onStartRest={handleStartRest}
                 onMarkDone={() => handleMarkDone(ex.id)}
                 onUndo={() => handleUndo(ex.id)}
+                onTogglePause={() => togglePause(ex.id)}
                 onNoteChange={(n) => setNote(ex.id, n)}
+                compact
               />
             </li>
           )
@@ -448,6 +504,8 @@ type SessionExerciseRowProps = {
   weight: number
   done: boolean
   isCurrent: boolean
+  isPaused: boolean
+  exercisesStarted: boolean
   reason?: string
   plateConfig?: import('@/types/workout').PlateConfig
   note?: { audioNote?: string; audioNoteText?: string }
@@ -457,7 +515,10 @@ type SessionExerciseRowProps = {
   onStartRest: () => void
   onMarkDone: () => void
   onUndo: () => void
+  onTogglePause: () => void
   onNoteChange: (note: { audioNote?: string; audioNoteText?: string }) => void
+  compact?: boolean
+  sticky?: boolean
 }
 
 function SessionExerciseRow({
@@ -466,6 +527,8 @@ function SessionExerciseRow({
   weight,
   done,
   isCurrent,
+  isPaused,
+  exercisesStarted,
   reason,
   plateConfig,
   note,
@@ -475,16 +538,17 @@ function SessionExerciseRow({
   onStartRest,
   onMarkDone,
   onUndo,
+  onTogglePause,
   onNoteChange,
+  compact,
+  sticky,
 }: SessionExerciseRowProps) {
   const mediaRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const [showWeight, setShowWeight] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
-  const exerciseTimer = useElapsedTimer(
-    new Date(exerciseStartedAt).getTime(),
-    isCurrent && !done,
-  )
+  const timerActive = isCurrent && !done && exercisesStarted && !isPaused
+  const exerciseTimer = useElapsedTimer(new Date(exerciseStartedAt).getTime(), timerActive)
 
   async function startRecording() {
     try {
@@ -511,76 +575,64 @@ function SessionExerciseRow({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <div className="flex items-start gap-3">
         <span
           className={cn(
-            'grid size-11 shrink-0 place-items-center rounded-lg transition-colors',
+            'grid size-10 shrink-0 place-items-center rounded-lg',
             done ? 'bg-success/15 text-success' : isCurrent ? 'bg-solo-400/20 text-solo-300' : 'bg-surface-2',
           )}
         >
           {done ? (
             <Check className="size-5" strokeWidth={3} />
           ) : (
-            <ExerciseIcon metric={ex.metric} kind={ex.kind} equipment={ex.equipment} icon={ex.icon} size={24} />
+            <ExerciseIcon metric={ex.metric} kind={ex.kind} equipment={ex.equipment} icon={ex.icon} size={22} />
           )}
         </span>
 
         <div className="min-w-0 flex-1">
-          {isCurrent && !done && (
-            <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-solo-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink">
-              <span className="size-1.5 animate-pulse rounded-full bg-ink" />
-              Nu bezig
-            </span>
-          )}
-          <div className="flex items-center justify-between gap-2">
-            <p
+          {isCurrent && !done && exercisesStarted && (
+            <span
               className={cn(
-                'min-w-0 font-semibold',
-                done && 'text-success',
-                isCurrent && !done && 'text-base text-fg',
+                'mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
+                isPaused ? 'bg-warn/20 text-warn' : 'bg-solo-400 text-ink',
               )}
             >
+              {!isPaused && <span className="size-1.5 animate-pulse rounded-full bg-ink" />}
+              {isPaused ? 'Gepauzeerd' : sticky ? 'Nu bezig' : 'Actief'}
+            </span>
+          )}
+          <div className="flex items-start justify-between gap-2">
+            <p className={cn('min-w-0 font-semibold', done && 'text-success', sticky && 'text-base')}>
               {ex.name}
             </p>
             <div className="flex shrink-0 items-center gap-2">
-              {ex.description && (
-                <button
-                  type="button"
-                  onClick={() => setShowInfo(true)}
-                  className="grid size-11 shrink-0 place-items-center rounded-xl text-muted active:bg-surface-2"
-                  aria-label={`Uitleg ${ex.name}`}
-                >
-                  <Info className="size-5" />
-                </button>
-              )}
-              {isCurrent && !done && (
-                <span
-                  className="font-mono text-sm font-bold tabular-nums text-solo-400"
-                  aria-live="polite"
-                  aria-label={`Oefeningtijd ${exerciseTimer.formatted}`}
-                >
+              {timerActive && (
+                <span className="font-mono text-sm font-bold tabular-nums text-solo-400">
                   {exerciseTimer.formatted}
                 </span>
               )}
-              <span
-                className={cn(
-                  'label-mono',
-                  isCurrent && !done ? 'font-bold text-solo-400' : 'text-faint',
-                )}
-              >
-                #{index + 1}
-              </span>
+              {isPaused && isCurrent && (
+                <span className="font-mono text-sm text-warn">⏸</span>
+              )}
+              <span className={cn('label-mono text-faint', isCurrent && 'text-solo-400')}>#{index + 1}</span>
             </div>
           </div>
-          <p className="mt-0.5 text-xs text-muted">
-            {formatExerciseTargetLine(ex, weight)}
-          </p>
+          <p className="mt-0.5 text-xs text-muted">{formatExerciseTargetLine(ex, weight)}</p>
           {reason && <p className="mt-1 text-xs text-warn">{reason}</p>}
+          {ex.description && (
+            <button
+              type="button"
+              onClick={() => setShowInfo(true)}
+              className="mt-1 text-xs font-medium text-solo-400 active:opacity-70"
+            >
+              Bekijk uitleg
+            </button>
+          )}
         </div>
       </div>
 
-      {(isCurrent || note?.audioNote || note?.audioNoteText || plateConfig) && (
+      {(isCurrent || note?.audioNote || note?.audioNoteText || plateConfig) && exercisesStarted && (
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -588,18 +640,18 @@ function SessionExerciseRow({
             onMouseUp={stopRecording}
             onTouchStart={startRecording}
             onTouchEnd={stopRecording}
-            className="flex items-center gap-1 rounded-lg border border-line px-2 py-1 text-[10px] text-muted active:bg-surface-2"
+            className="flex items-center gap-1 rounded-lg border border-line px-2 py-1.5 text-[10px] text-muted active:bg-surface-2"
           >
-            <Mic className="size-3" />
+            <Mic className="size-3.5" />
             {note?.audioNote || note?.audioNoteText ? 'Notitie ✓' : 'Audio'}
           </button>
           {plateConfig && weight > 0 && (
             <button
               type="button"
               onClick={() => setShowWeight((v) => !v)}
-              className="flex items-center gap-1 rounded-lg border border-line px-2 py-1 text-[10px] text-solo-400 active:bg-surface-2"
+              className="flex items-center gap-1 rounded-lg border border-line px-2 py-1.5 text-[10px] text-solo-400 active:bg-surface-2"
             >
-              <Scale className="size-3" />
+              <Scale className="size-3.5" />
               Gewichten
             </button>
           )}
@@ -607,77 +659,68 @@ function SessionExerciseRow({
       )}
 
       {note?.audioNote && <audio src={note.audioNote} controls className="h-8 w-full" />}
-      {note?.audioNoteText && (
-        <p className="text-xs italic text-muted">"{note.audioNoteText}"</p>
-      )}
-      {showWeight && plateConfig && (
-        <WeightAssistant exerciseName={ex.name} config={plateConfig} />
-      )}
+      {note?.audioNoteText && <p className="text-xs italic text-muted">"{note.audioNoteText}"</p>}
+      {showWeight && plateConfig && <WeightAssistant exerciseName={ex.name} config={plateConfig} />}
 
-      {isCurrent && !done && (
+      {isCurrent && !done && exercisesStarted && (
         <div className="flex items-stretch gap-2">
+          <button
+            type="button"
+            onClick={onTogglePause}
+            className={cn(
+              'flex min-h-11 flex-col items-center justify-center rounded-xl border px-3 text-xs font-bold',
+              isPaused
+                ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
+                : 'border-line bg-surface-2 text-muted',
+            )}
+          >
+            {isPaused ? <Play className="size-4" /> : <Pause className="size-4" />}
+            {isPaused ? 'Hervat' : 'Pauze'}
+          </button>
           {restSeconds > 0 && (
             <button
               type="button"
               onClick={onStartRest}
-              disabled={restActive}
+              disabled={restActive || isPaused}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-3 text-base font-bold transition-colors',
-                restActive
-                  ? 'bg-calm/20 text-calm'
-                  : 'bg-calm text-ink active:opacity-90',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-2.5 text-sm font-bold',
+                restActive ? 'bg-calm/20 text-calm' : 'bg-calm text-ink active:opacity-90',
+                isPaused && 'opacity-50',
               )}
             >
-              <span className="flex items-center gap-2">
-                <TimerReset className="size-5" strokeWidth={2.5} />
-                {restActive ? 'Rust loopt' : 'Rust'}
-              </span>
-              <span
-                className={cn(
-                  'font-mono text-xs font-semibold',
-                  restActive ? 'text-calm/80' : 'text-ink/80',
-                )}
-              >
-                {formatRestSeconds(restSeconds)}
-              </span>
+              <TimerReset className="size-4" />
+              Rust {formatRestSeconds(restSeconds)}
             </button>
           )}
           <button
             type="button"
             onClick={onMarkDone}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl bg-success py-3 text-base font-bold text-ink active:opacity-90"
+            disabled={isPaused}
+            className={cn(
+              'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl bg-success py-2.5 text-sm font-bold text-ink',
+              isPaused && 'opacity-50',
+            )}
           >
-            <span className="flex items-center gap-2">
-              <Check className="size-5" strokeWidth={3} />
-              Klaar
-            </span>
-            <span className="text-xs font-medium text-ink/70">Oefening af</span>
+            <Check className="size-4" strokeWidth={3} />
+            Klaar
           </button>
         </div>
       )}
 
-      {done && (
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2.5">
+      {done && !compact && (
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2">
           <span className="flex items-center gap-2 text-sm font-semibold text-success">
             <Check className="size-4" strokeWidth={3} />
             Afgevinkt
           </span>
-          <button
-            type="button"
-            onClick={onUndo}
-            className="text-xs font-medium text-muted underline-offset-2 active:text-fg"
-          >
-            Ongedaan maken
+          <button type="button" onClick={onUndo} className="text-xs font-medium text-muted">
+            Ongedaan
           </button>
         </div>
       )}
 
       {showInfo && ex.description && (
-        <ExerciseInfoModal
-          name={ex.name}
-          description={ex.description}
-          onClose={() => setShowInfo(false)}
-        />
+        <ExerciseInfoModal name={ex.name} description={ex.description} onClose={() => setShowInfo(false)} />
       )}
     </div>
   )

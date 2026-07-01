@@ -153,7 +153,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout }: WgerBrowserProps
             <header className="flex items-center justify-between border-b border-line p-4">
               <div>
                 <p className="label-mono text-faint">Open-source</p>
-                <h2 className="text-lg font-bold">Wger database</h2>
+                <h2 className="text-lg font-bold">Zoeken</h2>
               </div>
               <button type="button" onClick={onClose} className="grid size-9 place-items-center rounded-lg text-muted active:bg-surface-2">
                 <X className="size-5" />

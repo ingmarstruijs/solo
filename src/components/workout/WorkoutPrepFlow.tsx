@@ -96,7 +96,7 @@ export function WorkoutPrepFlow({
                         )}
                       </>
                     ) : (
-                      'BW'
+                      'Lichaamsgewicht'
                     )}
                   </span>
                 </li>

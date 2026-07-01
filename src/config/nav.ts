@@ -21,7 +21,7 @@ export const bottomNav: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/workouts', label: 'Workouts', icon: Dumbbell },
   { to: '/locker', label: 'Locker', icon: Boxes },
-  { to: '/history', label: 'Historie', icon: BarChart3 },
+  { to: '/history', label: 'Logboek', icon: BarChart3 },
 ]
 
 /** Secondary destinations shown in the slide-in drawer. */

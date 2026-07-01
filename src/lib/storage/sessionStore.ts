@@ -99,6 +99,38 @@ export function setExerciseNote(exerciseId: string, note: { audioNote?: string; 
   })
 }
 
+export function startSessionExercises(): void {
+  const session = getActiveSession()
+  if (!session || session.exercisesStarted) return
+  const now = new Date().toISOString()
+  saveActiveSession({
+    ...session,
+    exercisesStarted: true,
+    currentExerciseStartedAt: now,
+    pausedExerciseIds: [],
+  })
+}
+
+export function toggleExercisePause(exerciseId: string): void {
+  const session = getActiveSession()
+  if (!session || !session.exercisesStarted) return
+  const paused = new Set(session.pausedExerciseIds ?? [])
+  if (paused.has(exerciseId)) {
+    paused.delete(exerciseId)
+    saveActiveSession({
+      ...session,
+      pausedExerciseIds: [...paused],
+      currentExerciseStartedAt: new Date().toISOString(),
+    })
+    return
+  }
+  paused.add(exerciseId)
+  saveActiveSession({
+    ...session,
+    pausedExerciseIds: [...paused],
+  })
+}
+
 export function subscribeActiveSession(onChange: () => void): () => void {
   return subscribeStore(KEY, onChange)
 }

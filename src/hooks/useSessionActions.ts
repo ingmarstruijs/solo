@@ -7,8 +7,10 @@ import {
   getActiveSession,
   saveActiveSession,
   setExerciseNote,
+  startSessionExercises,
   subscribeActiveSession,
   toggleExerciseComplete,
+  toggleExercisePause,
 } from '@/lib/storage/sessionStore'
 import { loadWorkoutQueue, type PreparedWorkout } from '@/lib/workout/sessionPrep'
 import { getPhaseInfo } from '@/lib/workout/workoutStructure'
@@ -31,6 +33,8 @@ export function useSessionActions() {
     session,
     toggleComplete: toggleExerciseComplete,
     setNote: setExerciseNote,
+    startExercises: startSessionExercises,
+    togglePause: toggleExercisePause,
     /** Sessie afbreken zonder op te slaan in geschiedenis. */
     cancelSession: () => {
       clearActiveSession()
@@ -74,8 +78,9 @@ function startPreparedWorkout(next: PreparedWorkout): void {
     exerciseNotes: {},
     currentSet: 1,
     startedAt: now,
-    currentExerciseStartedAt: now,
     currentSetStartedAt: now,
+    exercisesStarted: false,
+    pausedExerciseIds: [],
   }
   saveActiveSession(active)
 }

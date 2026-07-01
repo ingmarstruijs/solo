@@ -4,6 +4,7 @@ import type { SessionSummary } from '@/lib/workout/sessionSummary'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, ExerciseMedia, OverloadTarget, SetMetric, WorkoutTemplate } from '@/types/workout'
 import { getCoachEnabled } from '@/lib/storage/coachStore'
+import { getGarminConnected } from '@/lib/storage/garminStore'
 import { computeMockSensor } from '@/lib/tv/coachEngine'
 import { computeWorkoutProgress, getPhaseInfo } from '@/lib/workout/workoutStructure'
 
@@ -18,6 +19,7 @@ type TvControlMessage =
 
 export type TvSensorState = {
   cameraEnabled: boolean
+  garminConnected: boolean
   velocityDropPercent: number
   heartRatePercentMax: number
 }
@@ -66,7 +68,8 @@ export type TvPrepState = {
   mode: 'prep'
   theme: ThemeId
   workouts: { id: string; name: string; exerciseCount: number }[]
-  recoveryScore: number
+  garminConnected: boolean
+  recoveryScore?: number
   updatedAt: string
 }
 
@@ -225,6 +228,7 @@ export function buildPrepTvState(
   recoveryScore: number,
   theme: ThemeId,
 ): TvPrepState {
+  const garminConnected = getGarminConnected()
   return {
     mode: 'prep',
     theme,
@@ -233,7 +237,8 @@ export function buildPrepTvState(
       name: w.name,
       exerciseCount: w.exercises.length,
     })),
-    recoveryScore,
+    garminConnected,
+    recoveryScore: garminConnected ? recoveryScore : undefined,
     updatedAt: new Date().toISOString(),
   }
 }
@@ -280,6 +285,7 @@ export function buildSessionTvState(
   const startedAt = options.sessionStartedAt ?? new Date().toISOString()
   const elapsedMs = Date.now() - new Date(startedAt).getTime()
   const cameraEnabled = options.cameraEnabled ?? false
+  const garminConnected = getGarminConnected()
   const coachEnabled = options.coachEnabled ?? getCoachEnabled()
   const rest: TvRestState = options.rest ?? {
     active: false,
@@ -293,6 +299,7 @@ export function buildSessionTvState(
     recoveryScore,
     elapsedMs,
     cameraEnabled,
+    garminConnected,
   })
 
   const phase = getPhaseInfo(workout)
@@ -328,7 +335,7 @@ export function buildSessionTvState(
     totalSlots: progress.totalSlots,
     targetLabel,
     weightKg: weight && weight > 0 ? weight : undefined,
-    recoveryScore,
+    recoveryScore: garminConnected ? recoveryScore : undefined,
     sensor,
     coachEnabled,
     rest,

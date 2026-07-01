@@ -60,8 +60,9 @@ export function activateSessionPrep(prep: SessionPrep): void {
     exerciseNotes: {},
     currentSet: 1,
     startedAt: now,
-    currentExerciseStartedAt: now,
     currentSetStartedAt: now,
+    exercisesStarted: false,
+    pausedExerciseIds: [],
   })
   sessionStorage.setItem('solo-workout-queue', JSON.stringify(prep.workouts.slice(1)))
 }

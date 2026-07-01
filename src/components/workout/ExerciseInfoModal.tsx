@@ -19,13 +19,13 @@ export function ExerciseInfoModal({ name, description, onClose }: ExerciseInfoMo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/80 sm:items-center"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={`Uitleg ${name}`}
     >
       <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Sluiten" />
-      <div className="relative z-10 flex max-h-[85dvh] w-full max-w-screen-sm flex-col rounded-t-card border border-line bg-surface sm:rounded-card">
+      <div className="relative z-10 flex max-h-[85dvh] w-full max-w-screen-sm flex-col rounded-card border border-line bg-surface shadow-xl">
         <header className="flex items-center justify-between gap-3 border-b border-line p-4">
           <div className="min-w-0">
             <p className="label-mono text-faint">Uitleg</p>
@@ -34,7 +34,7 @@ export function ExerciseInfoModal({ name, description, onClose }: ExerciseInfoMo
           <button
             type="button"
             onClick={onClose}
-            className="grid size-9 shrink-0 place-items-center rounded-lg text-muted active:bg-surface-2"
+            className="grid size-11 shrink-0 place-items-center rounded-xl text-muted active:bg-surface-2"
             aria-label="Sluiten"
           >
             <X className="size-5" />

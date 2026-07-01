@@ -1,48 +1,20 @@
 import { CheckSquare, Dumbbell, Play, Square } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { WorkoutFilters, WorkoutTemplate } from '@/types/workout'
-import { filterWorkouts } from '@/lib/workout/filters'
 import { parseFitFile } from '@/lib/workout/fitImport'
 import { shareWorkoutLink } from '@/lib/workout/shareLink'
-import { useLocker } from '@/hooks/useLocker'
-import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { WgerBrowser } from '@/components/workout/WgerBrowser'
 import { WorkoutCard } from '@/components/workout/WorkoutCard'
 import { WorkoutCompactToolbar } from '@/components/workout/WorkoutCompactToolbar'
-import { WorkoutFiltersPanel } from '@/components/workout/WorkoutFiltersPanel'
 import { cn } from '@/lib/cn'
-
-const DEFAULT_FILTERS: WorkoutFilters = {
-  lockerOnly: false,
-  favoritesOnly: false,
-  minRecovery: 50,
-}
-
-function countActiveFilters(filters: WorkoutFilters): number {
-  let n = 0
-  if (filters.maxMinutes != null) n++
-  if (filters.lockerOnly) n++
-  if (filters.favoritesOnly) n++
-  return n
-}
 
 export function WorkoutsPage() {
   const navigate = useNavigate()
   const { workouts, add, remove, toggleFav, exportData, importData } = useWorkouts()
-  const { items: lockerItems } = useLocker()
-  const { score: recoveryScore } = useRecoveryScore()
-  const [filters, setFilters] = useState<WorkoutFilters>(DEFAULT_FILTERS)
-  const [filtersOpen, setFiltersOpen] = useState(false)
   const [multiSelect, setMultiSelect] = useState<Set<string>>(new Set())
   const [selectionMode, setSelectionMode] = useState(false)
   const [wgerOpen, setWgerOpen] = useState(false)
-
-  const filtered = useMemo(
-    () => filterWorkouts(workouts, filters, lockerItems, recoveryScore),
-    [workouts, filters, lockerItems, recoveryScore],
-  )
 
   function handleExport() {
     const data = exportData()
@@ -79,7 +51,7 @@ export function WorkoutsPage() {
     })
   }
 
-  async function handleShare(workout: WorkoutTemplate) {
+  async function handleShare(workout: import('@/types/workout').WorkoutTemplate) {
     try {
       const result = await shareWorkoutLink(workout)
       if (result === 'copied') alert('Workout-link gekopieerd naar klembord.')
@@ -110,7 +82,7 @@ export function WorkoutsPage() {
           </span>
           <div>
             <h1 className="text-lg font-bold tracking-tight">Workouts</h1>
-            <p className="text-[11px] text-muted">{filtered.length} beschikbaar</p>
+            <p className="text-[11px] text-muted">{workouts.length} beschikbaar</p>
           </div>
         </div>
         <button
@@ -120,11 +92,11 @@ export function WorkoutsPage() {
             if (selectionMode) setMultiSelect(new Set())
           }}
           className={cn(
-            'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs',
+            'flex min-h-10 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium',
             selectionMode ? 'border-solo-400/50 bg-solo-400/10 text-solo-300' : 'border-line text-muted',
           )}
         >
-          {selectionMode ? <CheckSquare className="size-3.5" /> : <Square className="size-3.5" />}
+          {selectionMode ? <CheckSquare className="size-4" /> : <Square className="size-4" />}
           Multi
         </button>
       </header>
@@ -135,25 +107,17 @@ export function WorkoutsPage() {
         onImportJson={importData}
         onImportFit={handleFitImport}
         onBrowseWger={() => setWgerOpen(true)}
-        filtersOpen={filtersOpen}
-        onToggleFilters={() => setFiltersOpen((v) => !v)}
-        activeFilterCount={countActiveFilters(filters)}
       />
-
-      {filtersOpen && (
-        <WorkoutFiltersPanel
-          filters={filters}
-          recoveryScore={recoveryScore}
-          onChange={setFilters}
-        />
-      )}
 
       {!selectionMode && (
         <p className="text-[11px] text-faint">Tik een workout om te openen en te starten.</p>
       )}
+      {selectionMode && (
+        <p className="text-[11px] text-solo-400">Tik workouts aan om meerdere te selecteren.</p>
+      )}
 
       <div className="flex flex-col gap-2 pb-20">
-        {filtered.map((workout) => (
+        {workouts.map((workout) => (
           <WorkoutCard
             key={workout.id}
             workout={workout}
@@ -163,14 +127,13 @@ export function WorkoutsPage() {
             onEdit={(w) => navigate(`/workouts/${w.id}/edit`)}
             onShare={handleShare}
             onDelete={handleDelete}
-            onToggleMulti={toggleMulti}
             onToggleFavorite={toggleFav}
           />
         ))}
 
-        {filtered.length === 0 && (
+        {workouts.length === 0 && (
           <p className="rounded-card border border-dashed border-line p-6 text-center text-sm text-muted">
-            Geen workouts gevonden. Pas filters aan of maak een nieuwe workout.
+            Nog geen workouts. Maak er een of zoek oefeningen om te importeren.
           </p>
         )}
       </div>

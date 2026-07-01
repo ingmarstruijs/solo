@@ -4,17 +4,16 @@ import {
   Clock,
   Flame,
   Play,
-  Sparkles,
   TrendingUp,
+  Watch,
 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useActiveSession } from '@/hooks/useActiveSession'
+import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
-import { useWorkouts } from '@/hooks/useWorkouts'
 import { useHistory } from '@/hooks/useHistory'
-import { suggestWorkout } from '@/lib/workout/suggestWorkout'
 import { LockerProfileSwitcher } from '@/components/locker/LockerProfileSwitcher'
 import { cn } from '@/lib/cn'
 
@@ -43,17 +42,12 @@ function relativeTime(iso: string): string {
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { workouts } = useWorkouts()
-  const { items: lockerItems, activeProfile } = useLocker()
+  const { activeProfile } = useLocker()
+  const { connected: garminConnected } = useGarminConnected()
   const { score: recoveryScore } = useRecoveryScore()
   const { session, active } = useActiveSession()
   const { history, stats } = useHistory()
   const recent = useMemo(() => history.slice(0, 3), [history])
-
-  const suggestion = useMemo(
-    () => suggestWorkout(workouts, lockerItems, recoveryScore),
-    [workouts, lockerItems, recoveryScore],
-  )
 
   const hour = new Date().getHours()
   const tone = recoveryTone(recoveryScore)
@@ -69,7 +63,6 @@ export function HomePage() {
         </h1>
       </header>
 
-      {/* Resume active session */}
       {active && session && (
         <button
           type="button"
@@ -88,84 +81,64 @@ export function HomePage() {
         </button>
       )}
 
-      {/* Recovery + week hero */}
-      <section className="grid grid-cols-[auto_1fr] gap-4 rounded-card border border-line bg-surface p-4">
-        <div className="relative grid size-20 place-items-center">
-          <svg viewBox="0 0 80 80" className="size-20 -rotate-90">
-            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--color-line)" strokeWidth="7" />
-            <circle
-              cx="40"
-              cy="40"
-              r="34"
-              fill="none"
-              stroke={tone.color}
-              strokeWidth="7"
-              strokeLinecap="round"
-              strokeDasharray={ringCirc}
-              strokeDashoffset={ringOffset}
-            />
-          </svg>
-          <div className="absolute flex flex-col items-center">
-            <span className="text-lg font-bold tabular-nums">{recoveryScore}</span>
-            <span className="label-mono text-[8px] text-faint">{tone.label}</span>
+      {garminConnected && (
+        <section className="grid grid-cols-[auto_1fr] gap-4 rounded-card border border-line bg-surface p-4">
+          <div className="relative grid size-20 place-items-center">
+            <svg viewBox="0 0 80 80" className="size-20 -rotate-90">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--color-line)" strokeWidth="7" />
+              <circle
+                cx="40"
+                cy="40"
+                r="34"
+                fill="none"
+                stroke={tone.color}
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeDasharray={ringCirc}
+                strokeDashoffset={ringOffset}
+              />
+            </svg>
+            <div className="absolute flex flex-col items-center">
+              <span className="text-lg font-bold tabular-nums">{recoveryScore}</span>
+              <span className="label-mono text-[8px] text-faint">{tone.label}</span>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col justify-center gap-2">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="size-4 text-solo-400" />
-            <p className="text-sm font-semibold">Recovery</p>
+          <div className="flex flex-col justify-center gap-2">
+            <div className="flex items-center gap-2">
+              <Watch className="size-4 text-solo-400" />
+              <p className="text-sm font-semibold">Garmin recovery</p>
+            </div>
+            <p className="text-xs text-muted">
+              {recoveryScore >= 75
+                ? 'Je bent fris — goede dag voor een zware sessie.'
+                : recoveryScore >= 50
+                  ? 'Redelijk hersteld. Houd het volume in de gaten.'
+                  : 'Beperkt hersteld. Overweeg een lichte sessie of rust.'}
+            </p>
           </div>
-          <p className="text-xs text-muted">
-            {recoveryScore >= 75
-              ? 'Je bent fris — goede dag voor een zware sessie.'
-              : recoveryScore >= 50
-                ? 'Redelijk hersteld. Houd het volume in de gaten.'
-                : 'Beperkt hersteld. Overweeg een lichte sessie of rust.'}
-          </p>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* Stats row */}
       <div className="grid grid-cols-3 gap-2">
         <StatCard icon={Flame} label="Deze week" value={String(stats.sessionsThisWeek)} />
         <StatCard icon={TrendingUp} label="Sessies" value={String(stats.totalSessions)} />
         <StatCard icon={Clock} label="Minuten" value={String(stats.totalMinutes)} />
       </div>
 
-      {/* Today's suggestion */}
-      {suggestion ? (
-        <button
-          type="button"
-          onClick={() => navigate(`/workouts/prep?ids=${suggestion.id}`)}
-          className="flex items-center gap-3 rounded-card border border-solo-400/30 bg-solo-400/5 p-4 text-left active:bg-solo-400/10"
-        >
-          <Sparkles className="size-5 shrink-0 text-solo-400" />
-          <div className="min-w-0 flex-1">
-            <p className="label-mono text-[10px] text-faint">Voorstel voor vandaag</p>
-            <p className="font-semibold">{suggestion.name}</p>
-            <p className="text-xs text-muted">
-              {suggestion.estimatedMinutes} min · {activeProfile.name}
-            </p>
-          </div>
-          <ChevronRight className="size-5 text-faint" />
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => navigate('/workouts')}
-          className="relative flex items-center gap-4 overflow-hidden rounded-card border border-line bg-surface p-5 text-left active:bg-surface-2"
-        >
-          <div className="flex-1">
-            <p className="text-lg font-semibold">Kies een workout</p>
-            <p className="text-sm text-muted">Selecteer, prep en start je sessie.</p>
-          </div>
-          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-solo-400 text-ink">
-            <Play className="size-6 translate-x-0.5 fill-ink" />
-          </span>
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => navigate('/workouts')}
+        className="relative flex items-center gap-4 overflow-hidden rounded-card border border-line bg-surface p-5 text-left active:bg-surface-2"
+      >
+        <div className="flex-1">
+          <p className="text-lg font-semibold">Kies een workout</p>
+          <p className="text-sm text-muted">Selecteer, prep en start je sessie.</p>
+        </div>
+        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-solo-400 text-ink">
+          <Play className="size-6 translate-x-0.5 fill-ink" />
+        </span>
+      </button>
 
-      {/* Active locker */}
       <section className="rounded-card border border-line bg-surface p-3">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -181,12 +154,11 @@ export function HomePage() {
           </button>
         </div>
         <p className="mb-3 text-xs text-muted">
-          Voorstellen en workout prep gebruiken het materiaal van de geselecteerde locker.
+          Workout prep gebruikt het materiaal van de geselecteerde locker ({activeProfile.name}).
         </p>
         <LockerProfileSwitcher showHint={false} />
       </section>
 
-      {/* Recent sessions */}
       {recent.length > 0 && (
         <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between">

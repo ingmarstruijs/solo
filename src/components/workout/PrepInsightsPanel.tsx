@@ -1,4 +1,4 @@
-import { Boxes, ChevronDown, Heart, Info, Scale, X } from 'lucide-react'
+import { Boxes, ChevronDown, Scale, X } from 'lucide-react'
 import { useState } from 'react'
 import type { OverloadTarget, WorkoutTemplate } from '@/types/workout'
 import { isRecoveryCritical } from '@/lib/storage/recoveryStore'
@@ -25,12 +25,13 @@ export function PrepInsightsPanel({
   const critical = isRecoveryCritical(recoveryScore)
   const adjustedCount = targets.filter((t) => t.adjustedWeightKg !== t.originalWeightKg).length
 
-  const weightTarget = weightFor
-    ? targets.find((t) => t.exerciseId === weightFor)
-    : null
-  const weightExercise = weightFor
-    ? workout.exercises.find((e) => e.id === weightFor)
-    : null
+  const weightTarget = weightFor ? targets.find((t) => t.exerciseId === weightFor) : null
+  const weightExercise = weightFor ? workout.exercises.find((e) => e.id === weightFor) : null
+
+  const summaryParts: string[] = []
+  if (showRecoverySummary) summaryParts.push(`herstel ${recoveryScore}%`)
+  if (adjustedCount > 0) summaryParts.push(`${adjustedCount} gewichten aangepast`)
+  if (summaryParts.length === 0) summaryParts.push('geen aanpassingen')
 
   return (
     <>
@@ -40,17 +41,10 @@ export function PrepInsightsPanel({
           onClick={() => setExpanded((v) => !v)}
           className="flex w-full items-center gap-3 p-3 text-left active:bg-surface-2"
         >
-          <Heart className={cn('size-4 shrink-0', critical ? 'text-warn' : 'text-success')} />
+          <Scale className={cn('size-4 shrink-0', critical ? 'text-warn' : 'text-solo-400')} />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">
-              {showRecoverySummary ? 'Recovery & Overload' : 'Overload planner'}
-            </p>
-            <p className="truncate text-xs text-muted">
-              {showRecoverySummary && `${recoveryScore}% recovery`}
-              {showRecoverySummary && adjustedCount > 0 && ' · '}
-              {adjustedCount > 0 && `${adjustedCount} gewichten aangepast`}
-              {!showRecoverySummary && adjustedCount === 0 && 'Geen aanpassingen'}
-            </p>
+            <p className="text-sm font-semibold">Gewichten & herstel</p>
+            <p className="truncate text-xs text-muted">{summaryParts.join(' · ')}</p>
           </div>
           <ChevronDown
             className={cn('size-4 shrink-0 text-faint transition-transform', expanded && 'rotate-180')}
@@ -59,17 +53,13 @@ export function PrepInsightsPanel({
 
         {expanded && (
           <div className="border-t border-line px-3 pb-3 pt-2">
-            <div className="flex items-start gap-2">
-              <Info className="mt-0.5 size-3.5 shrink-0 text-solo-400" />
-              <p className="text-xs leading-relaxed text-muted">
-                Doelgewichten op basis van je locker en recovery. Bij lage recovery worden zware
-                targets 5–10% verlaagd.
-              </p>
-            </div>
-            {critical && (
-              <p className="mt-2 text-xs text-warn">
-                Recovery kritiek — gewichten verlaagd met 5–10%
-              </p>
+            <p className="text-xs leading-relaxed text-muted">
+              Doelgewichten passen zich aan op basis van je locker
+              {showRecoverySummary && ' en herstel'}
+              . Bij laag herstel worden zware targets iets verlaagd.
+            </p>
+            {critical && showRecoverySummary && (
+              <p className="mt-2 text-xs text-warn">Laag herstel — gewichten verlaagd met 5–10%</p>
             )}
             <div className="mt-2 flex items-center gap-2 text-xs text-muted">
               <Boxes className="size-3.5 text-solo-400" />
@@ -88,7 +78,7 @@ export function PrepInsightsPanel({
                     <div className="min-w-0">
                       <p className="truncate text-xs font-medium">{ex.name}</p>
                       <p className="text-[10px] text-muted">
-                        {target.adjustedWeightKg > 0 ? `${target.adjustedWeightKg} kg` : 'BW'}
+                        {target.adjustedWeightKg > 0 ? `${target.adjustedWeightKg} kg` : 'Lichaamsgewicht'}
                         {changed && target.reason && ` · ${target.reason}`}
                       </p>
                     </div>
@@ -96,10 +86,10 @@ export function PrepInsightsPanel({
                       <button
                         type="button"
                         onClick={() => setWeightFor(ex.id)}
-                        className="grid size-8 shrink-0 place-items-center rounded-lg border border-line text-solo-400 active:bg-surface"
+                        className="grid size-9 shrink-0 place-items-center rounded-lg border border-line text-solo-400 active:bg-surface"
                         aria-label={`Gewichten voor ${ex.name}`}
                       >
-                        <Scale className="size-3.5" />
+                        <Scale className="size-4" />
                       </button>
                     )}
                   </li>
@@ -112,7 +102,7 @@ export function PrepInsightsPanel({
 
       {weightTarget?.plateConfig && weightExercise && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-ink/70 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4"
           onClick={() => setWeightFor(null)}
           role="presentation"
         >
@@ -127,7 +117,7 @@ export function PrepInsightsPanel({
               <button
                 type="button"
                 onClick={() => setWeightFor(null)}
-                className="text-muted active:text-fg"
+                className="grid size-9 place-items-center rounded-lg text-muted active:bg-surface-2"
               >
                 <X className="size-5" />
               </button>

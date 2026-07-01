@@ -1,8 +1,9 @@
-import { Play, Settings } from 'lucide-react'
+import { Play, Settings, Watch } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { THEMES, getThemeLabel } from '@/lib/theme/themes'
 import { useAutoTranslateWger } from '@/hooks/useAutoTranslateWger'
 import { useCoachVoiceGender } from '@/hooks/useCoachVoiceGender'
+import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useTheme } from '@/hooks/useTheme'
 import { describeCoachVoice, isCoachVoiceSupported, previewCoachVoice } from '@/lib/tv/coachVoice'
 import { cn } from '@/lib/cn'
@@ -11,6 +12,7 @@ export function SettingsPage() {
   const { theme, preference, setTheme, isAuto } = useTheme()
   const { gender, setGender } = useCoachVoiceGender()
   const { enabled: autoTranslateWger, setEnabled: setAutoTranslateWger } = useAutoTranslateWger()
+  const { connected: garminConnected, setConnected: setGarminConnected } = useGarminConnected()
   const voiceSupported = isCoachVoiceSupported()
   const [activeVoice, setActiveVoice] = useState<string | null>(null)
   const [voiceNote, setVoiceNote] = useState<string | undefined>()
@@ -138,6 +140,46 @@ export function SettingsPage() {
             </button>
           </div>
         )}
+      </section>
+
+      <section className="rounded-card border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">Garmin</h2>
+        <p className="mt-1 text-xs text-muted">
+          Koppel je Garmin-wearable om recovery-data op het startscherm te tonen.
+        </p>
+        <button
+          type="button"
+          onClick={() => setGarminConnected(!garminConnected)}
+          className={cn(
+            'mt-3 flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors active:bg-surface-2',
+            garminConnected ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 place-items-center rounded-lg bg-surface-2 text-solo-400">
+              <Watch className="size-4" />
+            </span>
+            <div>
+              <p className="font-semibold">Garmin verbonden</p>
+              <p className="text-xs text-muted">
+                {garminConnected
+                  ? 'Recovery en wearable-data zichtbaar op Home'
+                  : 'Uit — geen Garmin-data op Home'}
+              </p>
+            </div>
+          </div>
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
+              garminConnected ? 'bg-success/15 text-success' : 'bg-surface-2 text-faint',
+            )}
+          >
+            {garminConnected ? 'Aan' : 'Uit'}
+          </span>
+        </button>
+        <p className="mt-2 text-[11px] text-faint">
+          Echte BLE-koppeling volgt later — deze schakelaar simuleert de verbinding voor nu.
+        </p>
       </section>
 
       <section className="rounded-card border border-line bg-surface p-4">

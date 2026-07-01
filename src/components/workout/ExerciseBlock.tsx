@@ -1,10 +1,10 @@
-import { ChevronDown, ChevronUp, GripVertical, Trash2 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { ChevronDown, ChevronUp, GripVertical, Trash2, X } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, SetMetric, WorkoutExercise } from '@/types/workout'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
-import { ExerciseIconPicker } from '@/components/workout/ExerciseIconPicker'
+import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import { cn } from '@/lib/cn'
 
 type ExerciseBlockProps = {
@@ -17,6 +17,7 @@ type ExerciseBlockProps = {
   onMoveUp: () => void
   onMoveDown: () => void
   onReorder: (fromIndex: number, toIndex: number) => void
+  circuitMode?: boolean
 }
 
 const DRAG_MIME = 'application/x-solo-exercise-index'
@@ -37,8 +38,11 @@ export function ExerciseBlock({
   onMoveUp,
   onMoveDown,
   onReorder,
+  circuitMode = false,
 }: ExerciseBlockProps) {
   const [dragOver, setDragOver] = useState(false)
+  const [iconPickerOpen, setIconPickerOpen] = useState(false)
+
   function patch(partial: Partial<WorkoutExercise>) {
     const next = { ...exercise, ...partial }
     if (partial.metric) next.kind = inferKind(partial.metric)
@@ -60,7 +64,7 @@ export function ExerciseBlock({
   return (
     <div
       className={cn(
-        'rounded-card border bg-surface p-4 transition-colors',
+        'rounded-card border bg-surface p-3 transition-colors',
         dragOver ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
       )}
       onDragOver={(e) => {
@@ -93,38 +97,49 @@ export function ExerciseBlock({
             type="button"
             onClick={onMoveUp}
             disabled={!canMoveUp}
-            className="grid size-5 place-items-center rounded text-faint disabled:opacity-25 active:bg-surface-2"
+            className="grid size-6 place-items-center rounded text-faint disabled:opacity-25 active:bg-surface-2"
             aria-label="Omhoog"
           >
-            <ChevronUp className="size-3.5" />
+            <ChevronUp className="size-4" />
           </button>
           <button
             type="button"
             onClick={onMoveDown}
             disabled={!canMoveDown}
-            className="grid size-5 place-items-center rounded text-faint disabled:opacity-25 active:bg-surface-2"
+            className="grid size-6 place-items-center rounded text-faint disabled:opacity-25 active:bg-surface-2"
             aria-label="Omlaag"
           >
-            <ChevronDown className="size-3.5" />
+            <ChevronDown className="size-4" />
           </button>
         </div>
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface-2">
+        <button
+          type="button"
+          onClick={() => setIconPickerOpen(true)}
+          className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 active:bg-surface-3"
+          aria-label="Icoon aanpassen"
+          title="Icoon aanpassen"
+        >
           <ExerciseIcon
             metric={exercise.metric}
             kind={exercise.kind}
             equipment={exercise.equipment}
             icon={exercise.icon}
-            size={22}
+            size={24}
           />
-        </span>
+        </button>
         <input
           value={exercise.name}
           onChange={(e) => patch({ name: e.target.value })}
           placeholder="Oefening naam"
           className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none"
         />
-        <button type="button" onClick={onRemove} className="text-danger active:opacity-70">
-          <Trash2 className="size-4" />
+        <button
+          type="button"
+          onClick={onRemove}
+          className="grid size-10 place-items-center text-danger active:opacity-70"
+          aria-label="Verwijderen"
+        >
+          <Trash2 className="size-5" />
         </button>
       </div>
 
@@ -135,7 +150,7 @@ export function ExerciseBlock({
             type="button"
             onClick={() => patch({ kind: k })}
             className={cn(
-              'rounded-lg border px-2 py-1 text-[10px] capitalize',
+              'rounded-lg border px-2.5 py-1.5 text-xs capitalize',
               exercise.kind === k || (!exercise.kind && k === inferKind(exercise.metric))
                 ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
                 : 'border-line text-faint',
@@ -158,50 +173,46 @@ export function ExerciseBlock({
             <option value="distance">Afstand</option>
           </select>
         </Field>
-        <Field label={targetLabel} hint="Doel per set">
-          <input
-            type="number"
-            min={1}
-            value={exercise.target}
-            onChange={(e) => patch({ target: parseInt(e.target.value) || 1 })}
-            className={inputClass}
-          />
-        </Field>
-        <Field label="Gewicht (kg)" hint="0 = bodyweight">
-          <input
-            type="number"
-            step="0.5"
-            min={0}
-            value={exercise.weightKg}
-            onChange={(e) => patch({ weightKg: parseFloat(e.target.value) || 0 })}
-            className={inputClass}
-            disabled={exercise.metric === 'distance'}
-          />
-        </Field>
-        <Field label="Rust na oefening (s)" hint="Pauze voordat je naar de volgende oefening gaat">
-          <input
-            type="number"
-            min={0}
+        <NumberField
+          label={targetLabel}
+          hint="Doel per set"
+          value={exercise.target}
+          min={1}
+          onChange={(v) => patch({ target: v })}
+        />
+        <NumberField
+          label="Gewicht (kg)"
+          hint="0 = lichaamsgewicht"
+          value={exercise.weightKg}
+          min={0}
+          step={0.5}
+          disabled={exercise.metric === 'distance'}
+          onChange={(v) => patch({ weightKg: v })}
+        />
+        {!circuitMode && (
+          <NumberField
+            label="Rust na oefening (s)"
+            hint="Pauze voor volgende oefening"
             value={exercise.restSeconds}
-            onChange={(e) => patch({ restSeconds: parseInt(e.target.value) || 0 })}
-            className={inputClass}
+            min={0}
+            onChange={(v) => patch({ restSeconds: v })}
           />
-        </Field>
+        )}
       </div>
 
       <div className="mt-3">
-        <p className="label-mono mb-1.5 text-faint">Materiaal</p>
-        <div className="flex flex-wrap gap-1.5">
+        <p className="label-mono mb-2 text-faint">Materiaal</p>
+        <div className="flex flex-wrap gap-2">
           {EQUIPMENT_CATALOG.filter((e) => e.category !== 'other').map((e) => (
             <button
               key={e.category}
               type="button"
               onClick={() => toggleEquipment(e.category)}
               className={cn(
-                'rounded-lg border px-2 py-1 text-[10px]',
+                'rounded-xl border px-3 py-2 text-xs font-medium',
                 exercise.equipment.includes(e.category)
                   ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
-                  : 'border-line text-faint',
+                  : 'border-line text-faint active:bg-surface-2',
               )}
             >
               {e.labelNl}
@@ -210,20 +221,145 @@ export function ExerciseBlock({
         </div>
       </div>
 
-      <ExerciseIconPicker value={exercise.icon} onChange={(icon) => patch({ icon })} />
-
       <div className="mt-3">
-        <Field label="Uitleg" hint="Markdown ondersteund — zichtbaar op mobiel (popup) en op TV">
+        <Field label="Uitleg" hint="Markdown — zichtbaar in prep en sessie">
           <textarea
             value={exercise.description ?? ''}
             onChange={(e) => patch({ description: e.target.value.trim() || undefined })}
             placeholder="Instructies, tips of uitvoering…"
             rows={3}
-            className={cn(inputClass, 'resize-y min-h-[4.5rem]')}
+            className={cn(inputClass, 'min-h-[4.5rem] resize-y')}
           />
         </Field>
       </div>
+
+      {iconPickerOpen && (
+        <IconPickerDialog
+          value={exercise.icon}
+          onSelect={(icon) => {
+            patch({ icon })
+            setIconPickerOpen(false)
+          }}
+          onAuto={() => {
+            patch({ icon: undefined })
+            setIconPickerOpen(false)
+          }}
+          onClose={() => setIconPickerOpen(false)}
+        />
+      )}
     </div>
+  )
+}
+
+function IconPickerDialog({
+  value,
+  onSelect,
+  onAuto,
+  onClose,
+}: {
+  value?: EquipmentCategory
+  onSelect: (icon: EquipmentCategory) => void
+  onAuto: () => void
+  onClose: () => void
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Icoon kiezen"
+    >
+      <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Sluiten" />
+      <div className="relative z-10 w-full max-w-sm rounded-card border border-line bg-surface p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-semibold">Icoon kiezen</p>
+          <button type="button" onClick={onClose} className="grid size-9 place-items-center rounded-lg">
+            <X className="size-5" />
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onAuto}
+          className="mb-3 w-full rounded-xl border border-line py-2 text-sm text-solo-400 active:bg-surface-2"
+        >
+          Automatisch (op basis van materiaal)
+        </button>
+        <div className="flex flex-wrap gap-2">
+          {EQUIPMENT_CATALOG.map((e) => (
+            <button
+              key={e.category}
+              type="button"
+              onClick={() => onSelect(e.category)}
+              className={cn(
+                'grid size-12 place-items-center rounded-xl border',
+                value === e.category
+                  ? 'border-solo-400/50 bg-solo-400/10'
+                  : 'border-line active:bg-surface-2',
+              )}
+              title={e.labelNl}
+            >
+              <EquipmentIcon category={e.category} size={24} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NumberField({
+  label,
+  hint,
+  value,
+  min,
+  step,
+  disabled,
+  onChange,
+}: {
+  label: string
+  hint?: string
+  value: number
+  min?: number
+  step?: number
+  disabled?: boolean
+  onChange: (value: number) => void
+}) {
+  const [text, setText] = useState(String(value))
+
+  useEffect(() => {
+    setText(String(value))
+  }, [value])
+
+  function commit(raw: string) {
+    if (raw.trim() === '') {
+      onChange(min ?? 0)
+      setText(String(min ?? 0))
+      return
+    }
+    const parsed = step != null && step < 1 ? parseFloat(raw) : parseInt(raw, 10)
+    if (Number.isNaN(parsed)) {
+      setText(String(value))
+      return
+    }
+    const next = min != null ? Math.max(min, parsed) : parsed
+    onChange(next)
+    setText(String(next))
+  }
+
+  return (
+    <Field label={label} hint={hint}>
+      <input
+        type="number"
+        inputMode={step != null && step < 1 ? 'decimal' : 'numeric'}
+        min={min}
+        step={step}
+        value={text}
+        disabled={disabled}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => commit(text)}
+        className={inputClass}
+      />
+    </Field>
   )
 }
 
@@ -243,4 +379,4 @@ function inferKind(metric: SetMetric): ExerciseKind {
 }
 
 const inputClass =
-  'w-full rounded-lg border border-line bg-surface-2 px-2 py-1.5 text-sm outline-none focus:border-solo-400/50'
+  'w-full rounded-lg border border-line bg-surface-2 px-2.5 py-2 text-sm outline-none focus:border-solo-400/50'

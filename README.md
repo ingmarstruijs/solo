@@ -21,27 +21,29 @@ For planned features (Garmin live sync, MediaPipe pose, WebLLM analytics, canvas
 
 ## The 5 Pillars of SOLO.
 
-| # | Pillar | Today | Roadmap |
-|---|---|---|---|
-| 1 | **Physical Sovereignty** — Home Locker drives progressive overload to your real equipment | **Shipped** — locker profiles, overload planner, plate configurator | Time-under-tension progression when weight ceiling is hit |
-| 2 | **Technological Synergy** — Garmin as live biological sensor (HR, reps, velocity) | Lab probe only | Live BLE sync into session + TV HUD |
-| 3 | **Visual Support** — form cues on phone, exercise visuals on TV | **Partial** — camera preview on phone; icon visuals + session HUD on TV (BroadcastChannel) | Pose form cues, licensed exercise loops, canvas compositor, cast stream |
-| 4 | **Mental Presence** — coach during the session | **Partial** — speech announcements, rest countdown, male/female voice | Strain-triggered coach, style matrix, screen-edge feedback |
-| 5 | **On-Device Intelligence** — post-workout analysis and shareable proof | **Partial** — session summary, history, trends, sparklines | WebLLM report, RPE logging, FFmpeg proof reels |
+Five ideas guide the product. **Now** is what you can use today; **Next** is on the roadmap ([ROADMAP.md](ROADMAP.md)).
 
-All pillars are detailed in **[ROADMAP.md](ROADMAP.md)**.
+| # | Pillar | Now | Next |
+|---|---|---|---|
+| 1 | **Your gear, your weights** | Locker profiles, overload planner, and plate configurator match every workout to the equipment you actually own | Time-under-tension when you hit your home weight ceiling |
+| 2 | **Garmin as live sensor** | BLE feasibility lab (`/lab/garmin-sync`) — probe only, not in sessions yet | Live HR, reps, and velocity in the session UI and TV HUD |
+| 3 | **See your form and the workout** | Camera preview on phone; exercise icons and live session board on TV (`/tv` via BroadcastChannel) | Pose form cues, licensed exercise loops, canvas compositor, cast stream |
+| 4 | **Coach in your ear** | Spoken next-exercise cues, rest countdown, male/female voice | Strain-triggered coaching, style options, on-screen strain feedback |
+| 5 | **Proof on your device** | Session summary, logbook, trends, and sparklines — all stored locally | WebLLM workout report, RPE logging, shareable proof reels |
+
+Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 
 ## Features
 
-- **Workouts** — create, edit, delete, and favorite templates; strength sets or circuit rounds; Wger exercise import with search and infinite scroll; Garmin `.fit` import; JSON export/import
+- **Workouts** — create, edit, delete, and favorite templates; strength sets or circuit rounds; exercise search (Wger) with import; Garmin `.fit` import; JSON export/import
 - **Home Locker** — multiple locker profiles; equipment inventory drives the overload planner and plate configurator (barbell, dumbbell, kettlebell)
 - **Workout Prep** — recovery-aware target weights; prep insights per exercise; multi-workout queue; optional TV preview before start
 - **Live session** — tap-to-complete exercises; set/round progression; per-exercise and phase rest timers; optional front-camera preview on phone
 - **Coach** — Web Speech API announcements for next exercise and set transitions; male/female voice; rest countdown in the last 5 seconds (toggle in session)
 - **TV receiver** — passive `/tv` surface synced via `BroadcastChannel`; shows session HUD, prep, summary, or idle; connect/disconnect from session with receiver handshake (reuses an already-open TV tab)
 - **Exercise visuals** — lightweight icon-based visuals today; curated licensed demo loops are planned once asset licenses and attribution are verified
-- **History** — completed sessions stored with full summary (set times, trends, sparklines); browse, open, delete per entry or clear all; cancelled sessions are not recorded
-- **Home** — recovery ring (mock score until Health API), weekly stats, workout suggestion, resume active session
+- **History** — completed sessions stored with full summary (set times, trends, sparklines); browse in the logbook, open, delete per entry or clear all; cancelled sessions are not recorded
+- **Home** — optional Garmin recovery (settings toggle), weekly stats, resume active session
 - **Themes** — automatic time-of-day themes or manual override in Settings
 - **Labs** — isolated feasibility pages for Garmin BLE, pose/camera, canvas compositor, and cast stream (not part of the main session flow yet)
 

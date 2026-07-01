@@ -104,13 +104,8 @@ export function WorkoutSummary({
   return (
     <div className={cn('flex flex-col', isTv ? 'gap-[2vh]' : 'gap-4', className)}>
       {showHeader && (
-        <div className={cn('rounded-card border border-success/30 bg-success/10', isTv ? 'p-[2.5vh]' : 'p-4')}>
-          <p className={cn('label-mono text-success', isTv ? 'text-[1.4vh]' : 'text-[10px]')}>
-            Workout afgerond
-          </p>
-          <h2 className={cn('font-bold', isTv ? 'mt-[0.5vh] text-[4vh]' : 'mt-1 text-xl')}>
-            {summary.workoutName}
-          </h2>
+        <div className={cn('rounded-card border border-line bg-surface', isTv ? 'p-[2.5vh]' : 'p-4')}>
+          <h2 className={cn('font-bold', isTv ? 'text-[4vh]' : 'text-xl')}>{summary.workoutName}</h2>
           <p className={cn('text-muted', isTv ? 'mt-[1vh] text-[2.2vh]' : 'mt-1 text-sm')}>
             Totale tijd{' '}
             <span className="font-mono font-bold text-fg">

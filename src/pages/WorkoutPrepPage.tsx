@@ -1,25 +1,32 @@
-import { ArrowLeft, ChevronRight, Info, Pencil, Play, Tv } from 'lucide-react'
+import { Pencil, Play } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { PageBackButton } from '@/components/layout/PageBackButton'
+import { SessionControlBar } from '@/components/session/SessionControlBar'
+import { useCameraEnabled } from '@/hooks/useCameraEnabled'
+import { useCoachEnabled } from '@/hooks/useCoachEnabled'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useTheme } from '@/hooks/useTheme'
+import { useTvConnection } from '@/hooks/useTvConnection'
 import { buildPrepTvState } from '@/lib/tv/broadcast'
-import { getTvTransportState, publishToTvTransport } from '@/lib/tv/transport'
+import { getTvTransportState, publishToTvTransport, reconnectTv, disconnectTv, publishTvIdle } from '@/lib/tv/transport'
 import { activateSessionPrep, prepareWorkouts } from '@/lib/workout/sessionPrep'
 import { structureSummary } from '@/lib/workout/workoutStructure'
 import { PrepInsightsPanel } from '@/components/workout/PrepInsightsPanel'
 import { ExerciseIcon, equipmentSummary, metricLabel } from '@/components/workout/ExerciseIcon'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
-import { LabActionButton } from '@/components/lab/LabPrimitives'
 import type { WorkoutExercise } from '@/types/workout'
 
 export function WorkoutPrepPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const { items: lockerItems, activeProfile } = useLocker()
+  const { items: lockerItems } = useLocker()
   const { score: recoveryScore } = useRecoveryScore()
   const { theme } = useTheme()
+  const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
+  const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
+  const { status: tvStatus } = useTvConnection()
 
   const ids = useMemo(() => {
     const raw = params.get('ids') ?? params.get('id') ?? ''
@@ -44,86 +51,95 @@ export function WorkoutPrepPage() {
 
   const sessionPrep = prep
   const isMulti = sessionPrep.workouts.length > 1
+  const primaryWorkout = sessionPrep.workouts[0]
+
+  function buildTvState() {
+    return buildPrepTvState(
+      sessionPrep.workouts.map((p) => p.workout),
+      recoveryScore,
+      theme,
+    )
+  }
 
   function handleConnectTv() {
-    publishToTvTransport(
-      buildPrepTvState(
-        sessionPrep.workouts.map((p) => p.workout),
-        recoveryScore,
-        theme,
-      ),
-      { openWindow: true, theme },
-    )
+    void reconnectTv(buildTvState(), { openWindow: true, theme })
+  }
+
+  function handleDisconnectTv() {
+    publishTvIdle(theme)
+    disconnectTv()
   }
 
   function handleStart() {
     activateSessionPrep(sessionPrep)
-    publishToTvTransport(
-      buildPrepTvState(
-        sessionPrep.workouts.map((p) => p.workout),
-        recoveryScore,
-        theme,
-      ),
-      { theme },
-    )
+    publishToTvTransport(buildTvState(), { theme })
     navigate('/session')
   }
 
   return (
-    <div className="flex flex-col gap-4 py-2">
-      <button
-        type="button"
-        onClick={() => navigate('/workouts')}
-        className="flex items-center gap-2 text-sm text-muted active:text-fg"
-      >
-        <ArrowLeft className="size-4" />
-        Workouts
-      </button>
-
-      <header>
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="label-mono text-faint">Workout prep</p>
-            <h1 className="text-xl font-bold">
-              {isMulti ? `${sessionPrep.workouts.length} workouts` : sessionPrep.workouts[0].workout.name}
-            </h1>
-        <p className="mt-1 text-xs text-muted">
-          Controleer targets, verbind TV en start je sessie.
-          <span className="text-faint"> · Locker: {activeProfile.name}</span>
-        </p>
-          </div>
+    <div className="flex flex-col gap-3 py-1">
+      <div className="flex items-center gap-2">
+        <PageBackButton to="/workouts" />
+        <div className="min-w-0 flex-1">
+          <p className="label-mono truncate text-[10px] text-faint">
+            {isMulti ? `${sessionPrep.workouts.length} workouts` : 'Workout prep'}
+          </p>
+          <h1 className="truncate text-base font-bold">
+            {isMulti ? 'Multi-workout prep' : primaryWorkout.workout.name}
+          </h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
           {!isMulti && (
             <button
               type="button"
-              onClick={() => navigate(`/workouts/${sessionPrep.workouts[0].workout.id}/edit`)}
-              className="flex shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted active:bg-surface-2"
+              onClick={() => navigate(`/workouts/${primaryWorkout.workout.id}/edit`)}
+              className="grid size-11 place-items-center rounded-xl border border-line bg-surface-2 text-muted active:bg-surface-3"
+              aria-label="Bewerken"
             >
-              <Pencil className="size-3.5" />
-              Bewerken
+              <Pencil className="size-5" />
             </button>
           )}
+          <button
+            type="button"
+            onClick={handleStart}
+            className="grid size-11 place-items-center rounded-xl bg-solo-400 text-ink active:bg-solo-500"
+            aria-label="Start sessie"
+          >
+            <Play className="size-5 fill-ink" />
+          </button>
         </div>
-      </header>
+      </div>
+
+      <SessionControlBar
+        cameraEnabled={cameraEnabled}
+        onCameraChange={setCameraEnabled}
+        coachEnabled={coachEnabled}
+        onCoachToggle={toggleCoach}
+        tvStatus={tvStatus}
+        onConnectTv={handleConnectTv}
+        onDisconnectTv={handleDisconnectTv}
+      />
+
+      <p className="text-[11px] text-faint">
+        Stel camera, coach en TV in. Start opent de live sessie — daar begin je met de eerste oefening.
+      </p>
+
+      <PrepInsightsPanel
+        recoveryScore={recoveryScore}
+        lockerCount={lockerItems.length}
+        workout={primaryWorkout.workout}
+        targets={primaryWorkout.targets}
+        showRecoverySummary
+      />
 
       {sessionPrep.workouts.map(({ workout, targets }, wi) => (
-        <PrepInsightsPanel
-          key={`insights-${workout.id}`}
-          recoveryScore={recoveryScore}
-          lockerCount={lockerItems.length}
-          workout={workout}
-          targets={targets}
-          showRecoverySummary={!isMulti || wi === 0}
-        />
-      ))}
-
-      {sessionPrep.workouts.map(({ workout, targets }, wi) => (
-        <section key={workout.id} className="rounded-card border border-line bg-surface p-4">
+        <section key={workout.id} className="rounded-card border border-line bg-surface p-3">
           {isMulti && (
             <p className="label-mono mb-2 text-faint">
               Workout {wi + 1} · {workout.name}
             </p>
           )}
-          <p className="mb-3 text-xs text-muted">{structureSummary(workout)}</p>
+          <p className="mb-2 text-xs text-muted">{structureSummary(workout)}</p>
 
           <ul className="flex flex-col gap-3">
             {workout.exercises.map((ex, i) => (
@@ -133,25 +149,9 @@ export function WorkoutPrepPage() {
         </section>
       ))}
 
-      <div className="flex flex-col gap-2">
-        <LabActionButton variant="secondary" onClick={handleConnectTv} className="gap-2">
-          <Tv className="size-4" />
-          Verbind TV-scherm
-        </LabActionButton>
-        <p className="text-center text-[11px] text-faint">
-          Opent {getTvTransportState().receiverUrl} · cast dat tabblad naar je TV (AirPlay/Chromecast)
-        </p>
-
-        <button
-          type="button"
-          onClick={handleStart}
-          className="flex items-center justify-center gap-2 rounded-xl bg-solo-400 py-4 text-sm font-bold text-ink active:bg-solo-500"
-        >
-          <Play className="size-5 fill-ink" />
-          Start sessie
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
+      <p className="text-center text-[10px] text-faint">
+        TV: {getTvTransportState().receiverUrl}
+      </p>
     </div>
   )
 }
@@ -176,25 +176,22 @@ function PrepExerciseRow({
         <ExerciseIcon metric={ex.metric} kind={ex.kind} equipment={ex.equipment} icon={ex.icon} size={24} />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-sm font-semibold">{ex.name}</p>
-          {ex.description && (
-            <button
-              type="button"
-              onClick={() => setShowInfo(true)}
-              className="grid size-11 shrink-0 place-items-center rounded-xl text-muted active:bg-surface-2"
-              aria-label={`Uitleg ${ex.name}`}
-            >
-              <Info className="size-5" />
-            </button>
-          )}
-        </div>
+        <p className="text-sm font-semibold">{ex.name}</p>
         <p className="text-xs text-muted">
           {metricLabel(ex.metric, ex.target)}
           {weight > 0 && ` · ${weight} kg`}
           {gear && ` · ${gear}`}
           {ex.restSeconds > 0 && ` · rust ${ex.restSeconds}s`}
         </p>
+        {ex.description && (
+          <button
+            type="button"
+            onClick={() => setShowInfo(true)}
+            className="mt-1 text-xs font-medium text-solo-400 active:opacity-70"
+          >
+            Bekijk uitleg
+          </button>
+        )}
       </div>
       <span className="label-mono shrink-0 text-faint">#{index + 1}</span>
 

@@ -118,4 +118,8 @@ export type ActiveSession = {
   currentSetStartedAt?: string
   /** Last added duration per exercise — used to undo a completion. */
   lastExerciseDuration?: Record<string, number>
+  /** False until the user explicitly starts exercising on the session page. */
+  exercisesStarted?: boolean
+  /** Exercise ids with an active pause (timer frozen). */
+  pausedExerciseIds?: string[]
 }

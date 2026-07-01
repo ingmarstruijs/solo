@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { WorkoutExercise, WorkoutTemplate } from '@/types/workout'
 import { createId } from '@/lib/storage/localStore'
 import { recalcWorkoutDuration } from '@/lib/workout/overloadPlanner'
@@ -24,12 +24,18 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
   const [sets, setSets] = useState(initial?.sets ?? 3)
   const [restBetweenSets, setRestBetweenSets] = useState(initial?.restBetweenSets ?? 60)
   const [circuitRounds, setCircuitRounds] = useState(initial?.circuitRounds ?? 3)
-  const [restBetweenRounds, setRestBetweenRounds] = useState(initial?.restBetweenRounds ?? 60)
   const [exercises, setExercises] = useState<WorkoutExercise[]>(
     initial?.exercises ?? [emptyExercise()],
   )
   const [nameError, setNameError] = useState(false)
   const nameInputRef = useRef<HTMLInputElement>(null)
+
+  function setStructureMode(next: WorkoutStructure) {
+    setStructure(next)
+    if (next === 'circuit') {
+      setExercises((prev) => prev.map((ex) => ({ ...ex, restSeconds: 0 })))
+    }
+  }
 
   function updateExercise(idx: number, ex: WorkoutExercise) {
     setExercises((prev) => prev.map((e, i) => (i === idx ? ex : e)))
@@ -40,7 +46,10 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
   }
 
   function addExercise() {
-    setExercises((prev) => [...prev, emptyExercise()])
+    setExercises((prev) => [
+      ...prev,
+      structure === 'circuit' ? { ...emptyExercise(), restSeconds: 0 } : emptyExercise(),
+    ])
   }
 
   function reorderExercise(from: number, to: number) {
@@ -81,25 +90,26 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
       return
     }
 
+    const circuitExercises = exercises.map((ex) => ({ ...ex, restSeconds: 0 }))
     onSave({
       name: name.trim(),
       description: description.trim() || undefined,
-      exercises,
+      exercises: circuitExercises,
       sets: 1,
       restBetweenSets: 0,
       circuitRounds,
-      restBetweenRounds,
+      restBetweenRounds: 0,
       favorite: initial?.favorite ?? false,
       source: initial?.source ?? 'manual',
-      estimatedMinutes: recalcWorkoutDuration(exercises, 1, circuitRounds, restBetweenRounds),
+      estimatedMinutes: recalcWorkoutDuration(circuitExercises, 1, circuitRounds, 0),
       tags: initial?.tags ?? [],
     })
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1.5">
-        <span className="label-mono text-faint">Workout naam</span>
+    <div className="flex flex-col gap-3">
+      <label className="flex flex-col gap-1">
+        <span className="label-mono text-[9px] text-faint">Workout naam</span>
         <input
           ref={nameInputRef}
           value={name}
@@ -114,8 +124,8 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
         {nameError && <span className="text-xs text-danger">Naam is verplicht</span>}
       </label>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="label-mono text-faint">Beschrijving</span>
+      <label className="flex flex-col gap-1">
+        <span className="label-mono text-[9px] text-faint">Beschrijving</span>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -125,102 +135,48 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
         />
       </label>
 
-      <div className="rounded-card border border-line bg-surface-2 p-3">
-        <p className="text-sm font-semibold">Workout type</p>
-        <p className="mt-0.5 text-xs text-muted">Kies hoe je door de oefeningen gaat.</p>
-        <div className="mt-3 flex gap-2">
+      <div className="flex flex-col gap-1.5">
+        <span className="label-mono text-[9px] text-faint">Type</span>
+        <div className="flex gap-1.5">
           {(
             [
-              { id: 'strength' as const, label: 'Kracht', hint: 'Sets per oefening' },
-              { id: 'circuit' as const, label: 'Circuit', hint: 'Rondes over workout' },
+              { id: 'strength' as const, label: 'Kracht' },
+              { id: 'circuit' as const, label: 'Circuit' },
             ] as const
           ).map((opt) => (
             <button
               key={opt.id}
               type="button"
-              onClick={() => setStructure(opt.id)}
+              onClick={() => setStructureMode(opt.id)}
               className={cn(
-                'flex flex-1 flex-col rounded-xl border px-3 py-2.5 text-left transition-colors',
+                'flex-1 rounded-xl border py-2 text-sm font-semibold transition-colors',
                 structure === opt.id
-                  ? 'border-solo-400/50 bg-solo-400/10'
-                  : 'border-line active:bg-surface',
+                  ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
+                  : 'border-line text-muted active:bg-surface-2',
               )}
             >
-              <span className="text-sm font-semibold">{opt.label}</span>
-              <span className="text-[10px] text-muted">{opt.hint}</span>
+              {opt.label}
             </button>
           ))}
         </div>
       </div>
 
       {structure === 'strength' ? (
-        <div className="rounded-card border border-line bg-surface-2 p-3">
-          <p className="text-sm font-semibold">Sets & rust</p>
-          <p className="mt-0.5 text-xs text-muted">
-            Doe alle sets van één oefening achter elkaar, dan pas door naar de volgende.
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <label className="flex flex-col gap-1">
-              <span className="label-mono text-[9px] text-faint">Sets</span>
-              <input
-                type="number"
-                min={1}
-                value={sets}
-                onChange={(e) => setSets(parseInt(e.target.value) || 1)}
-                className={inputClass}
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="label-mono text-[9px] text-faint">Rust tussen sets (s)</span>
-              <input
-                type="number"
-                min={0}
-                value={restBetweenSets}
-                onChange={(e) => setRestBetweenSets(parseInt(e.target.value) || 0)}
-                className={inputClass}
-              />
-            </label>
-          </div>
+        <div className="grid grid-cols-2 gap-2">
+          <NumberField label="Sets" value={sets} min={1} onChange={setSets} />
+          <NumberField
+            label="Rust tussen sets (s)"
+            value={restBetweenSets}
+            min={0}
+            onChange={setRestBetweenSets}
+          />
         </div>
       ) : (
-        <div className="rounded-card border border-line bg-surface-2 p-3">
-          <p className="text-sm font-semibold">Rondes & rust</p>
-          <p className="mt-0.5 text-xs text-muted">
-            Doe alle oefeningen één keer na elkaar en herhaal die hele ronde.
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <label className="flex flex-col gap-1">
-              <span className="label-mono text-[9px] text-faint">Rondes</span>
-              <input
-                type="number"
-                min={2}
-                value={circuitRounds}
-                onChange={(e) => setCircuitRounds(Math.max(2, parseInt(e.target.value) || 2))}
-                className={inputClass}
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="label-mono text-[9px] text-faint">Rust tussen rondes (s)</span>
-              <input
-                type="number"
-                min={0}
-                value={restBetweenRounds}
-                onChange={(e) => setRestBetweenRounds(parseInt(e.target.value) || 0)}
-                className={inputClass}
-              />
-            </label>
-          </div>
-        </div>
+        <NumberField label="Rondes" value={circuitRounds} min={2} onChange={setCircuitRounds} />
       )}
 
-      <div className="flex flex-col gap-3">
-        <div>
-          <p className="text-sm font-semibold">Oefeningen</p>
-          {exercises.length > 1 && (
-            <p className="mt-0.5 text-xs text-muted">Sleep ⋮⋮ of gebruik de pijlen om te sorteren.</p>
-          )}
-        </div>
-
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-semibold">Oefeningen</p>
         {exercises.map((ex, i) => (
           <ExerciseBlock
             key={ex.id}
@@ -228,6 +184,7 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
             index={i}
             canMoveUp={i > 0}
             canMoveDown={i < exercises.length - 1}
+            circuitMode={structure === 'circuit'}
             onChange={(updated) => updateExercise(i, updated)}
             onRemove={() => removeExercise(i)}
             onMoveUp={() => moveExercise(i, -1)}
@@ -248,9 +205,7 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
 
       <div className="flex flex-col gap-2">
         {nameError && (
-          <p className="text-center text-xs text-danger">
-            Geef de workout eerst een naam om op te slaan.
-          </p>
+          <p className="text-center text-xs text-danger">Geef de workout eerst een naam om op te slaan.</p>
         )}
         <div className="flex gap-2">
           <LabActionButton variant="secondary" onClick={onCancel}>
@@ -261,18 +216,65 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
           </LabActionButton>
         </div>
         {onDelete && (
-          <div className="mt-6 border-t border-line pt-4">
-            <button
-              type="button"
-              onClick={onDelete}
-              className="w-full rounded-xl border border-danger/25 px-4 py-2.5 text-sm font-medium text-danger active:bg-danger/10"
-            >
-              Workout verwijderen
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="mt-2 w-full rounded-xl border border-danger/25 px-4 py-2.5 text-sm font-medium text-danger active:bg-danger/10"
+          >
+            Workout verwijderen
+          </button>
         )}
       </div>
     </div>
+  )
+}
+
+function NumberField({
+  label,
+  value,
+  min,
+  onChange,
+}: {
+  label: string
+  value: number
+  min?: number
+  onChange: (value: number) => void
+}) {
+  const [text, setText] = useState(String(value))
+
+  useEffect(() => {
+    setText(String(value))
+  }, [value])
+
+  function commit(raw: string) {
+    if (raw.trim() === '') {
+      onChange(min ?? 0)
+      setText(String(min ?? 0))
+      return
+    }
+    const parsed = parseInt(raw, 10)
+    if (Number.isNaN(parsed)) {
+      setText(String(value))
+      return
+    }
+    const next = min != null ? Math.max(min, parsed) : parsed
+    onChange(next)
+    setText(String(next))
+  }
+
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="label-mono text-[9px] text-faint">{label}</span>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={min}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => commit(text)}
+        className={inputClass}
+      />
+    </label>
   )
 }
 
@@ -290,4 +292,4 @@ function emptyExercise(): WorkoutExercise {
 }
 
 const inputClass =
-  'w-full rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-sm text-fg outline-none focus:border-solo-400/50'
+  'w-full rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm text-fg outline-none focus:border-solo-400/50'

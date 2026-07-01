@@ -1,4 +1,4 @@
-import { BarChart3, ChevronRight, Clock, Dumbbell, Trash2 } from 'lucide-react'
+import { BarChart3, ChevronRight, Clock, Dumbbell, Flame, Trash2, TrendingUp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useHistory } from '@/hooks/useHistory'
 import { formatDuration } from '@/lib/workout/sessionSummary'
@@ -29,39 +29,45 @@ export function HistoryPage() {
   const { history, stats, remove, clearAll } = useHistory()
 
   function handleClearAll() {
-    if (!confirm('Alle sessies uit je historie verwijderen?')) return
+    if (!confirm('Alle sessies uit je logboek verwijderen?')) return
     clearAll()
   }
 
   function handleDelete(id: string, name: string) {
-    if (!confirm(`"${name}" uit je historie verwijderen?`)) return
+    if (!confirm(`"${name}" uit je logboek verwijderen?`)) return
     remove(id)
   }
 
   return (
-    <div className="flex flex-col gap-4 py-2">
-      <header className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-surface-2 text-solo-400">
-            <BarChart3 className="size-6" />
-          </span>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Historie</h1>
-            <p className="text-xs text-muted">
-              {stats.totalSessions} sessie{stats.totalSessions !== 1 && 's'} · {stats.totalMinutes} min totaal
-            </p>
+    <div className="flex flex-col gap-3 py-1">
+      <div className="sticky top-[calc(var(--header-h)+env(safe-area-inset-top))] z-20 -mx-4 border-b border-line bg-ink/95 px-4 pb-3 pt-1 backdrop-blur-sm">
+        <header className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="grid size-9 place-items-center rounded-xl bg-surface-2 text-solo-400">
+              <BarChart3 className="size-5" />
+            </span>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">Logboek</h1>
+              <p className="text-[11px] text-muted">Je afgeronde trainingen</p>
+            </div>
           </div>
+          {history.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="shrink-0 rounded-lg border border-danger/40 px-2.5 py-1.5 text-xs font-medium text-danger active:bg-danger/10"
+            >
+              Alles wissen
+            </button>
+          )}
+        </header>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <StatPill icon={Flame} label="Deze week" value={String(stats.sessionsThisWeek)} />
+          <StatPill icon={TrendingUp} label="Sessies" value={String(stats.totalSessions)} />
+          <StatPill icon={Clock} label="Minuten" value={String(stats.totalMinutes)} />
         </div>
-        {history.length > 0 && (
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="shrink-0 rounded-lg border border-danger/40 px-2.5 py-1.5 text-xs font-medium text-danger active:bg-danger/10"
-          >
-            Alles wissen
-          </button>
-        )}
-      </header>
+      </div>
 
       {history.length === 0 ? (
         <p className="rounded-card border border-dashed border-line p-6 text-center text-sm text-muted">
@@ -104,15 +110,33 @@ export function HistoryPage() {
               <button
                 type="button"
                 onClick={() => handleDelete(record.id, record.workoutName)}
-                className="grid size-9 shrink-0 place-items-center rounded-lg text-faint active:bg-danger/10 active:text-danger"
+                className="grid size-10 shrink-0 place-items-center rounded-lg text-faint active:bg-danger/10 active:text-danger"
                 aria-label={`${record.workoutName} verwijderen`}
               >
-                <Trash2 className="size-4" />
+                <Trash2 className="size-5" />
               </button>
             </article>
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function StatPill({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Flame
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-xl border border-line bg-surface px-2 py-2 text-center">
+      <Icon className="mx-auto mb-0.5 size-3.5 text-solo-400" />
+      <p className="text-base font-bold tabular-nums">{value}</p>
+      <p className="label-mono text-[8px] text-faint">{label}</p>
     </div>
   )
 }

@@ -82,7 +82,9 @@ function PrepDashboard({ state }: { state: Extract<TvMessage, { mode: 'prep' }> 
           <p className="label-mono text-[1.4vh] text-success">VERBONDEN · PREP</p>
           <h1 className="text-[4vh] font-bold">Workout Prep</h1>
         </div>
-        <p className="text-[2vh] text-muted">Recovery {state.recoveryScore}%</p>
+        {state.garminConnected && state.recoveryScore != null && (
+          <p className="text-[2vh] text-muted">Recovery {state.recoveryScore}%</p>
+        )}
       </header>
       <ul className="grid gap-[1.5vh]">
         {state.workouts.map((w) => (
@@ -163,7 +165,9 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
           <h1 className="text-[3vh] font-bold leading-tight">{state.workoutName}</h1>
         </div>
         <div className="text-right">
-          <p className="text-[1.6vh] text-muted">Recovery {state.recoveryScore ?? '—'}%</p>
+          {state.sensor.garminConnected && state.recoveryScore != null && (
+            <p className="text-[1.6vh] text-muted">Recovery {state.recoveryScore}%</p>
+          )}
           <p className="text-[1.4vh] text-faint">
             {state.completedSlots}/{state.totalSlots} · {state.phaseLabel}{' '}
             {state.setIndex + 1}/{state.totalSets}

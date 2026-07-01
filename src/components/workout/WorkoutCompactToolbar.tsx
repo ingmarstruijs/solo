@@ -1,6 +1,5 @@
-import { Dumbbell, Filter, MoreHorizontal, Plus } from 'lucide-react'
+import { MoreHorizontal, Plus, Search } from 'lucide-react'
 import { useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { cn } from '@/lib/cn'
 
 type WorkoutCompactToolbarProps = {
   onNew: () => void
@@ -8,9 +7,6 @@ type WorkoutCompactToolbarProps = {
   onImportJson: (json: string) => number
   onImportFit: (buffer: ArrayBuffer) => void
   onBrowseWger: () => void
-  filtersOpen: boolean
-  onToggleFilters: () => void
-  activeFilterCount: number
 }
 
 export function WorkoutCompactToolbar({
@@ -19,9 +15,6 @@ export function WorkoutCompactToolbar({
   onImportJson,
   onImportFit,
   onBrowseWger,
-  filtersOpen,
-  onToggleFilters,
-  activeFilterCount,
 }: WorkoutCompactToolbarProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const jsonRef = useRef<HTMLInputElement>(null)
@@ -66,25 +59,8 @@ export function WorkoutCompactToolbar({
         onClick={onBrowseWger}
         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-solo-400/50 bg-solo-400/10 px-3 py-2.5 text-sm font-semibold text-solo-300 active:bg-solo-400/20"
       >
-        <Dumbbell className="size-4" />
-        Wger database
-      </button>
-
-      <button
-        type="button"
-        onClick={onToggleFilters}
-        className={cn(
-          'relative grid size-10 place-items-center rounded-xl border active:bg-surface-2',
-          filtersOpen ? 'border-solo-400/50 bg-solo-400/10 text-solo-300' : 'border-line text-muted',
-        )}
-        aria-label="Filters"
-      >
-        <Filter className="size-4" />
-        {activeFilterCount > 0 && (
-          <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-solo-400 text-[9px] font-bold text-ink">
-            {activeFilterCount}
-          </span>
-        )}
+        <Search className="size-4" />
+        Zoeken
       </button>
 
       <div className="relative">
