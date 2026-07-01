@@ -62,7 +62,7 @@ export function WorkoutPrepPage() {
   }
 
   function handleConnectTv() {
-    void reconnectTv(buildTvState(), { openWindow: true, theme })
+    void reconnectTv(buildTvState(), { theme })
   }
 
   function handleDisconnectTv() {

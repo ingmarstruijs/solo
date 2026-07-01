@@ -20,8 +20,7 @@ function formatWeightItem(item: PlateItemUsed): SessionMaterialLine {
   return {
     id: itemKey(item),
     category: item.category,
-    label: `${countPrefix}${item.label || meta.labelNl}`,
-    detail: item.weightKg > 0 ? `${item.weightKg} kg` : undefined,
+    label: `${countPrefix}${item.label || meta.labelNl}${weightSuffix}`,
   }
 }
 
