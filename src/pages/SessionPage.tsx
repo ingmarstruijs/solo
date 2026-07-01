@@ -5,7 +5,6 @@ import {
   Pause,
   Play,
   Scale,
-  Square,
   TimerReset,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -49,7 +48,6 @@ export function SessionPage() {
   const {
     toggleComplete,
     setNote,
-    cancelSession,
     completeSession,
     startNextWorkout,
     startExercises,
@@ -85,6 +83,18 @@ export function SessionPage() {
       (ex) => !session.completedExerciseIds.includes(ex.id),
     )
     return next >= 0 ? next : session.workout.exercises.length - 1
+  }, [session])
+
+  const orderedExercises = useMemo(() => {
+    if (!session) return []
+    const pending: { ex: (typeof session.workout.exercises)[number]; index: number }[] = []
+    const completed: { ex: (typeof session.workout.exercises)[number]; index: number }[] = []
+    session.workout.exercises.forEach((ex, index) => {
+      const item = { ex, index }
+      if (session.completedExerciseIds.includes(ex.id)) completed.push(item)
+      else pending.push(item)
+    })
+    return [...pending, ...completed]
   }, [session])
 
   const sessionTv = useMemo(() => {
@@ -252,13 +262,6 @@ export function SessionPage() {
     setRestTimer(null)
   }
 
-  function handleCancel() {
-    if (!confirm('Sessie afbreken? Deze workout wordt niet opgeslagen.')) return
-    publishTvIdle(theme)
-    cancelSession()
-    navigate('/workouts')
-  }
-
   function handleNextSet() {
     if (!allDone) return
     setRestTimer(null)
@@ -314,22 +317,21 @@ export function SessionPage() {
 
   return (
     <section className="flex h-[calc(100dvh-var(--header-h)-var(--bottomnav-h)-env(safe-area-inset-top)-env(safe-area-inset-bottom)-0.5rem)] flex-col gap-2 pt-1">
-      <header className="flex shrink-0 items-center justify-between gap-2">
+      <header className="flex shrink-0 items-center gap-2">
         <div className="min-w-0 flex-1">
-          <p className="label-mono text-[10px] text-success">● Live</p>
+          <p
+            className={cn(
+              'label-mono text-[10px]',
+              exercisesStarted ? 'text-success' : 'text-warn',
+            )}
+          >
+            ● {exercisesStarted ? 'Live' : 'Voorbereiden'}
+          </p>
           <h1 className="truncate text-base font-bold">{workout.name}</h1>
           <p className="text-[10px] text-muted">
             {phase.label} {currentSet}/{phase.total} · {doneCount}/{workout.exercises.length}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="grid size-11 shrink-0 place-items-center rounded-xl border border-danger/40 bg-danger/10 text-danger active:bg-danger/20"
-          aria-label="Stop sessie"
-        >
-          <Square className="size-5 fill-current" />
-        </button>
       </header>
 
       <SessionControlBar
@@ -345,11 +347,13 @@ export function SessionPage() {
       <RestTimerBar countdown={restCountdown} onSkip={() => setRestTimer(null)} className="shrink-0" />
 
       {!exercisesStarted && (
-        <div className="shrink-0 rounded-card border border-solo-400/40 bg-solo-400/10 p-4">
-          <p className="text-sm font-semibold">Klaar om te beginnen?</p>
+        <div
+          id="session-setup"
+          className="shrink-0 rounded-card border border-warn/30 bg-warn/10 p-4"
+        >
+          <p className="text-sm font-semibold">Materiaal klaarleggen</p>
           <p className="mt-1 text-xs text-muted">
-            Stel camera, coach en TV in. Leg je materiaal klaar en druk op start voor de eerste
-            oefening.
+            Stel camera, coach en TV in. Vink je materiaal af en bevestig wanneer alles klaarligt.
           </p>
           <SessionMaterialsChecklist materials={sessionMaterials} />
           <button
@@ -358,7 +362,7 @@ export function SessionPage() {
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-solo-400 py-3.5 text-sm font-bold text-ink active:bg-solo-500"
           >
             <Play className="size-5 fill-ink" />
-            Start workout
+            Klaar — start workout
           </button>
         </div>
       )}
@@ -449,10 +453,10 @@ export function SessionPage() {
       )}
 
       <ol ref={listRef} className="-mx-1 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-1 pb-2">
-        {workout.exercises.map((ex, i) => {
+        {orderedExercises.map(({ ex, index: i }) => {
           const weight = getExerciseWeight(ex, targets)
           const done = completedExerciseIds.includes(ex.id)
-          const isCurrent = exercisesStarted && i === activeIndex && !allDone
+          const isCurrent = exercisesStarted && ex.id === activeExercise?.id && !allDone
           const isPaused = pausedIds.has(ex.id)
           const target = targets.find((t) => t.exerciseId === ex.id)
           const hideDuplicate = showActiveSticky && isCurrent
@@ -464,7 +468,7 @@ export function SessionPage() {
               key={ex.id}
               className={cn(
                 'rounded-card border bg-surface p-3 transition-all',
-                done && 'border-success/30 opacity-60',
+                done && 'border-success/30 opacity-80',
                 !done && !isCurrent && 'border-line',
                 isCurrent && 'border-solo-400/50 bg-solo-400/[0.04]',
               )}
@@ -547,6 +551,7 @@ function SessionExerciseRow({
   const chunksRef = useRef<Blob[]>([])
   const [showWeight, setShowWeight] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
   const timerActive = isCurrent && !done && exercisesStarted && !isPaused
   const exerciseTimer = useElapsedTimer(new Date(exerciseStartedAt).getTime(), timerActive)
 
@@ -557,12 +562,14 @@ function SessionExerciseRow({
       chunksRef.current = []
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data)
       recorder.onstop = () => {
+        setIsRecording(false)
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         onNoteChange({ ...note, audioNote: URL.createObjectURL(blob) })
         stream.getTracks().forEach((t) => t.stop())
       }
       recorder.start()
       mediaRef.current = recorder
+      setIsRecording(true)
     } catch {
       const text = prompt('Microfoon niet beschikbaar. Typ je notitie:')
       if (text) onNoteChange({ ...note, audioNoteText: text })
@@ -570,13 +577,20 @@ function SessionExerciseRow({
   }
 
   function stopRecording() {
-    mediaRef.current?.stop()
+    if (mediaRef.current?.state === 'recording') {
+      mediaRef.current.stop()
+    }
     mediaRef.current = null
+    setIsRecording(false)
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-start gap-3">
+      <button
+        type="button"
+        onClick={() => setShowInfo(true)}
+        className="flex items-start gap-3 rounded-lg text-left active:bg-surface-2/80"
+      >
         <span
           className={cn(
             'grid size-10 shrink-0 place-items-center rounded-lg',
@@ -620,17 +634,8 @@ function SessionExerciseRow({
           </div>
           <p className="mt-0.5 text-xs text-muted">{formatExerciseTargetLine(ex, weight)}</p>
           {reason && <p className="mt-1 text-xs text-warn">{reason}</p>}
-          {ex.description && (
-            <button
-              type="button"
-              onClick={() => setShowInfo(true)}
-              className="mt-1 text-xs font-medium text-solo-400 active:opacity-70"
-            >
-              Bekijk uitleg
-            </button>
-          )}
         </div>
-      </div>
+      </button>
 
       {(isCurrent || note?.audioNote || note?.audioNoteText || plateConfig) && exercisesStarted && (
         <div className="flex flex-wrap items-center gap-2">
@@ -638,12 +643,18 @@ function SessionExerciseRow({
             type="button"
             onMouseDown={startRecording}
             onMouseUp={stopRecording}
+            onMouseLeave={stopRecording}
             onTouchStart={startRecording}
             onTouchEnd={stopRecording}
-            className="flex items-center gap-1 rounded-lg border border-line px-2 py-1.5 text-[10px] text-muted active:bg-surface-2"
+            className={cn(
+              'flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[10px]',
+              isRecording
+                ? 'border-danger bg-danger/15 text-danger animate-pulse'
+                : 'border-line text-muted active:bg-surface-2',
+            )}
           >
             <Mic className="size-3.5" />
-            {note?.audioNote || note?.audioNoteText ? 'Notitie ✓' : 'Audio'}
+            {isRecording ? 'Opnemen…' : note?.audioNote || note?.audioNoteText ? 'Notitie ✓' : 'Audio'}
           </button>
           {plateConfig && weight > 0 && (
             <button
@@ -707,20 +718,25 @@ function SessionExerciseRow({
         </div>
       )}
 
-      {done && !compact && (
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2">
+      {done && (
+        <div
+          className={cn(
+            'flex items-center justify-between gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2',
+            compact && 'py-1.5',
+          )}
+        >
           <span className="flex items-center gap-2 text-sm font-semibold text-success">
             <Check className="size-4" strokeWidth={3} />
-            Afgevinkt
+            {compact ? 'Klaar' : 'Afgevinkt'}
           </span>
-          <button type="button" onClick={onUndo} className="text-xs font-medium text-muted">
+          <button type="button" onClick={onUndo} className="text-xs font-medium text-muted active:text-fg">
             Ongedaan
           </button>
         </div>
       )}
 
-      {showInfo && ex.description && (
-        <ExerciseInfoModal name={ex.name} description={ex.description} onClose={() => setShowInfo(false)} />
+      {showInfo && (
+        <ExerciseInfoModal exercise={ex} onClose={() => setShowInfo(false)} />
       )}
     </div>
   )

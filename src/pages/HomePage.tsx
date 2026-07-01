@@ -134,9 +134,7 @@ export function HomePage() {
           <p className="text-lg font-semibold">Kies een workout</p>
           <p className="text-sm text-muted">Selecteer, prep en start je sessie.</p>
         </div>
-        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-solo-400 text-ink">
-          <Play className="size-6 translate-x-0.5 fill-ink" />
-        </span>
+        <ChevronRight className="size-5 shrink-0 text-faint" />
       </button>
 
       <section className="rounded-card border border-line bg-surface p-3">

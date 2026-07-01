@@ -1,28 +1,31 @@
-import { Pencil, Play } from 'lucide-react'
+import { ChevronRight, Pencil } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PageBackButton } from '@/components/layout/PageBackButton'
 import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'
 import { useCoachEnabled } from '@/hooks/useCoachEnabled'
+import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useTheme } from '@/hooks/useTheme'
 import { useTvConnection } from '@/hooks/useTvConnection'
+import { getTvTransportState, reconnectTv, disconnectTv, publishTvIdle } from '@/lib/tv/transport'
 import { buildPrepTvState } from '@/lib/tv/broadcast'
-import { getTvTransportState, publishToTvTransport, reconnectTv, disconnectTv, publishTvIdle } from '@/lib/tv/transport'
-import { activateSessionPrep, prepareWorkouts } from '@/lib/workout/sessionPrep'
+import { prepareWorkouts } from '@/lib/workout/sessionPrep'
 import { structureSummary } from '@/lib/workout/workoutStructure'
 import { PrepInsightsPanel } from '@/components/workout/PrepInsightsPanel'
 import { ExerciseIcon, equipmentSummary, metricLabel } from '@/components/workout/ExerciseIcon'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import type { WorkoutExercise } from '@/types/workout'
+import { cn } from '@/lib/cn'
 
 export function WorkoutPrepPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const { items: lockerItems } = useLocker()
+  const { items: lockerItems, activeProfile } = useLocker()
   const { score: recoveryScore } = useRecoveryScore()
+  const { connected: garminConnected } = useGarminConnected()
   const { theme } = useTheme()
   const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
   const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
@@ -70,14 +73,8 @@ export function WorkoutPrepPage() {
     disconnectTv()
   }
 
-  function handleStart() {
-    activateSessionPrep(sessionPrep)
-    publishToTvTransport(buildTvState(), { theme })
-    navigate('/session')
-  }
-
   return (
-    <div className="flex flex-col gap-3 py-1">
+    <div className="flex flex-col gap-3 py-1 pb-20">
       <div className="flex items-center gap-2">
         <PageBackButton to="/workouts" />
         <div className="min-w-0 flex-1">
@@ -88,26 +85,16 @@ export function WorkoutPrepPage() {
             {isMulti ? 'Multi-workout prep' : primaryWorkout.workout.name}
           </h1>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {!isMulti && (
-            <button
-              type="button"
-              onClick={() => navigate(`/workouts/${primaryWorkout.workout.id}/edit`)}
-              className="grid size-11 place-items-center rounded-xl border border-line bg-surface-2 text-muted active:bg-surface-3"
-              aria-label="Bewerken"
-            >
-              <Pencil className="size-5" />
-            </button>
-          )}
+        {!isMulti && (
           <button
             type="button"
-            onClick={handleStart}
-            className="grid size-11 place-items-center rounded-xl bg-solo-400 text-ink active:bg-solo-500"
-            aria-label="Start sessie"
+            onClick={() => navigate(`/workouts/${primaryWorkout.workout.id}/edit`)}
+            className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-muted active:bg-surface-3"
+            aria-label="Bewerken"
           >
-            <Play className="size-5 fill-ink" />
+            <Pencil className="size-5" />
           </button>
-        </div>
+        )}
       </div>
 
       <SessionControlBar
@@ -121,15 +108,15 @@ export function WorkoutPrepPage() {
       />
 
       <p className="text-[11px] text-faint">
-        Stel camera, coach en TV in. Start opent de live sessie — daar begin je met de eerste oefening.
+        Stel camera, coach en TV in. Druk op Start onderin om de live sessie te openen.
       </p>
 
       <PrepInsightsPanel
+        workouts={sessionPrep.workouts}
         recoveryScore={recoveryScore}
         lockerCount={lockerItems.length}
-        workout={primaryWorkout.workout}
-        targets={primaryWorkout.targets}
-        showRecoverySummary
+        lockerName={activeProfile.name}
+        garminConnected={garminConnected}
       />
 
       {sessionPrep.workouts.map(({ workout, targets }, wi) => (
@@ -171,36 +158,36 @@ function PrepExerciseRow({
   const gear = equipmentSummary(ex.equipment)
 
   return (
-    <li className="flex gap-3">
-      <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-surface-2">
-        <ExerciseIcon metric={ex.metric} kind={ex.kind} equipment={ex.equipment} icon={ex.icon} size={24} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">{ex.name}</p>
-        <p className="text-xs text-muted">
-          {metricLabel(ex.metric, ex.target)}
-          {weight > 0 && ` · ${weight} kg`}
-          {gear && ` · ${gear}`}
-          {ex.restSeconds > 0 && ` · rust ${ex.restSeconds}s`}
-        </p>
-        {ex.description && (
-          <button
-            type="button"
-            onClick={() => setShowInfo(true)}
-            className="mt-1 text-xs font-medium text-solo-400 active:opacity-70"
-          >
-            Bekijk uitleg
-          </button>
+    <li>
+      <button
+        type="button"
+        onClick={() => setShowInfo(true)}
+        className={cn(
+          'flex w-full items-center gap-3 rounded-xl border border-line bg-surface-2 p-3 text-left',
+          'transition-colors active:border-solo-400/40 active:bg-solo-400/10',
         )}
-      </div>
-      <span className="label-mono shrink-0 text-faint">#{index + 1}</span>
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-lg border border-line bg-surface">
+          <ExerciseIcon metric={ex.metric} kind={ex.kind} equipment={ex.equipment} icon={ex.icon} size={24} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">{ex.name}</p>
+          <p className="text-xs text-muted">
+            {metricLabel(ex.metric, ex.target)}
+            {weight > 0 && ` · ${weight} kg`}
+            {gear && ` · ${gear}`}
+            {ex.restSeconds > 0 && ` · rust ${ex.restSeconds}s`}
+          </p>
+          <p className="mt-1 text-xs font-medium text-solo-400">Bekijk uitleg</p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="label-mono text-faint">#{index + 1}</span>
+          <ChevronRight className="size-4 text-faint" aria-hidden />
+        </div>
+      </button>
 
-      {showInfo && ex.description && (
-        <ExerciseInfoModal
-          name={ex.name}
-          description={ex.description}
-          onClose={() => setShowInfo(false)}
-        />
+      {showInfo && (
+        <ExerciseInfoModal exercise={ex} onClose={() => setShowInfo(false)} />
       )}
     </li>
   )

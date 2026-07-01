@@ -5,33 +5,46 @@ import { isRecoveryCritical } from '@/lib/storage/recoveryStore'
 import { WeightAssistant } from './WeightAssistant'
 import { cn } from '@/lib/cn'
 
-type PrepInsightsPanelProps = {
-  recoveryScore: number
-  lockerCount: number
+type PreparedWorkoutInsights = {
   workout: WorkoutTemplate
   targets: OverloadTarget[]
-  showRecoverySummary?: boolean
+}
+
+type PrepInsightsPanelProps = {
+  workouts: PreparedWorkoutInsights[]
+  recoveryScore: number
+  lockerCount: number
+  lockerName: string
+  garminConnected: boolean
 }
 
 export function PrepInsightsPanel({
+  workouts,
   recoveryScore,
   lockerCount,
-  workout,
-  targets,
-  showRecoverySummary = true,
+  lockerName,
+  garminConnected,
 }: PrepInsightsPanelProps) {
   const [expanded, setExpanded] = useState(false)
-  const [weightFor, setWeightFor] = useState<string | null>(null)
-  const critical = isRecoveryCritical(recoveryScore)
-  const adjustedCount = targets.filter((t) => t.adjustedWeightKg !== t.originalWeightKg).length
+  const [weightFor, setWeightFor] = useState<{ workoutId: string; exerciseId: string } | null>(null)
 
-  const weightTarget = weightFor ? targets.find((t) => t.exerciseId === weightFor) : null
-  const weightExercise = weightFor ? workout.exercises.find((e) => e.id === weightFor) : null
+  const allTargets = workouts.flatMap((w) => w.targets)
+  const adjustedCount = allTargets.filter((t) => t.adjustedWeightKg !== t.originalWeightKg).length
+  const critical = garminConnected && isRecoveryCritical(recoveryScore)
+  const title = garminConnected ? 'Gewichten & herstel' : 'Gewichten'
 
   const summaryParts: string[] = []
-  if (showRecoverySummary) summaryParts.push(`herstel ${recoveryScore}%`)
+  if (garminConnected) summaryParts.push(`herstel ${recoveryScore}%`)
   if (adjustedCount > 0) summaryParts.push(`${adjustedCount} gewichten aangepast`)
   if (summaryParts.length === 0) summaryParts.push('geen aanpassingen')
+
+  const weightWorkout = weightFor ? workouts.find((w) => w.workout.id === weightFor.workoutId) : null
+  const weightTarget = weightFor
+    ? weightWorkout?.targets.find((t) => t.exerciseId === weightFor.exerciseId)
+    : null
+  const weightExercise = weightFor
+    ? weightWorkout?.workout.exercises.find((e) => e.id === weightFor.exerciseId)
+    : null
 
   return (
     <>
@@ -43,7 +56,7 @@ export function PrepInsightsPanel({
         >
           <Scale className={cn('size-4 shrink-0', critical ? 'text-warn' : 'text-solo-400')} />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Gewichten & herstel</p>
+            <p className="text-sm font-semibold">{title}</p>
             <p className="truncate text-xs text-muted">{summaryParts.join(' · ')}</p>
           </div>
           <ChevronDown
@@ -54,48 +67,62 @@ export function PrepInsightsPanel({
         {expanded && (
           <div className="border-t border-line px-3 pb-3 pt-2">
             <p className="text-xs leading-relaxed text-muted">
-              Doelgewichten passen zich aan op basis van je locker
-              {showRecoverySummary && ' en herstel'}
-              . Bij laag herstel worden zware targets iets verlaagd.
+              Doelgewichten op basis van locker <strong className="font-medium text-fg">{lockerName}</strong>
+              {garminConnected && ' en herstel'}
+              {garminConnected ? '. Bij laag herstel worden zware targets iets verlaagd.' : '.'}
             </p>
-            {critical && showRecoverySummary && (
+            {critical && (
               <p className="mt-2 text-xs text-warn">Laag herstel — gewichten verlaagd met 5–10%</p>
             )}
             <div className="mt-2 flex items-center gap-2 text-xs text-muted">
               <Boxes className="size-3.5 text-solo-400" />
-              {lockerCount} items in locker
+              {lockerCount} items in {lockerName}
             </div>
-            <ul className="mt-3 flex flex-col gap-2">
-              {workout.exercises.map((ex) => {
-                const target = targets.find((t) => t.exerciseId === ex.id)
-                if (!target) return null
-                const changed = target.adjustedWeightKg !== target.originalWeightKg
-                return (
-                  <li
-                    key={ex.id}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-line bg-surface-2 px-2.5 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-medium">{ex.name}</p>
-                      <p className="text-[10px] text-muted">
-                        {target.adjustedWeightKg > 0 ? `${target.adjustedWeightKg} kg` : 'Lichaamsgewicht'}
-                        {changed && target.reason && ` · ${target.reason}`}
-                      </p>
-                    </div>
-                    {target.plateConfig && target.adjustedWeightKg > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setWeightFor(ex.id)}
-                        className="grid size-9 shrink-0 place-items-center rounded-lg border border-line text-solo-400 active:bg-surface"
-                        aria-label={`Gewichten voor ${ex.name}`}
+
+            {workouts.map(({ workout, targets }, wi) => (
+              <div key={workout.id} className={cn('mt-3', wi > 0 && 'border-t border-line pt-3')}>
+                {workouts.length > 1 && (
+                  <p className="label-mono mb-2 text-faint">
+                    Workout {wi + 1} · {workout.name}
+                  </p>
+                )}
+                <ul className="flex flex-col gap-2">
+                  {workout.exercises.map((ex) => {
+                    const target = targets.find((t) => t.exerciseId === ex.id)
+                    if (!target) return null
+                    const changed = target.adjustedWeightKg !== target.originalWeightKg
+                    return (
+                      <li
+                        key={ex.id}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-line bg-surface-2 px-2.5 py-2"
                       >
-                        <Scale className="size-4" />
-                      </button>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-medium">{ex.name}</p>
+                          <p className="text-[10px] text-muted">
+                            {target.adjustedWeightKg > 0
+                              ? `${target.adjustedWeightKg} kg`
+                              : 'Lichaamsgewicht'}
+                            {changed && target.reason && ` · ${target.reason}`}
+                          </p>
+                        </div>
+                        {target.plateConfig && target.adjustedWeightKg > 0 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setWeightFor({ workoutId: workout.id, exerciseId: ex.id })
+                            }
+                            className="grid size-9 shrink-0 place-items-center rounded-lg border border-line text-solo-400 active:bg-surface"
+                            aria-label={`Gewichten voor ${ex.name}`}
+                          >
+                            <Scale className="size-4" />
+                          </button>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
       </section>

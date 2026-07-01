@@ -1,9 +1,10 @@
-import { CheckSquare, Dumbbell, Play, Square } from 'lucide-react'
+import { CheckSquare, Dumbbell, Square } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { parseFitFile } from '@/lib/workout/fitImport'
 import { shareWorkoutLink } from '@/lib/workout/shareLink'
 import { useWorkouts } from '@/hooks/useWorkouts'
+import { useWorkoutSelection } from '@/hooks/useWorkoutSelection'
 import { WgerBrowser } from '@/components/workout/WgerBrowser'
 import { WorkoutCard } from '@/components/workout/WorkoutCard'
 import { WorkoutCompactToolbar } from '@/components/workout/WorkoutCompactToolbar'
@@ -12,8 +13,13 @@ import { cn } from '@/lib/cn'
 export function WorkoutsPage() {
   const navigate = useNavigate()
   const { workouts, add, remove, toggleFav, exportData, importData } = useWorkouts()
-  const [multiSelect, setMultiSelect] = useState<Set<string>>(new Set())
-  const [selectionMode, setSelectionMode] = useState(false)
+  const {
+    selectionMode,
+    selectedIds,
+    toggleSelectionMode,
+    toggleMulti,
+    removeFromSelection,
+  } = useWorkoutSelection()
   const [wgerOpen, setWgerOpen] = useState(false)
 
   function handleExport() {
@@ -37,20 +43,6 @@ export function WorkoutsPage() {
     navigate(`/workouts/prep?ids=${id}`)
   }
 
-  function openMultiPrep() {
-    if (multiSelect.size === 0) return
-    navigate(`/workouts/prep?ids=${[...multiSelect].join(',')}`)
-  }
-
-  function toggleMulti(id: string) {
-    setMultiSelect((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
   async function handleShare(workout: import('@/types/workout').WorkoutTemplate) {
     try {
       const result = await shareWorkoutLink(workout)
@@ -65,12 +57,7 @@ export function WorkoutsPage() {
     if (!workout) return
     if (!confirm(`"${workout.name}" verwijderen?`)) return
     remove(id)
-    setMultiSelect((prev) => {
-      if (!prev.has(id)) return prev
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
+    removeFromSelection(id)
   }
 
   return (
@@ -87,10 +74,7 @@ export function WorkoutsPage() {
         </div>
         <button
           type="button"
-          onClick={() => {
-            setSelectionMode((v) => !v)
-            if (selectionMode) setMultiSelect(new Set())
-          }}
+          onClick={toggleSelectionMode}
           className={cn(
             'flex min-h-10 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium',
             selectionMode ? 'border-solo-400/50 bg-solo-400/10 text-solo-300' : 'border-line text-muted',
@@ -113,7 +97,9 @@ export function WorkoutsPage() {
         <p className="text-[11px] text-faint">Tik een workout om te openen en te starten.</p>
       )}
       {selectionMode && (
-        <p className="text-[11px] text-solo-400">Tik workouts aan om meerdere te selecteren.</p>
+        <p className="text-[11px] text-solo-400">
+          Tik workouts aan om meerdere te selecteren. Start onderin om naar prep te gaan.
+        </p>
       )}
 
       <div className="flex flex-col gap-2 pb-20">
@@ -122,7 +108,7 @@ export function WorkoutsPage() {
             key={workout.id}
             workout={workout}
             selectionMode={selectionMode}
-            multiSelected={multiSelect.has(workout.id)}
+            multiSelected={selectedIds.includes(workout.id)}
             onOpen={(w) => (selectionMode ? toggleMulti(w.id) : openPrep(w.id))}
             onEdit={(w) => navigate(`/workouts/${w.id}/edit`)}
             onShare={handleShare}
@@ -137,19 +123,6 @@ export function WorkoutsPage() {
           </p>
         )}
       </div>
-
-      {selectionMode && multiSelect.size > 0 && (
-        <div className="fixed inset-x-0 bottom-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom))] z-30 mx-auto max-w-screen-sm px-4 pb-2">
-          <button
-            type="button"
-            onClick={openMultiPrep}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-solo-400 py-3.5 text-sm font-bold text-ink shadow-lg active:bg-solo-500"
-          >
-            <Play className="size-4 fill-ink" />
-            Prep {multiSelect.size} workout{multiSelect.size !== 1 && 's'}
-          </button>
-        </div>
-      )}
 
       <WgerBrowser
         open={wgerOpen}
