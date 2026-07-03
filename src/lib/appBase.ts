@@ -1,4 +1,4 @@
-/** App root path, e.g. "" locally or "/SOLO" on GitHub Pages. */
+/** App root path, e.g. "" locally or "/solo" on GitHub Pages. */
 export function appBasePath(): string {
   const base = import.meta.env.BASE_URL
   if (!base || base === '/') return ''

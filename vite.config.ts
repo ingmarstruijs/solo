@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const srcDir = fileURLToPath(new URL('./src', import.meta.url))
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'SOLO'
+const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'solo'
 const ghPagesBase = `/${repoName}/`
 
 export default defineConfig({
