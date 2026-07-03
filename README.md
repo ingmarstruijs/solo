@@ -28,22 +28,22 @@ Five ideas guide the product. **Now** is what you can use today; **Next** is on 
 | 1 | **Your gear, your weights** | Locker profiles, overload planner, and plate configurator match every workout to the equipment you actually own | Time-under-tension when you hit your home weight ceiling |
 | 2 | **Garmin as live sensor** | BLE feasibility lab (`/lab/garmin-sync`) — probe only, not in sessions yet | Live HR, reps, and velocity in the session UI and TV HUD |
 | 3 | **See your form and the workout** | Camera preview on phone; exercise icons and live session board on TV (`/tv` via BroadcastChannel) | Pose form cues, licensed exercise loops, canvas compositor, cast stream |
-| 4 | **Coach in your ear** | Spoken next-exercise cues, rest countdown, male/female voice | Strain-triggered coaching, style options, on-screen strain feedback |
+| 4 | **Coach in your ear** | Spoken exercise cues, set-rust vs exercise-rest announcements, pause/resume, male/female voice | Strain-triggered coaching, style options, on-screen strain feedback |
 | 5 | **Proof on your device** | Session summary, logbook, trends, and sparklines — all stored locally | WebLLM workout report, RPE logging, shareable proof reels |
 
 Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 
 ## Features
 
-- **Workouts** — create, edit, delete, and favorite templates; strength sets or circuit rounds; exercise search (Wger) with import; Garmin `.fit` import; JSON export/import
+- **Workouts** — create, edit, delete, duplicate, and favorite templates; strength sets or circuit rounds; exercise search (Wger) with import from the editor; markdown **Uitleg** field with preview; Garmin `.fit` import; JSON export/import
 - **Home Locker** — multiple locker profiles; equipment inventory drives the overload planner and plate configurator (barbell, dumbbell, kettlebell)
-- **Workout Prep** — recovery-aware target weights; prep insights per exercise; multi-workout queue; optional TV preview before start
-- **Live session** — tap-to-complete exercises; set/round progression; per-exercise and phase rest timers; optional front-camera preview on phone
-- **Coach** — Web Speech API announcements for next exercise and set transitions; male/female voice; rest countdown in the last 5 seconds (toggle in session)
+- **Workout Prep** — recovery-aware target weights; prep insights per exercise; multi-workout queue; shared **Voorbereiden** header; optional TV preview before start
+- **Live session** — two-phase start (material setup → **Klaar — start workout**); tap-to-complete exercises; sticky active row; set/round progression; automatic per-exercise and phase rest timers; optional front-camera preview on phone
+- **Coach** — Web Speech API announcements for exercise and set transitions; **set rust** vs exercise rest cues; “get ready for next set” after phase rest; first exercise readout when starting a new set; pause/resume lines; male/female voice; rest countdown in the last 5 seconds (toggle in session)
 - **TV receiver** — passive `/tv` surface synced via `BroadcastChannel`; shows session HUD, prep, summary, or idle; connect/disconnect from session with receiver handshake (reuses an already-open TV tab)
 - **Exercise visuals** — lightweight icon-based visuals today; curated licensed demo loops are planned once asset licenses and attribution are verified
 - **History** — completed sessions stored with full summary (set times, trends, sparklines); browse in the logbook, open, delete per entry or clear all; cancelled sessions are not recorded
-- **Home** — optional Garmin recovery (settings toggle), weekly stats, resume active session
+- **Home** — optional Garmin recovery (settings toggle), weekly stats; **Sessie bezig** banner only during a live (started) session
 - **Themes** — automatic time-of-day themes or manual override in Settings
 - **Labs** — isolated feasibility pages for Garmin BLE, pose/camera, canvas compositor, and cast stream (not part of the main session flow yet)
 

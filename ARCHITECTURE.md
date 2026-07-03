@@ -42,21 +42,35 @@ graph LR
 
 ## Bottom navigation — center action
 
-The bottom bar has four tabs (Home, Workouts, Locker, Logboek) plus a **center action** button. Its label, icon, and enabled state depend on context (`centerNavState.ts` + `useWorkoutSelection`).
+The bottom bar has four tabs (Home, Workouts, Locker, Logboek) plus a **center action** button. Its label, icon, and enabled state depend on context (`centerNavState.ts` + `useWorkoutSelection`). When idle, the center shows the muted **SOLO** logo mark (`icon: 'solo'`).
 
 | Context | Center button | Enabled? |
 |---|---|---|
-| Home / Locker / Logboek, no session, multi-select off | Muted (no label) | No |
-| Workouts, multi-select off | Muted | No |
+| Home / Locker / Logboek / Workouts, no session, multi-select off | Muted SOLO icon | No |
 | Workouts, multi-select on, 0 selected | **Kies** | No |
 | Workouts (or any tab), multi-select on, N selected | **Prep N** | Yes → prep |
-| Workout prep | **Start** | Yes → opens session (setup phase) |
-| Session, setup (materials not confirmed) | **Voorbereiden** | On session: no; elsewhere: back to session |
+| Workout prep (targets ready) | **Voorbereiden** | Yes → creates session in setup phase, navigates to `/session` |
+| Workout prep (not ready) | Muted SOLO icon | No |
+| Session, setup (`exercisesStarted` false), on `/session` | **Voorbereiden** (disabled) | No — workout starts only via **Klaar — start workout** on the page |
+| Session, setup, elsewhere | Muted SOLO icon | No — leaving `/session` during setup **cancels** the session (`useCancelSetupOnLeave`) |
 | Session, exercises running, on `/session` | **Stop** | Yes (confirm + cancel) |
 | Session, exercises running, elsewhere | **Live** | Yes → session |
 | Summary after finish | **Workouts** | Yes → workouts list |
 
+Home shows **Sessie bezig** only when exercises have actually started (`exercisesStarted`), not during the setup phase.
+
 Multi-select state is global (`useWorkoutSelection`) so a prep count can persist while switching tabs.
+
+### Sticky page headers
+
+Prep and session screens share `PageStickyHeader` — a sticky bar below the app header with back arrow, title, and optional icon actions.
+
+| Screen | Title | Accent |
+|---|---|---|
+| Workout prep | `Voorbereiden · {workout}` | `text-warn` |
+| Session setup | `Voorbereiden · {workout}` | `text-warn` |
+| Live session | `Live · {workout} · Set N/M` | `text-success` |
+| Workout editor | Workout name | default (+ save / Wger / add actions) |
 
 ---
 
@@ -81,9 +95,11 @@ graph TD
   L --> N[Prep insights: all exercises across queue]
   M --> N
   N --> O[Optional: TV connect + camera/coach toggles]
-  O --> P[Center: Start]
-  P --> Q[Session setup phase]
+  O --> P[Center: Voorbereiden]
+  P --> Q[Session setup phase on /session]
 ```
+
+Prep uses the same **Voorbereiden · {name}** header style as session setup (`text-warn`). The page explains that the bottom **Voorbereiden** button opens the session for material setup; the workout does **not** start until the user confirms on the session page.
 
 Prep shows per-exercise targets, optional weight-assistant plates, and tappable rows that open an **exercise info modal** (mobile visual + description). Multi-workout queues are stored in `sessionStorage` until the last workout finishes.
 
@@ -93,31 +109,78 @@ Prep shows per-exercise targets, optional weight-assistant plates, and tappable 
 
 ```mermaid
 graph TD
-  A[Session created — exercisesStarted false] --> B[Setup: materials checklist + controls]
-  B --> C[User: Klaar — start workout]
-  C --> D[exercisesStarted true — center becomes Stop/Live]
-  D --> E[Publish state to TV]
-  E --> F[Tap-to-complete exercises + sticky active row]
-  F --> G{Coach enabled?}
-  G -- Yes --> H[Announce next exercise / set]
-  G -- No --> I[Silent progression]
-  H --> J{Rest timer?}
-  I --> J
-  J -- Per exercise --> K[Countdown + coach ticks last 5s]
-  J -- Set complete --> L{More sets/rounds?}
-  L -- Yes --> M[Phase rest → next set]
-  M --> F
-  L -- No --> N{Queue has next workout?}
-  N -- Yes --> O[Volgende workout]
-  O --> A
-  N -- No --> P[Workout afronden]
-  P --> Q[Summary + logbook if fully complete]
-  Q --> R[Center: Workouts]
+  A[Session created — exercisesStarted false] --> B[Setup: materials checklist + camera/coach/TV]
+  B --> C{Leave /session?}
+  C -- Yes --> D[Cancel session + TV idle]
+  C -- No --> E[User: Klaar — start workout]
+  E --> F[exercisesStarted true — header Live, center Stop/Live]
+  F --> G[Sticky active exercise row + list]
+  G --> H[User taps Klaar on exercise]
+  H --> I{More exercises in set?}
+  I -- Yes --> J{Per-exercise rest?}
+  J -- Yes --> K[Exercise rest timer — Klaar/Pauze blocked]
+  K --> L[Coach: next exercise after rest ends or skip]
+  L --> G
+  J -- No --> M[Coach: next exercise immediately]
+  M --> G
+  I -- No --> N{More sets/rounds?}
+  N -- Yes --> O{Phase rest configured?}
+  O -- Yes --> P[Set rust / Ronde rust timer]
+  O -- No --> Q[Volgende set button]
+  P --> R[Coach: Maak je klaar voor set N]
+  R --> Q
+  Q --> S[User taps Volgende set]
+  S --> T[Coach: first exercise of new set]
+  T --> G
+  N -- No --> U{Queue has next workout?}
+  U -- Yes --> V[Volgende workout]
+  V --> A
+  U -- No --> W[Workout afronden]
+  W --> X[Summary + logbook if fully complete]
+  X --> Y[Center: Workouts]
 ```
 
-Completed exercises sink to the bottom of the list; **Ongedaan** can undo a mistaken tap. Exercise rows open the same info modal as prep. Audio notes show a visible recording state while the mic is held.
+### Setup phase
+
+- Back arrow returns to prep and cancels the session (no confirm dialog).
+- Navigating away from `/session` while still in setup also cancels (`useCancelSetupOnLeave` in `MobileShell`).
+- Camera, coach, and TV controls are available before the workout starts.
+
+### Exercise progression
+
+- Completed exercises sink to the bottom; **Ongedaan** undoes a mistaken tap and clears any pending rest/coach state.
+- The current exercise is pinned in a sticky card; the list below hides the duplicate row.
+- During **exercise rest**, the active badge reads **Volgende oefening**, the per-exercise timer pauses, and **Klaar** / **Pauze** are disabled until rest ends or is skipped.
+- Rest starts automatically after **Klaar** when `restSeconds` is configured — there are no manual “start rest” buttons.
+
+### Set / phase transitions
+
+- When every exercise in the current set is done, **phase rest** starts automatically if configured (`getPhaseRestSeconds`).
+- Set rest is visually distinct from exercise rest: **Set rust** / **Ronde rust** title, SOLO accent colours on phone and TV.
+- While phase rest runs, the **Volgende set** button is hidden; it appears when rest ends or is skipped.
+- **Overslaan** on the rest bar ends the timer early and triggers the same post-rest behaviour.
 
 Cancelled or incomplete sessions are cleared without a history entry.
+
+---
+
+## Coach announcements
+
+Coach lines use the Web Speech API (`useCoachAnnouncement`, `useRestCoach`, `coachEngine.ts`). Toggle and voice gender live in session controls and Settings.
+
+| Moment | Announcement |
+|---|---|
+| Workout start (set 1) | First exercise: name, target, weight, equipment, rest |
+| After **Klaar**, no rest | Next exercise in the same set |
+| After **Klaar**, exercise rest | Deferred until rest ends or **Overslaan** — then next exercise |
+| After last exercise in set, phase rest | Deferred until rest ends or skip — **Maak je klaar voor set N** (or ronde) |
+| After last exercise in set, no phase rest | **Maak je klaar voor set N** immediately |
+| User taps **Volgende set** | First exercise of the new set (full details) |
+| Pause / resume | **Oefening gepauzeerd.** / **Hervat: {name}.** |
+| Rest start | **Set rust** / **Ronde rust** / **Rust na oefening** + duration |
+| Rest countdown | Spoken ticks for the last 5 seconds |
+
+Next-exercise announcements are queued in `pendingCoachAfterRestRef` so they never overlap with an active rest timer.
 
 ---
 
@@ -137,6 +200,8 @@ graph TD
 ```
 
 HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Coach and camera flags travel with session TV state.
+
+Rest on TV mirrors the phone: exercise rest uses calm/teal styling; **set rust** / **ronde rust** uses SOLO accent styling with title, subtitle (e.g. “Set 1 voltooid · daarna set 2”), and countdown.
 
 ---
 
@@ -196,13 +261,17 @@ graph TD
 src/
   pages/              # Route screens (Home, Workouts, Prep, Session, Logboek, TV, labs)
   components/
-    layout/           # BottomNav, centerNavState, PageBackButton
-    session/          # Controls, rest bar, materials checklist, summary
-    workout/          # Builder, cards, PrepInsightsPanel, ExerciseInfoModal, …
+    layout/           # BottomNav, centerNavState, PageStickyHeader, MobileShell
+    session/          # SessionControlBar, RestTimerBar, materials checklist, summary
+    workout/          # WorkoutBuilder, cards, PrepInsightsPanel, ExerciseInfoModal, …
+    MarkdownField.tsx # Edit/preview markdown for exercise uitleg
     locker/
-  hooks/              # useActiveSession, useWorkoutSelection, useGarminConnected, …
+  hooks/
+    useActiveSession, useWorkoutSelection, useGarminConnected
+    useRestCountdown, useRestCoach      # Rest timers + spoken countdown
+    useCancelSetupOnLeave               # Drop setup session when leaving /session
   lib/
-    storage/          # localStore + domain stores
+    storage/          # localStore + domain stores (incl. duplicateWorkout)
     tv/               # broadcast, transport, coachEngine, exerciseMedia
     workout/          # overload planner, session prep/queue, summary, Wger import
     wger/
