@@ -54,6 +54,11 @@ export function HomePage() {
   const ringCirc = 2 * Math.PI * 34
   const ringOffset = ringCirc * (1 - recoveryScore / 100)
 
+  const liveSession =
+    active &&
+    session &&
+    (session.exercisesStarted ?? Boolean(session.currentExerciseStartedAt))
+
   return (
     <div className="flex flex-col gap-5 py-2">
       <header className="flex flex-col gap-1">
@@ -63,7 +68,7 @@ export function HomePage() {
         </h1>
       </header>
 
-      {active && session && (
+      {liveSession && (
         <button
           type="button"
           onClick={() => navigate('/session')}

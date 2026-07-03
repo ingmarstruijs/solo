@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useAutoThemeWatcher } from '@/hooks/useTheme'
+import { useCancelSetupOnLeave } from '@/hooks/useCancelSetupOnLeave'
 import { AppHeader } from './AppHeader'
 import { BottomNav } from './BottomNav'
 import { Drawer } from './Drawer'
 
 export function MobileShell() {
   useAutoThemeWatcher()
+  useCancelSetupOnLeave()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
 

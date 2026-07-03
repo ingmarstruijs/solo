@@ -2,6 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 import type { WorkoutTemplate } from '@/types/workout'
 import {
   addWorkout,
+  duplicateWorkout,
   exportWorkouts,
   getWorkouts,
   importWorkouts,
@@ -23,6 +24,7 @@ export function useWorkouts() {
     [],
   )
   const remove = useCallback((id: string) => removeWorkout(id), [])
+  const duplicate = useCallback((id: string) => duplicateWorkout(id), [])
   const toggleFav = useCallback((id: string) => toggleFavorite(id), [])
   const exportData = useCallback(() => exportWorkouts(), [])
   const importData = useCallback((json: string) => {
@@ -30,5 +32,5 @@ export function useWorkouts() {
     return importWorkouts(data)
   }, [])
 
-  return { workouts, add, update, remove, toggleFav, exportData, importData }
+  return { workouts, add, update, remove, duplicate, toggleFav, exportData, importData }
 }

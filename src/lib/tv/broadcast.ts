@@ -31,6 +31,7 @@ export type TvRestState = {
   afterExerciseName?: string
   kind?: 'exercise' | 'phase'
   phaseLabel?: string
+  completedPhase?: number
 }
 
 export type TvSessionState = {

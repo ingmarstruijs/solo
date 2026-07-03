@@ -1,14 +1,13 @@
 import {
   Check,
   ChevronRight,
-  Mic,
   Pause,
   Play,
   Scale,
-  TimerReset,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PageStickyHeader } from '@/components/layout/PageStickyHeader'
 import { useActiveSession } from '@/hooks/useActiveSession'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'
 import { useCoachEnabled } from '@/hooks/useCoachEnabled'
@@ -30,6 +29,9 @@ import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSumma
 import { advanceToNextSet } from '@/lib/storage/sessionStore'
 import {
   buildCompletionAnnouncement,
+  buildNextSetReadyAnnouncement,
+  buildPauseAnnouncement,
+  buildResumeAnnouncement,
   formatExerciseTargetLine,
   getExerciseWeight,
 } from '@/lib/tv/coachEngine'
@@ -39,19 +41,25 @@ import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { WeightAssistant } from '@/components/workout/WeightAssistant'
 import { useRestCoach } from '@/hooks/useRestCoach'
 import { useElapsedTimer } from '@/hooks/useElapsedTimer'
-import { formatRestSeconds } from '@/hooks/useRestCountdown'
+import type { ActiveSession } from '@/types/workout'
 import { cn } from '@/lib/cn'
+
+function buildPrepBackUrl(workoutId: string): string {
+  const queue = loadWorkoutQueue()
+  const ids = [workoutId, ...queue.map((q) => q.workout.id)]
+  return `/workouts/prep?ids=${ids.join(',')}`
+}
 
 export function SessionPage() {
   const navigate = useNavigate()
   const { session } = useActiveSession()
   const {
     toggleComplete,
-    setNote,
     completeSession,
     startNextWorkout,
     startExercises,
     togglePause,
+    cancelSession,
   } = useSessionActions()
   const { score: recoveryScore } = useRecoveryScore()
   const { connected: garminConnected } = useGarminConnected()
@@ -61,6 +69,8 @@ export function SessionPage() {
   const { status: tvStatus } = useTvConnection()
   const listRef = useRef<HTMLOListElement>(null)
   const announcedSessionStartRef = useRef<string | null>(null)
+  const pendingCoachAfterRestRef = useRef<{ text: string; key: string } | null>(null)
+  const restWasActiveRef = useRef(false)
   const [coachAnnouncement, setCoachAnnouncement] = useState<{
     text: string
     key: string
@@ -68,6 +78,21 @@ export function SessionPage() {
   const [restTimer, setRestTimer] = useState<RestTimer | null>(null)
   const restCountdown = useRestCountdown(restTimer)
   useRestCoach(restCountdown, restTimer && restCountdown.active ? restTimer : null, coachEnabled)
+
+  const drainPendingCoachAnnouncement = useCallback(() => {
+    const pending = pendingCoachAfterRestRef.current
+    if (!pending) return
+    pendingCoachAfterRestRef.current = null
+    if (coachEnabled) {
+      setCoachAnnouncement(pending)
+    }
+  }, [coachEnabled])
+
+  const handleSkipRest = useCallback(() => {
+    drainPendingCoachAnnouncement()
+    setRestTimer(null)
+  }, [drainPendingCoachAnnouncement])
+
   const queue = useMemo(() => loadWorkoutQueue(), [session?.workout.id])
 
   const exercisesStarted = session?.exercisesStarted ?? Boolean(session?.currentExerciseStartedAt)
@@ -108,6 +133,7 @@ export function SessionPage() {
             afterExerciseName: restTimer.afterExerciseName,
             kind: restTimer.kind,
             phaseLabel: restTimer.phaseLabel,
+            completedPhase: restTimer.completedPhase,
           }
         : { active: false, endsAt: null, totalSeconds: 0 }
 
@@ -164,8 +190,14 @@ export function SessionPage() {
   }, [sessionTv, theme])
 
   useEffect(() => {
-    if (restTimer && !restCountdown.active) setRestTimer(null)
-  }, [restTimer, restCountdown.active])
+    const wasActive = restWasActiveRef.current
+    restWasActiveRef.current = restCountdown.active
+
+    if (wasActive && !restCountdown.active && restTimer) {
+      drainPendingCoachAnnouncement()
+      setRestTimer(null)
+    }
+  }, [restTimer, restCountdown.active, drainPendingCoachAnnouncement])
 
   if (!session) {
     return (
@@ -217,34 +249,23 @@ export function SessionPage() {
     }
   }
 
-  function handleMarkDone(exerciseId: string) {
-    if (!exercisesStarted || completedExerciseIds.includes(exerciseId)) return
-    toggleComplete(exerciseId)
-    if (coachEnabled) {
-      const projected = {
-        ...activeSession,
-        completedExerciseIds: [...completedExerciseIds, exerciseId],
-      }
-      setCoachAnnouncement({
-        text: buildCompletionAnnouncement(projected),
-        key: `done-${exerciseId}-${projected.completedExerciseIds.length}`,
-      })
-    }
+  function queueCoachAfterRest(text: string, key: string) {
+    if (!coachEnabled || !text) return
+    pendingCoachAfterRestRef.current = { text, key }
   }
 
-  function handleStartRest() {
-    const ex = workout.exercises[activeIndex]
-    if (!ex || ex.restSeconds <= 0 || restCountdown.active) return
+  function startExerciseRest(exercise: (typeof workout.exercises)[number]) {
+    if (exercise.restSeconds <= 0 || restCountdown.active) return
     setRestTimer({
-      id: `${ex.id}-${Date.now()}`,
-      endsAt: Date.now() + ex.restSeconds * 1000,
-      totalSeconds: ex.restSeconds,
-      afterExerciseName: ex.name,
+      id: `${exercise.id}-${Date.now()}`,
+      endsAt: Date.now() + exercise.restSeconds * 1000,
+      totalSeconds: exercise.restSeconds,
+      afterExerciseName: exercise.name,
       kind: 'exercise',
     })
   }
 
-  function handleStartPhaseRest() {
+  function startPhaseRest() {
     if (phaseRestSeconds <= 0 || restCountdown.active) return
     setRestTimer({
       id: `phase-${currentSet}-${Date.now()}`,
@@ -253,18 +274,102 @@ export function SessionPage() {
       afterExerciseName: workout.name,
       kind: 'phase',
       phaseLabel: phase.label,
+      completedPhase: currentSet,
     })
+  }
+
+  function handleMarkDone(exerciseId: string) {
+    if (!exercisesStarted || completedExerciseIds.includes(exerciseId)) return
+
+    const ex = workout.exercises.find((e) => e.id === exerciseId)
+    const projectedDoneCount = completedExerciseIds.length + 1
+    const willBeAllDone = projectedDoneCount === workout.exercises.length
+
+    toggleComplete(exerciseId)
+
+    const projected: ActiveSession = {
+      ...activeSession,
+      completedExerciseIds: [...completedExerciseIds, exerciseId],
+    }
+
+    const startsPhaseRest = willBeAllDone && !isLastPhase && phaseRestSeconds > 0
+    let startsExerciseRest = false
+
+    const awaitingNextSet = willBeAllDone && !isLastPhase
+
+    if (startsPhaseRest) {
+      startPhaseRest()
+      queueCoachAfterRest(
+        buildNextSetReadyAnnouncement(currentSet + 1, phase.label),
+        `after-phase-rest-${currentSet}`,
+      )
+    } else if (ex && ex.restSeconds > 0) {
+      startExerciseRest(ex)
+      startsExerciseRest = true
+    }
+
+    if (!startsPhaseRest && !startsExerciseRest) {
+      if (coachEnabled) {
+        if (awaitingNextSet) {
+          setCoachAnnouncement({
+            text: buildNextSetReadyAnnouncement(currentSet + 1, phase.label),
+            key: `ready-set-${currentSet + 1}-${Date.now()}`,
+          })
+        } else {
+          const text = buildCompletionAnnouncement(projected)
+          if (text) {
+            setCoachAnnouncement({
+              text,
+              key: `done-${exerciseId}-${projected.completedExerciseIds.length}`,
+            })
+          }
+        }
+      }
+    } else if (startsExerciseRest) {
+      const text = awaitingNextSet
+        ? buildNextSetReadyAnnouncement(currentSet + 1, phase.label)
+        : buildCompletionAnnouncement(projected)
+      queueCoachAfterRest(text, `after-rest-${exerciseId}-${projected.completedExerciseIds.length}`)
+    }
+  }
+
+  function handleTogglePause(exerciseId: string) {
+    const wasPaused = pausedIds.has(exerciseId)
+    const ex = workout.exercises.find((e) => e.id === exerciseId)
+    togglePause(exerciseId)
+
+    if (coachEnabled) {
+      if (wasPaused && ex) {
+        setCoachAnnouncement({
+          text: buildResumeAnnouncement(ex.name),
+          key: `resume-${exerciseId}-${Date.now()}`,
+        })
+      } else {
+        setCoachAnnouncement({
+          text: buildPauseAnnouncement(),
+          key: `pause-${exerciseId}-${Date.now()}`,
+        })
+      }
+    }
+  }
+
+  function handleBackFromSetup() {
+    publishTvIdle(theme)
+    cancelSession()
+    navigate(buildPrepBackUrl(workout.id))
   }
 
   function handleUndo(exerciseId: string) {
     if (!completedExerciseIds.includes(exerciseId)) return
     toggleComplete(exerciseId)
+    pendingCoachAfterRestRef.current = null
     setRestTimer(null)
   }
 
   function handleNextSet() {
     if (!allDone) return
     setRestTimer(null)
+    pendingCoachAfterRestRef.current = null
     const nextSet = currentSet + 1
     advanceToNextSet()
     if (coachEnabled) {
@@ -314,25 +419,19 @@ export function SessionPage() {
 
   const showActiveSticky =
     exercisesStarted && activeExercise && !allDone && !completedExerciseIds.includes(activeExercise.id)
+  const exerciseRestActive = restCountdown.active && restCountdown.kind === 'exercise'
 
   return (
-    <section className="flex h-[calc(100dvh-var(--header-h)-var(--bottomnav-h)-env(safe-area-inset-top)-env(safe-area-inset-bottom)-0.5rem)] flex-col gap-2 pt-1">
-      <header className="flex shrink-0 items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <p
-            className={cn(
-              'label-mono text-[10px]',
-              exercisesStarted ? 'text-success' : 'text-warn',
-            )}
-          >
-            ● {exercisesStarted ? 'Live' : 'Voorbereiden'}
-          </p>
-          <h1 className="truncate text-base font-bold">{workout.name}</h1>
-          <p className="text-[10px] text-muted">
-            {phase.label} {currentSet}/{phase.total} · {doneCount}/{workout.exercises.length}
-          </p>
-        </div>
-      </header>
+    <section className="flex h-[calc(100dvh-var(--header-h)-var(--bottomnav-h)-env(safe-area-inset-top)-env(safe-area-inset-bottom)-0.5rem)] flex-col gap-2">
+      <PageStickyHeader
+        title={
+          exercisesStarted
+            ? `Live · ${workout.name} · ${phase.label} ${currentSet}/${phase.total}`
+            : `Voorbereiden · ${workout.name}`
+        }
+        onBack={exercisesStarted ? undefined : handleBackFromSetup}
+        titleClassName={exercisesStarted ? 'text-success' : 'text-warn'}
+      />
 
       <SessionControlBar
         cameraEnabled={cameraEnabled}
@@ -344,7 +443,7 @@ export function SessionPage() {
         onDisconnectTv={handleDisconnectTv}
       />
 
-      <RestTimerBar countdown={restCountdown} onSkip={() => setRestTimer(null)} className="shrink-0" />
+      <RestTimerBar countdown={restCountdown} onSkip={handleSkipRest} className="shrink-0" />
 
       {!exercisesStarted && (
         <div
@@ -379,15 +478,11 @@ export function SessionPage() {
             exercisesStarted
             reason={targets.find((t) => t.exerciseId === activeExercise.id)?.reason}
             plateConfig={targets.find((t) => t.exerciseId === activeExercise.id)?.plateConfig}
-            note={activeSession.exerciseNotes[activeExercise.id]}
             exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
-            restSeconds={activeExercise.restSeconds}
-            restActive={restCountdown.active}
-            onStartRest={handleStartRest}
+            restBlocked={exerciseRestActive}
             onMarkDone={() => handleMarkDone(activeExercise.id)}
             onUndo={() => handleUndo(activeExercise.id)}
-            onTogglePause={() => togglePause(activeExercise.id)}
-            onNoteChange={(n) => setNote(activeExercise.id, n)}
+            onTogglePause={() => handleTogglePause(activeExercise.id)}
             compact={false}
             sticky
           />
@@ -400,31 +495,15 @@ export function SessionPage() {
         </p>
       )}
 
-      {exercisesStarted && allDone && !isLastPhase && (
-        <div className="flex shrink-0 items-stretch gap-2">
-          {phaseRestSeconds > 0 && (
-            <button
-              type="button"
-              onClick={handleStartPhaseRest}
-              disabled={restCountdown.active}
-              className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-2.5 text-sm font-bold',
-                restCountdown.active ? 'bg-calm/20 text-calm' : 'bg-calm text-ink active:opacity-90',
-              )}
-            >
-              <TimerReset className="size-4" />
-              Rust {formatRestSeconds(phaseRestSeconds)}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleNextSet}
-            className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-solo-400/40 bg-solo-400/10 py-2.5 text-sm font-bold text-solo-300"
-          >
-            Volgende {phase.label.toLowerCase()}
-            <ChevronRight className="size-4" />
-          </button>
-        </div>
+      {exercisesStarted && allDone && !isLastPhase && !restCountdown.active && (
+        <button
+          type="button"
+          onClick={handleNextSet}
+          className="flex shrink-0 w-full items-center justify-center gap-2 rounded-xl bg-solo-400 py-4 text-base font-bold text-ink shadow-lg shadow-solo-400/20 active:bg-solo-500"
+        >
+          Volgende {phase.label.toLowerCase()}
+          <ChevronRight className="size-5" strokeWidth={2.5} />
+        </button>
       )}
 
       {exercisesStarted && allDone && isLastPhase && (
@@ -483,15 +562,11 @@ export function SessionPage() {
                 exercisesStarted={exercisesStarted}
                 reason={target?.reason}
                 plateConfig={target?.plateConfig}
-                note={activeSession.exerciseNotes[ex.id]}
                 exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
-                restSeconds={ex.restSeconds}
-                restActive={restCountdown.active}
-                onStartRest={handleStartRest}
+                restBlocked={exerciseRestActive && isCurrent}
                 onMarkDone={() => handleMarkDone(ex.id)}
                 onUndo={() => handleUndo(ex.id)}
-                onTogglePause={() => togglePause(ex.id)}
-                onNoteChange={(n) => setNote(ex.id, n)}
+                onTogglePause={() => handleTogglePause(ex.id)}
                 compact
               />
             </li>
@@ -512,15 +587,11 @@ type SessionExerciseRowProps = {
   exercisesStarted: boolean
   reason?: string
   plateConfig?: import('@/types/workout').PlateConfig
-  note?: { audioNote?: string; audioNoteText?: string }
   exerciseStartedAt: string
-  restSeconds: number
-  restActive: boolean
-  onStartRest: () => void
+  restBlocked?: boolean
   onMarkDone: () => void
   onUndo: () => void
   onTogglePause: () => void
-  onNoteChange: (note: { audioNote?: string; audioNoteText?: string }) => void
   compact?: boolean
   sticky?: boolean
 }
@@ -535,54 +606,19 @@ function SessionExerciseRow({
   exercisesStarted,
   reason,
   plateConfig,
-  note,
   exerciseStartedAt,
-  restSeconds,
-  restActive,
-  onStartRest,
+  restBlocked = false,
   onMarkDone,
   onUndo,
   onTogglePause,
-  onNoteChange,
   compact,
   sticky,
 }: SessionExerciseRowProps) {
-  const mediaRef = useRef<MediaRecorder | null>(null)
-  const chunksRef = useRef<Blob[]>([])
   const [showWeight, setShowWeight] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
-  const timerActive = isCurrent && !done && exercisesStarted && !isPaused
+  const timerActive = isCurrent && !done && exercisesStarted && !isPaused && !restBlocked
   const exerciseTimer = useElapsedTimer(new Date(exerciseStartedAt).getTime(), timerActive)
-
-  async function startRecording() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder = new MediaRecorder(stream)
-      chunksRef.current = []
-      recorder.ondataavailable = (e) => chunksRef.current.push(e.data)
-      recorder.onstop = () => {
-        setIsRecording(false)
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        onNoteChange({ ...note, audioNote: URL.createObjectURL(blob) })
-        stream.getTracks().forEach((t) => t.stop())
-      }
-      recorder.start()
-      mediaRef.current = recorder
-      setIsRecording(true)
-    } catch {
-      const text = prompt('Microfoon niet beschikbaar. Typ je notitie:')
-      if (text) onNoteChange({ ...note, audioNoteText: text })
-    }
-  }
-
-  function stopRecording() {
-    if (mediaRef.current?.state === 'recording') {
-      mediaRef.current.stop()
-    }
-    mediaRef.current = null
-    setIsRecording(false)
-  }
+  const awaitingStart = isCurrent && !done && exercisesStarted && restBlocked
 
   return (
     <div className="flex flex-col gap-2">
@@ -609,11 +645,17 @@ function SessionExerciseRow({
             <span
               className={cn(
                 'mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
-                isPaused ? 'bg-warn/20 text-warn' : 'bg-solo-400 text-ink',
+                isPaused
+                  ? 'bg-warn/20 text-warn'
+                  : awaitingStart
+                    ? 'border border-solo-400/35 bg-surface-2 text-solo-300'
+                    : 'bg-solo-400 text-ink',
               )}
             >
-              {!isPaused && <span className="size-1.5 animate-pulse rounded-full bg-ink" />}
-              {isPaused ? 'Gepauzeerd' : sticky ? 'Nu bezig' : 'Actief'}
+              {!isPaused && !awaitingStart && (
+                <span className="size-1.5 animate-pulse rounded-full bg-ink" />
+              )}
+              {isPaused ? 'Gepauzeerd' : awaitingStart ? 'Volgende oefening' : sticky ? 'Nu bezig' : 'Actief'}
             </span>
           )}
           <div className="flex items-start justify-between gap-2">
@@ -637,40 +679,19 @@ function SessionExerciseRow({
         </div>
       </button>
 
-      {(isCurrent || note?.audioNote || note?.audioNoteText || plateConfig) && exercisesStarted && (
+      {isCurrent && plateConfig && weight > 0 && exercisesStarted && (
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onMouseLeave={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            className={cn(
-              'flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[10px]',
-              isRecording
-                ? 'border-danger bg-danger/15 text-danger animate-pulse'
-                : 'border-line text-muted active:bg-surface-2',
-            )}
+            onClick={() => setShowWeight((v) => !v)}
+            className="flex items-center gap-1 rounded-lg border border-line px-2 py-1.5 text-[10px] text-solo-400 active:bg-surface-2"
           >
-            <Mic className="size-3.5" />
-            {isRecording ? 'Opnemen…' : note?.audioNote || note?.audioNoteText ? 'Notitie ✓' : 'Audio'}
+            <Scale className="size-3.5" />
+            Gewichten
           </button>
-          {plateConfig && weight > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowWeight((v) => !v)}
-              className="flex items-center gap-1 rounded-lg border border-line px-2 py-1.5 text-[10px] text-solo-400 active:bg-surface-2"
-            >
-              <Scale className="size-3.5" />
-              Gewichten
-            </button>
-          )}
         </div>
       )}
 
-      {note?.audioNote && <audio src={note.audioNote} controls className="h-8 w-full" />}
-      {note?.audioNoteText && <p className="text-xs italic text-muted">"{note.audioNoteText}"</p>}
       {showWeight && plateConfig && <WeightAssistant exerciseName={ex.name} config={plateConfig} />}
 
       {isCurrent && !done && exercisesStarted && (
@@ -678,38 +699,25 @@ function SessionExerciseRow({
           <button
             type="button"
             onClick={onTogglePause}
+            disabled={restBlocked}
             className={cn(
               'flex min-h-11 flex-col items-center justify-center rounded-xl border px-3 text-xs font-bold',
               isPaused
                 ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
                 : 'border-line bg-surface-2 text-muted',
+              restBlocked && 'opacity-50',
             )}
           >
             {isPaused ? <Play className="size-4" /> : <Pause className="size-4" />}
             {isPaused ? 'Hervat' : 'Pauze'}
           </button>
-          {restSeconds > 0 && (
-            <button
-              type="button"
-              onClick={onStartRest}
-              disabled={restActive || isPaused}
-              className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-2.5 text-sm font-bold',
-                restActive ? 'bg-calm/20 text-calm' : 'bg-calm text-ink active:opacity-90',
-                isPaused && 'opacity-50',
-              )}
-            >
-              <TimerReset className="size-4" />
-              Rust {formatRestSeconds(restSeconds)}
-            </button>
-          )}
           <button
             type="button"
             onClick={onMarkDone}
-            disabled={isPaused}
+            disabled={isPaused || restBlocked}
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl bg-success py-2.5 text-sm font-bold text-ink',
-              isPaused && 'opacity-50',
+              (isPaused || restBlocked) && 'opacity-50',
             )}
           >
             <Check className="size-4" strokeWidth={3} />

@@ -12,7 +12,7 @@ import { cn } from '@/lib/cn'
 
 export function WorkoutsPage() {
   const navigate = useNavigate()
-  const { workouts, add, remove, toggleFav, exportData, importData } = useWorkouts()
+  const { workouts, add, remove, duplicate, toggleFav, exportData, importData } = useWorkouts()
   const {
     selectionMode,
     selectedIds,
@@ -111,6 +111,9 @@ export function WorkoutsPage() {
             multiSelected={selectedIds.includes(workout.id)}
             onOpen={(w) => (selectionMode ? toggleMulti(w.id) : openPrep(w.id))}
             onEdit={(w) => navigate(`/workouts/${w.id}/edit`)}
+            onDuplicate={(w) => {
+              duplicate(w.id)
+            }}
             onShare={handleShare}
             onDelete={handleDelete}
             onToggleFavorite={toggleFav}

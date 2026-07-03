@@ -30,7 +30,7 @@ export function TvExerciseVisual({ visual }: { visual: ExerciseVisual }) {
         <ExerciseLoopSvg kind={visual.kind} />
       )}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 via-ink/50 to-transparent p-[2vh]">
-        <p className="text-[2.2vh] font-semibold">{visual.title}</p>
+        <p className="text-[2.2vh] font-semibold text-fg">{visual.title}</p>
         <p className="text-[1.4vh] text-muted">{visual.subtitle}</p>
       </div>
     </div>

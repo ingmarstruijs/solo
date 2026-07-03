@@ -41,8 +41,8 @@ export function ExerciseVisualMobile({ exercise, className }: ExerciseVisualMobi
       ) : (
         <MobileLoopSvg kind={visual.kind} />
       )}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/95 via-ink/60 to-transparent px-3 pb-3 pt-8">
-        <p className="text-sm font-semibold">{visual.title}</p>
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/95 via-ink/55 to-transparent px-3 pb-3 pt-8">
+        <p className="text-sm font-semibold text-fg">{visual.title}</p>
         <p className="text-xs text-muted">{visual.subtitle}</p>
       </div>
     </div>

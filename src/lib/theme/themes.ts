@@ -25,13 +25,13 @@ export const THEMES: ThemeDefinition[] = [
   {
     id: 'avond',
     label: 'Avond',
-    description: 'Warme schemering',
+    description: 'Frisse schemering, koel indigo',
     timeRange: '18:00 – 21:59',
   },
   {
     id: 'nacht',
     label: 'Nacht',
-    description: 'Diep donker, rustig',
+    description: 'Diep zwart, minimaal SOLO-blauw',
     timeRange: '22:00 – 05:59',
   },
 ]

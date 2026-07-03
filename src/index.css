@@ -86,36 +86,42 @@
     --color-accent: #6cc0ff;
   }
 
-  /* Avond — warme schemering (dark) */
+  /* Avond — frisse schemering, modern slate (dark) */
   [data-theme='avond'] {
-    --color-ink: #14100f;
-    --color-surface: #1d1715;
-    --color-surface-2: #271d1a;
-    --color-surface-3: #342621;
-    --color-line: #44322b;
-    --color-fg: #f1e6df;
-    --color-muted: #b09a8e;
-    --color-faint: #7a665c;
-    --color-solo-300: #ffb27a;
-    --color-solo-400: #ff8f4d;
-    --color-solo-500: #f0742f;
-    --color-solo-600: #d35d1c;
-    --color-accent: #ffcaa0;
-    --color-calm: #d99b6c;
+    color-scheme: dark;
+    --color-ink: #131820;
+    --color-surface: #1a2230;
+    --color-surface-2: #222c3c;
+    --color-surface-3: #2b3749;
+    --color-line: #384658;
+    --color-fg: #eef2f8;
+    --color-muted: #93a0b4;
+    --color-faint: #647089;
+    --color-solo-300: #a5b4fc;
+    --color-solo-400: #818cf8;
+    --color-solo-500: #6366f1;
+    --color-solo-600: #4f46e5;
+    --color-accent: #c7d2fe;
+    --color-calm: #5eead4;
   }
 
-  /* Nacht — diep donker, rustig (dark, default) */
+  /* Nacht — diep zwart, neutraal, klassiek SOLO-blauw (dark) */
   [data-theme='nacht'] {
-    --color-ink: #06080f;
-    --color-surface: #0c1018;
-    --color-surface-2: #121826;
-    --color-surface-3: #1a2230;
-    --color-line: #243044;
-    --color-solo-300: #9bc0ff;
-    --color-solo-400: #6b9fff;
-    --color-solo-500: #4f86ee;
-    --color-solo-600: #3a6fd6;
-    --color-accent: #8fb6ff;
+    color-scheme: dark;
+    --color-ink: #05070a;
+    --color-surface: #0e1116;
+    --color-surface-2: #151920;
+    --color-surface-3: #1d2229;
+    --color-line: #282e38;
+    --color-fg: #dfe4ea;
+    --color-muted: #6d7785;
+    --color-faint: #4a5360;
+    --color-solo-300: #a9cbf5;
+    --color-solo-400: #7cb3f0;
+    --color-solo-500: #5b9be8;
+    --color-solo-600: #3e7fd6;
+    --color-accent: #9bd0ff;
+    --color-calm: #5cb8a8;
   }
 
   html,

@@ -1,21 +1,33 @@
-import { Plus } from 'lucide-react'
+import { Check, Plus, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { WorkoutExercise, WorkoutTemplate } from '@/types/workout'
 import { createId } from '@/lib/storage/localStore'
 import { recalcWorkoutDuration } from '@/lib/workout/overloadPlanner'
 import { getWorkoutStructure, type WorkoutStructure } from '@/lib/workout/workoutStructure'
-import { LabActionButton } from '@/components/lab/LabPrimitives'
+import { PageStickyHeader, StickyHeaderIconButton } from '@/components/layout/PageStickyHeader'
 import { cn } from '@/lib/cn'
 import { ExerciseBlock } from './ExerciseBlock'
+import { WgerBrowser } from './WgerBrowser'
 
 type WorkoutBuilderProps = {
+  title: string
+  backTo: string
   initial?: WorkoutTemplate
   onSave: (data: Omit<WorkoutTemplate, 'id' | 'createdAt' | 'updatedAt'>) => void
   onCancel: () => void
   onDelete?: () => void
 }
 
-export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutBuilderProps) {
+export function WorkoutBuilder({
+  title,
+  backTo,
+  initial,
+  onSave,
+  onCancel,
+  onDelete,
+}: WorkoutBuilderProps) {
+  const navigate = useNavigate()
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [structure, setStructure] = useState<WorkoutStructure>(() =>
@@ -28,6 +40,7 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
     initial?.exercises ?? [emptyExercise()],
   )
   const [nameError, setNameError] = useState(false)
+  const [wgerOpen, setWgerOpen] = useState(false)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   function setStructureMode(next: WorkoutStructure) {
@@ -108,6 +121,19 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
 
   return (
     <div className="flex flex-col gap-3">
+      <PageStickyHeader
+        title={title}
+        onBack={() => navigate(backTo)}
+        actions={
+          <>
+            <StickyHeaderIconButton icon={Search} label="Zoeken in Wger" onClick={() => setWgerOpen(true)} />
+            <StickyHeaderIconButton icon={Plus} label="Oefening toevoegen" onClick={addExercise} />
+            <StickyHeaderIconButton icon={X} label="Annuleren" onClick={onCancel} />
+            <StickyHeaderIconButton icon={Check} label="Opslaan" onClick={handleSave} variant="primary" />
+          </>
+        }
+      />
+
       <label className="flex flex-col gap-1">
         <span className="label-mono text-[9px] text-faint">Workout naam</span>
         <input
@@ -192,34 +218,30 @@ export function WorkoutBuilder({ initial, onSave, onCancel, onDelete }: WorkoutB
             onReorder={reorderExercise}
           />
         ))}
-
-        <button
-          type="button"
-          onClick={() => addExercise()}
-          className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-line py-3 text-sm text-muted active:bg-surface-2"
-        >
-          <Plus className="size-4" />
-          Oefening toevoegen
-        </button>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <WgerBrowser
+        open={wgerOpen}
+        onClose={() => setWgerOpen(false)}
+        onAddExercises={(imported) => {
+          setExercises((prev) => [
+            ...prev,
+            ...imported.map((ex) =>
+              structure === 'circuit' ? { ...ex, restSeconds: 0 } : ex,
+            ),
+          ])
+        }}
+      />
+
+      <div className="flex flex-col gap-2 pb-4">
         {nameError && (
           <p className="text-center text-xs text-danger">Geef de workout eerst een naam om op te slaan.</p>
         )}
-        <div className="flex gap-2">
-          <LabActionButton variant="secondary" onClick={onCancel}>
-            Annuleren
-          </LabActionButton>
-          <LabActionButton variant="primary" onClick={handleSave}>
-            Opslaan
-          </LabActionButton>
-        </div>
         {onDelete && (
           <button
             type="button"
             onClick={onDelete}
-            className="mt-2 w-full rounded-xl border border-danger/25 px-4 py-2.5 text-sm font-medium text-danger active:bg-danger/10"
+            className="w-full rounded-xl border border-danger/25 px-4 py-2.5 text-sm font-medium text-danger active:bg-danger/10"
           >
             Workout verwijderen
           </button>

@@ -1,5 +1,6 @@
 import { ChevronRight, Loader2, Search, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { WorkoutExercise } from '@/types/workout'
 import type { WgerExerciseInfo } from '@/types/wger'
 import { searchExercises, exerciseDisplayName, stripHtml } from '@/lib/wger/client'
 import {
@@ -15,10 +16,14 @@ import { cn } from '@/lib/cn'
 type WgerBrowserProps = {
   open: boolean
   onClose: () => void
-  onImportWorkout: (workout: ReturnType<typeof buildWorkoutFromWgerExercises>) => void
+  /** Create a new workout from selected exercises. */
+  onImportWorkout?: (workout: ReturnType<typeof buildWorkoutFromWgerExercises>) => void
+  /** Append selected exercises to an existing workout being edited. */
+  onAddExercises?: (exercises: WorkoutExercise[]) => void
 }
 
-export function WgerBrowser({ open, onClose, onImportWorkout }: WgerBrowserProps) {
+export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: WgerBrowserProps) {
+  const addMode = Boolean(onAddExercises)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<WgerExerciseInfo[]>([])
   const [count, setCount] = useState(0)
@@ -124,7 +129,11 @@ export function WgerBrowser({ open, onClose, onImportWorkout }: WgerBrowserProps
 
       const name = suggestWgerWorkoutName(selectedResults)
 
-      onImportWorkout(buildWorkoutFromWgerExercises(name, exercises))
+      if (addMode && onAddExercises) {
+        onAddExercises(exercises)
+      } else if (onImportWorkout) {
+        onImportWorkout(buildWorkoutFromWgerExercises(name, exercises))
+      }
       setSelected(new Map())
       setPreview(null)
       onClose()
@@ -281,6 +290,8 @@ export function WgerBrowser({ open, onClose, onImportWorkout }: WgerBrowserProps
                 <Loader2 className="size-4 animate-spin" />
                 Vertalen & importeren…
               </span>
+            ) : addMode ? (
+              <>Voeg {selected.size > 0 ? `${selected.size} oefening(en)` : 'selectie'} toe</>
             ) : (
               <>Importeer {selected.size > 0 ? `${selected.size} oefening(en)` : 'selectie'} als workout</>
             )}

@@ -1,6 +1,7 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Dumbbell, Package, Play, Square } from 'lucide-react'
 import { useMemo } from 'react'
+import { LogoMark } from '@/components/Logo'
 import { useActiveSession } from '@/hooks/useActiveSession'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
@@ -82,11 +83,6 @@ export function BottomNav() {
     }
 
     if (active && session) {
-      const started = session.exercisesStarted ?? Boolean(session.currentExerciseStartedAt)
-      if (!started) {
-        navigate('/session')
-        return
-      }
       if (location.pathname === '/session') {
         if (!confirm('Sessie afbreken? Deze workout wordt niet opgeslagen.')) return
         publishTvIdle(theme)
@@ -114,7 +110,15 @@ export function BottomNav() {
   }
 
   const CenterIcon =
-    center.icon === 'stop' ? Square : center.icon === 'package' ? Package : center.icon === 'dumbbell' ? Dumbbell : Play
+    center.icon === 'solo'
+      ? null
+      : center.icon === 'stop'
+        ? Square
+        : center.icon === 'package'
+          ? Package
+          : center.icon === 'dumbbell'
+            ? Dumbbell
+            : Play
 
   return (
     <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-ink/90 backdrop-blur-md">
@@ -137,15 +141,19 @@ export function BottomNav() {
           >
             {center.showCount != null ? (
               <span className="text-lg font-bold tabular-nums text-ink">{center.showCount}</span>
+            ) : center.icon === 'solo' ? (
+              <LogoMark size={30} className="text-muted" />
             ) : (
-              <CenterIcon
-                className={cn(
-                  'size-7',
-                  center.icon === 'play' && center.variant === 'success' && 'translate-x-0.5 fill-ink',
-                  center.icon === 'play' && center.variant !== 'success' && 'fill-ink',
-                  center.icon === 'stop' && 'fill-ink',
-                )}
-              />
+              CenterIcon && (
+                <CenterIcon
+                  className={cn(
+                    'size-7',
+                    center.icon === 'play' && center.variant === 'success' && 'translate-x-0.5 fill-ink',
+                    center.icon === 'play' && center.variant !== 'success' && 'fill-ink',
+                    center.icon === 'stop' && 'fill-ink',
+                  )}
+                />
+              )
             )}
           </button>
           {center.label ? (

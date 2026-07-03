@@ -1,7 +1,7 @@
 import { ChevronRight, Pencil } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { PageBackButton } from '@/components/layout/PageBackButton'
+import { PageStickyHeader, StickyHeaderIconButton } from '@/components/layout/PageStickyHeader'
 import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'
 import { useCoachEnabled } from '@/hooks/useCoachEnabled'
@@ -75,27 +75,24 @@ export function WorkoutPrepPage() {
 
   return (
     <div className="flex flex-col gap-3 py-1 pb-20">
-      <div className="flex items-center gap-2">
-        <PageBackButton to="/workouts" />
-        <div className="min-w-0 flex-1">
-          <p className="label-mono truncate text-[10px] text-faint">
-            {isMulti ? `${sessionPrep.workouts.length} workouts` : 'Workout prep'}
-          </p>
-          <h1 className="truncate text-base font-bold">
-            {isMulti ? 'Multi-workout prep' : primaryWorkout.workout.name}
-          </h1>
-        </div>
-        {!isMulti && (
-          <button
-            type="button"
-            onClick={() => navigate(`/workouts/${primaryWorkout.workout.id}/edit`)}
-            className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-muted active:bg-surface-3"
-            aria-label="Bewerken"
-          >
-            <Pencil className="size-5" />
-          </button>
-        )}
-      </div>
+      <PageStickyHeader
+        title={
+          isMulti
+            ? `Voorbereiden · ${sessionPrep.workouts.length} workouts`
+            : `Voorbereiden · ${primaryWorkout.workout.name}`
+        }
+        onBack={() => navigate('/workouts')}
+        titleClassName="text-warn"
+        actions={
+          !isMulti ? (
+            <StickyHeaderIconButton
+              icon={Pencil}
+              label="Bewerken"
+              onClick={() => navigate(`/workouts/${primaryWorkout.workout.id}/edit`)}
+            />
+          ) : undefined
+        }
+      />
 
       <SessionControlBar
         cameraEnabled={cameraEnabled}
@@ -108,7 +105,7 @@ export function WorkoutPrepPage() {
       />
 
       <p className="text-[11px] text-faint">
-        Stel camera, coach en TV in. Druk op Start onderin om de live sessie te openen.
+        Druk op <strong>Voorbereiden</strong> onderin om materiaal klaar te leggen. De workout start pas na bevestiging op de sessiepagina.
       </p>
 
       <PrepInsightsPanel

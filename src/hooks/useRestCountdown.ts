@@ -9,6 +9,8 @@ export type RestTimer = {
   afterExerciseName: string
   kind?: RestTimerKind
   phaseLabel?: string
+  /** Set/ronde number just completed (phase rest only). */
+  completedPhase?: number
 }
 
 export type RestCountdown = {
@@ -19,6 +21,7 @@ export type RestCountdown = {
   afterExerciseName: string
   kind: RestTimerKind
   phaseLabel?: string
+  completedPhase?: number
 }
 
 const IDLE: RestCountdown = {
@@ -54,14 +57,37 @@ export function useRestCountdown(timer: RestTimer | null): RestCountdown {
     afterExerciseName: timer.afterExerciseName,
     kind: timer.kind ?? 'exercise',
     phaseLabel: timer.phaseLabel,
+    completedPhase: timer.completedPhase,
   }
 }
 
-export function restCountdownLabel(countdown: Pick<RestCountdown, 'kind' | 'phaseLabel' | 'afterExerciseName'>): string {
-  if (countdown.kind === 'phase' && countdown.phaseLabel) {
-    return `Tussen ${countdown.phaseLabel.toLowerCase()}s`
+export function restCountdownTitle(
+  countdown: Pick<RestCountdown, 'kind' | 'phaseLabel'>,
+): string {
+  if (countdown.kind === 'phase') {
+    return countdown.phaseLabel === 'Ronde' ? 'Ronde rust' : 'Set rust'
   }
-  return `Bij ${countdown.afterExerciseName}`
+  return 'Rust na oefening'
+}
+
+export function restCountdownSubtitle(
+  countdown: Pick<
+    RestCountdown,
+    'kind' | 'phaseLabel' | 'afterExerciseName' | 'completedPhase'
+  >,
+): string {
+  if (countdown.kind === 'phase') {
+    const n = countdown.completedPhase
+    if (countdown.phaseLabel === 'Ronde') {
+      return n != null
+        ? `Ronde ${n} voltooid · daarna ronde ${n + 1}`
+        : 'Rust tussen rondes'
+    }
+    return n != null
+      ? `Set ${n} voltooid · daarna set ${n + 1}`
+      : 'Rust tussen sets'
+  }
+  return `Na ${countdown.afterExerciseName}`
 }
 
 export function formatRestSeconds(seconds: number): string {

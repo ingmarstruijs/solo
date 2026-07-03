@@ -86,19 +86,19 @@ function kindLabel(kind: ExerciseVisualKind): string {
 
 const GRADIENTS: Record<ExerciseVisualKind, string> = {
   barbell:
-    'radial-gradient(circle at 30% 20%, rgba(124,179,240,0.35), transparent 55%), linear-gradient(135deg, #1c2128, #0b0e11)',
+    'radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--color-solo-400) 35%, transparent), transparent 55%), linear-gradient(135deg, var(--color-surface-2), var(--color-ink))',
   dumbbell:
-    'radial-gradient(circle at 70% 30%, rgba(255,138,61,0.25), transparent 50%), linear-gradient(135deg, #252c35, #14181d)',
+    'radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--color-warn) 28%, transparent), transparent 50%), linear-gradient(135deg, var(--color-surface-3), var(--color-surface))',
   kettlebell:
-    'radial-gradient(circle at 50% 40%, rgba(111,215,199,0.3), transparent 55%), linear-gradient(135deg, #1c2128, #0b0e11)',
+    'radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--color-calm) 32%, transparent), transparent 55%), linear-gradient(135deg, var(--color-surface-2), var(--color-ink))',
   cardio:
-    'radial-gradient(circle at 40% 60%, rgba(255,107,107,0.25), transparent 50%), linear-gradient(135deg, #252c35, #14181d)',
+    'radial-gradient(circle at 40% 60%, color-mix(in srgb, var(--color-danger) 26%, transparent), transparent 50%), linear-gradient(135deg, var(--color-surface-3), var(--color-surface))',
   mobility:
-    'radial-gradient(circle at 60% 30%, rgba(155,208,255,0.3), transparent 55%), linear-gradient(135deg, #1c2128, #14181d)',
+    'radial-gradient(circle at 60% 30%, color-mix(in srgb, var(--color-accent) 32%, transparent), transparent 55%), linear-gradient(135deg, var(--color-surface-2), var(--color-ink))',
   bodyweight:
-    'radial-gradient(circle at 50% 50%, rgba(124,179,240,0.2), transparent 60%), linear-gradient(135deg, #14181d, #0b0e11)',
+    'radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-solo-400) 22%, transparent), transparent 60%), linear-gradient(135deg, var(--color-surface), var(--color-ink))',
   bands:
-    'radial-gradient(circle at 20% 80%, rgba(95,211,154,0.25), transparent 50%), linear-gradient(135deg, #1c2128, #14181d)',
+    'radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--color-success) 28%, transparent), transparent 50%), linear-gradient(135deg, var(--color-surface-2), var(--color-ink))',
 }
 
 export function metricLabel(metric: SetMetric, target: number): string {

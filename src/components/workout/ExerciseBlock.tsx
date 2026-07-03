@@ -5,6 +5,7 @@ import type { ExerciseKind, SetMetric, WorkoutExercise } from '@/types/workout'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
+import { MarkdownField } from '@/components/MarkdownField'
 import { cn } from '@/lib/cn'
 
 type ExerciseBlockProps = {
@@ -223,12 +224,11 @@ export function ExerciseBlock({
 
       <div className="mt-3">
         <Field label="Uitleg" hint="Markdown — zichtbaar in prep en sessie">
-          <textarea
+          <MarkdownField
             value={exercise.description ?? ''}
-            onChange={(e) => patch({ description: e.target.value.trim() || undefined })}
-            placeholder="Instructies, tips of uitvoering…"
-            rows={3}
-            className={cn(inputClass, 'min-h-[4.5rem] resize-y')}
+            onChange={(description) =>
+              patch({ description: description.trim() ? description : undefined })
+            }
           />
         </Field>
       </div>

@@ -7,7 +7,7 @@ export type CenterNavConfig = {
   disabled: boolean
   variant: CenterNavVariant
   showCount: number | null
-  icon: 'play' | 'stop' | 'dumbbell' | 'package'
+  icon: 'play' | 'stop' | 'dumbbell' | 'package' | 'solo'
 }
 
 type ResolveCenterNavInput = {
@@ -30,7 +30,8 @@ function isIdleBottomTab(pathname: string): boolean {
   return (IDLE_BOTTOM_TABS as readonly string[]).includes(pathname)
 }
 
-function mutedDisabled(icon: CenterNavConfig['icon'] = 'dumbbell'): CenterNavConfig {
+/** SOLO icon, muted look — disabled idle state. */
+function mutedDisabled(icon: CenterNavConfig['icon'] = 'solo'): CenterNavConfig {
   return {
     label: '',
     disabled: true,
@@ -66,13 +67,16 @@ export function resolveCenterNav({
 
   if (active && session) {
     if (!started) {
-      return {
-        label: 'Voorbereiden',
-        disabled: onSession,
-        variant: 'wait',
-        showCount: null,
-        icon: 'package',
+      if (onSession) {
+        return {
+          label: 'Voorbereiden',
+          disabled: true,
+          variant: 'wait',
+          showCount: null,
+          icon: 'package',
+        }
       }
+      return mutedDisabled()
     }
 
     if (onSession) {
@@ -96,7 +100,7 @@ export function resolveCenterNav({
 
   if (onPrep) {
     return {
-      label: prepReady ? 'Start' : '',
+      label: prepReady ? 'Voorbereiden' : '',
       disabled: !prepReady,
       variant: prepReady ? 'prep' : 'muted',
       showCount: null,

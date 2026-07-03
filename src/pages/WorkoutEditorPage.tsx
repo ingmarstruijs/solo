@@ -1,5 +1,4 @@
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
-import { PageBackButton } from '@/components/layout/PageBackButton'
 import { getWorkout } from '@/lib/storage/workoutStore'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { WorkoutBuilder } from '@/components/workout/WorkoutBuilder'
@@ -24,15 +23,10 @@ export function WorkoutEditorPage() {
   }
 
   return (
-    <div className="flex flex-col gap-3 py-1">
-      <div className="flex items-center gap-2">
-        <PageBackButton to="/workouts" />
-        <h1 className="min-w-0 flex-1 truncate text-base font-bold">
-          {isNew ? 'Nieuwe workout' : 'Workout bewerken'}
-        </h1>
-      </div>
-
+    <div className="flex flex-col py-1">
       <WorkoutBuilder
+        title={isNew ? 'Nieuwe workout' : 'Workout bewerken'}
+        backTo="/workouts"
         initial={existing}
         onSave={(data) => {
           if (isNew) {

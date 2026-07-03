@@ -90,15 +90,32 @@ export function getExerciseWeight(
   return target?.adjustedWeightKg ?? ex.weightKg
 }
 
+export function buildPauseAnnouncement(): string {
+  return 'Oefening gepauzeerd.'
+}
+
+export function buildResumeAnnouncement(exerciseName: string): string {
+  return `Hervat: ${exerciseName}.`
+}
+
+export function buildNextSetReadyAnnouncement(
+  nextSetNumber: number,
+  phaseLabel: string,
+): string {
+  const unit = phaseLabel === 'Ronde' ? 'ronde' : 'set'
+  return `Maak je klaar voor ${unit} ${nextSetNumber}.`
+}
+
 export function buildRestStartAnnouncement(
   seconds: number,
   kind: 'exercise' | 'phase' = 'exercise',
   phaseLabel?: string,
 ): string {
-  if (kind === 'phase' && phaseLabel) {
-    return `Rust tussen ${phaseLabel.toLowerCase()}s. ${seconds} seconden.`
+  if (kind === 'phase') {
+    const label = phaseLabel === 'Ronde' ? 'Ronde rust' : 'Set rust'
+    return `${label}. ${seconds} seconden.`
   }
-  return `Rust. ${seconds} seconden.`
+  return `Rust na oefening. ${seconds} seconden.`
 }
 
 const COUNTDOWN_WORDS: Record<number, string> = {

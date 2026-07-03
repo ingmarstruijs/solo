@@ -1,5 +1,10 @@
 import { cn } from '@/lib/cn'
-import { formatRestSeconds, restCountdownLabel, type RestCountdown } from '@/hooks/useRestCountdown'
+import {
+  formatRestSeconds,
+  restCountdownSubtitle,
+  restCountdownTitle,
+  type RestCountdown,
+} from '@/hooks/useRestCountdown'
 
 type RestTimerBarProps = {
   countdown: RestCountdown
@@ -10,39 +15,59 @@ type RestTimerBarProps = {
 export function RestTimerBar({ countdown, onSkip, className }: RestTimerBarProps) {
   if (!countdown.active) return null
 
+  const isPhaseRest = countdown.kind === 'phase'
+
   return (
     <section
       className={cn(
-        'rounded-card border border-calm/40 bg-calm/10 p-3',
+        'rounded-card border p-3',
+        isPhaseRest
+          ? 'border-solo-400/45 bg-solo-400/10'
+          : 'border-calm/40 bg-calm/10',
         className,
       )}
       aria-live="polite"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="label-mono text-[10px] text-calm">Rust</p>
-          <p className="truncate text-xs text-muted">{restCountdownLabel(countdown)}</p>
+          <p
+            className={cn(
+              'text-sm font-bold',
+              isPhaseRest ? 'text-solo-300' : 'text-calm',
+            )}
+          >
+            {restCountdownTitle(countdown)}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted">{restCountdownSubtitle(countdown)}</p>
         </div>
-        <p className="font-mono text-3xl font-bold tabular-nums text-calm">
+        <p
+          className={cn(
+            'font-mono text-3xl font-bold tabular-nums',
+            isPhaseRest ? 'text-solo-300' : 'text-calm',
+          )}
+        >
           {formatRestSeconds(countdown.remaining)}
         </p>
       </div>
 
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-2">
         <div
-          className="h-full rounded-full bg-calm transition-[width] duration-300"
+          className={cn(
+            'h-full rounded-full transition-[width] duration-300',
+            isPhaseRest ? 'bg-solo-400' : 'bg-calm',
+          )}
           style={{ width: `${countdown.progress * 100}%` }}
         />
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-[11px] text-muted">
+      <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-muted">
         <span>
           {countdown.remaining} / {countdown.total} seconden
         </span>
         <button
           type="button"
           onClick={onSkip}
-          className="font-medium text-solo-400 active:text-solo-300"
+          className="min-h-11 rounded-xl border border-line bg-surface-2 px-5 text-sm font-semibold text-solo-400 active:bg-surface-3"
         >
           Overslaan
         </button>

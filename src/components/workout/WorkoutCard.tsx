@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Clock, Dumbbell, Pencil, Share2, Star, Trash2 } from 'lucide-react'
+import { Check, ChevronRight, Clock, Copy, Dumbbell, Pencil, Share2, Star, Trash2 } from 'lucide-react'
 import type { WorkoutTemplate } from '@/types/workout'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { getWorkoutStructure } from '@/lib/workout/workoutStructure'
@@ -11,6 +11,7 @@ type WorkoutCardProps = {
   selectionMode?: boolean
   onOpen: (workout: WorkoutTemplate) => void
   onEdit?: (workout: WorkoutTemplate) => void
+  onDuplicate?: (workout: WorkoutTemplate) => void
   onShare?: (workout: WorkoutTemplate) => void
   onDelete?: (id: string) => void
   onToggleFavorite: (id: string) => void
@@ -23,6 +24,7 @@ export function WorkoutCard({
   selectionMode,
   onOpen,
   onEdit,
+  onDuplicate,
   onShare,
   onDelete,
   onToggleFavorite,
@@ -102,10 +104,15 @@ export function WorkoutCard({
       </button>
 
       {!selectionMode && (
-        <div className="grid grid-cols-4 border-t border-line">
+        <div className="grid grid-cols-5 border-t border-line">
           {onEdit && (
             <ActionButton label="Bewerken" onClick={() => onEdit(workout)}>
               <Pencil className="size-5" />
+            </ActionButton>
+          )}
+          {onDuplicate && (
+            <ActionButton label="Dupliceer" onClick={() => onDuplicate(workout)}>
+              <Copy className="size-5" />
             </ActionButton>
           )}
           {onShare && (

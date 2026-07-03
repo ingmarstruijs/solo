@@ -132,6 +132,19 @@ export function importSharedWorkout(workout: WorkoutTemplate): WorkoutTemplate {
   })
 }
 
+/** Duplicate an existing workout with fresh ids and a copy suffix on the name. */
+export function duplicateWorkout(id: string): WorkoutTemplate | null {
+  const original = getWorkout(id)
+  if (!original) return null
+  const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = original
+  return addWorkout({
+    ...rest,
+    name: `${rest.name} (kopie)`,
+    favorite: false,
+    exercises: rest.exercises.map((ex) => ({ ...ex, id: createId() })),
+  })
+}
+
 export function subscribeWorkouts(onChange: () => void): () => void {
   return subscribeStore(KEY, onChange)
 }
