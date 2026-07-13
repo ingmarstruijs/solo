@@ -30,9 +30,9 @@ export function EquipmentIcon({ category, className, size = 48 }: EquipmentIconP
 const ICONS: Record<EquipmentCategory, ReactNode> = {
   dumbbell: (
     <>
-      <rect x="4" y="26" width="10" height="12" fill="currentColor" stroke="none" />
-      <rect x="50" y="26" width="10" height="12" fill="currentColor" stroke="none" />
-      <line x1="14" y1="32" x2="50" y2="32" />
+      <circle cx="14" cy="32" r="9" fill="currentColor" stroke="none" />
+      <circle cx="50" cy="32" r="9" fill="currentColor" stroke="none" />
+      <line x1="23" y1="32" x2="41" y2="32" strokeWidth="3" />
     </>
   ),
   kettlebell: (

@@ -1,11 +1,12 @@
 import { Check, Plus, Search, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { WorkoutExercise, WorkoutTemplate } from '@/types/workout'
 import { createId } from '@/lib/storage/localStore'
 import { recalcWorkoutDuration } from '@/lib/workout/overloadPlanner'
 import { getWorkoutStructure, type WorkoutStructure } from '@/lib/workout/workoutStructure'
 import { PageStickyHeader, StickyHeaderIconButton } from '@/components/layout/PageStickyHeader'
+import { TouchNumberField } from '@/components/ui/TouchNumberField'
 import { cn } from '@/lib/cn'
 import { ExerciseBlock } from './ExerciseBlock'
 import { WgerBrowser } from './WgerBrowser'
@@ -41,6 +42,7 @@ export function WorkoutBuilder({
   )
   const [nameError, setNameError] = useState(false)
   const [wgerOpen, setWgerOpen] = useState(false)
+  const [bulkRestSeconds, setBulkRestSeconds] = useState(60)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   function setStructureMode(next: WorkoutStructure) {
@@ -77,6 +79,10 @@ export function WorkoutBuilder({
 
   function moveExercise(index: number, direction: -1 | 1) {
     reorderExercise(index, index + direction)
+  }
+
+  function applyBulkRest() {
+    setExercises((prev) => prev.map((ex) => ({ ...ex, restSeconds: bulkRestSeconds })))
   }
 
   function handleSave() {
@@ -189,16 +195,38 @@ export function WorkoutBuilder({
 
       {structure === 'strength' ? (
         <div className="grid grid-cols-2 gap-2">
-          <NumberField label="Sets" value={sets} min={1} onChange={setSets} />
-          <NumberField
+          <TouchNumberField label="Sets" value={sets} min={1} preset="sets" onChange={setSets} />
+          <TouchNumberField
             label="Rust tussen sets (s)"
             value={restBetweenSets}
             min={0}
+            preset="rest"
             onChange={setRestBetweenSets}
           />
         </div>
       ) : (
-        <NumberField label="Rondes" value={circuitRounds} min={2} onChange={setCircuitRounds} />
+        <TouchNumberField label="Rondes" value={circuitRounds} min={2} preset="sets" onChange={setCircuitRounds} />
+      )}
+
+      {structure === 'strength' && exercises.length > 0 && (
+        <div className="flex items-end gap-2 rounded-card border border-line bg-surface p-3">
+          <TouchNumberField
+            label="Rust na alle oefeningen (s)"
+            hint="Zet rust voor elke oefening in één keer"
+            value={bulkRestSeconds}
+            min={0}
+            preset="rest"
+            onChange={setBulkRestSeconds}
+            className="flex-1"
+          />
+          <button
+            type="button"
+            onClick={applyBulkRest}
+            className="mb-5 shrink-0 rounded-xl border border-solo-400/40 bg-solo-400/10 px-3 py-2.5 text-xs font-semibold text-solo-300 active:bg-solo-400/20"
+          >
+            Toepassen
+          </button>
+        </div>
       )}
 
       <div className="flex flex-col gap-2">
@@ -248,55 +276,6 @@ export function WorkoutBuilder({
         )}
       </div>
     </div>
-  )
-}
-
-function NumberField({
-  label,
-  value,
-  min,
-  onChange,
-}: {
-  label: string
-  value: number
-  min?: number
-  onChange: (value: number) => void
-}) {
-  const [text, setText] = useState(String(value))
-
-  useEffect(() => {
-    setText(String(value))
-  }, [value])
-
-  function commit(raw: string) {
-    if (raw.trim() === '') {
-      onChange(min ?? 0)
-      setText(String(min ?? 0))
-      return
-    }
-    const parsed = parseInt(raw, 10)
-    if (Number.isNaN(parsed)) {
-      setText(String(value))
-      return
-    }
-    const next = min != null ? Math.max(min, parsed) : parsed
-    onChange(next)
-    setText(String(next))
-  }
-
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="label-mono text-[9px] text-faint">{label}</span>
-      <input
-        type="number"
-        inputMode="numeric"
-        min={min}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={() => commit(text)}
-        className={inputClass}
-      />
-    </label>
   )
 }
 

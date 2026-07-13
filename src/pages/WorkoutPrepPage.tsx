@@ -82,7 +82,7 @@ export function WorkoutPrepPage() {
             : `Voorbereiden · ${primaryWorkout.workout.name}`
         }
         onBack={() => navigate('/workouts')}
-        titleClassName="text-warn"
+        titleClassName="text-solo-400"
         actions={
           !isMulti ? (
             <StickyHeaderIconButton

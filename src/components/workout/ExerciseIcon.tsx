@@ -77,7 +77,7 @@ const EQUIP_COLOR = 'text-solo-400'
 
 const ICON_COLORS: Record<ExerciseKind, string> = {
   strength: 'text-solo-400',
-  cardio: 'text-warn',
+  cardio: 'text-calm',
   mobility: 'text-calm',
 }
 

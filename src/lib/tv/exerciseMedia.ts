@@ -88,7 +88,7 @@ const GRADIENTS: Record<ExerciseVisualKind, string> = {
   barbell:
     'radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--color-solo-400) 35%, transparent), transparent 55%), linear-gradient(135deg, var(--color-surface-2), var(--color-ink))',
   dumbbell:
-    'radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--color-warn) 28%, transparent), transparent 50%), linear-gradient(135deg, var(--color-surface-3), var(--color-surface))',
+    'radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--color-calm) 28%, transparent), transparent 50%), linear-gradient(135deg, var(--color-surface-3), var(--color-surface))',
   kettlebell:
     'radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--color-calm) 32%, transparent), transparent 55%), linear-gradient(135deg, var(--color-surface-2), var(--color-ink))',
   cardio:

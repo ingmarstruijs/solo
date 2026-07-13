@@ -1,4 +1,4 @@
-import type { ActiveSession } from '@/types/workout'
+import type { ActiveSession, SetMetric } from '@/types/workout'
 import { formatElapsedSeconds } from '@/hooks/useElapsedTimer'
 import { getPhaseInfo } from '@/lib/workout/workoutStructure'
 
@@ -6,6 +6,7 @@ export type ExerciseTrend = 'faster' | 'slower' | 'stable'
 
 export type SessionSummaryExercise = {
   name: string
+  metric: SetMetric
   durationSeconds: number
   durationsBySet: number[]
   avgPerSet: number
@@ -115,6 +116,7 @@ export function buildSessionSummary(session: ActiveSession): SessionSummary {
 
     return {
       name: ex.name,
+      metric: ex.metric,
       durationSeconds: session.exerciseDurations?.[ex.id] ?? total,
       durationsBySet,
       avgPerSet,
@@ -241,6 +243,7 @@ export function normalizeSummary(raw: Partial<SessionSummary> & { workoutName: s
     const durationSeconds = 'durationSeconds' in ex ? ex.durationSeconds : 0
     return {
     name: ex.name,
+    metric: 'metric' in ex ? ex.metric : 'reps',
     durationSeconds,
     durationsBySet: 'durationsBySet' in ex ? ex.durationsBySet : [],
     avgPerSet: 'avgPerSet' in ex ? ex.avgPerSet : durationSeconds,
