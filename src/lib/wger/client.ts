@@ -1,4 +1,4 @@
-import type { WgerExerciseInfo, WgerPaginated } from '@/types/wger'
+import type { WgerExerciseInfo, WgerPaginated, WgerExerciseCategory, WgerEquipment, WgerMuscle } from '@/types/wger'
 
 const BASE = 'https://wger.de/api/v2'
 export const WGER_LANG_NL = 6
@@ -19,6 +19,12 @@ export type ExercisePage = {
   nextOffset: number | null
 }
 
+export type WgerSearchFilters = {
+  category?: number
+  equipment?: number
+  muscles?: number
+}
+
 /**
  * Search exercises via the combined exerciseinfo endpoint, with pagination.
  *
@@ -31,6 +37,7 @@ export async function searchExercises(
   languageCode?: string,
   limit = 50,
   offset = 0,
+  filters?: WgerSearchFilters,
 ): Promise<ExercisePage> {
   const params = new URLSearchParams({
     limit: String(limit),
@@ -40,6 +47,9 @@ export async function searchExercises(
     params.set('name__search', query.trim())
     if (languageCode) params.set('language__code', languageCode)
   }
+  if (filters?.category) params.set('category', String(filters.category))
+  if (filters?.equipment) params.set('equipment', String(filters.equipment))
+  if (filters?.muscles) params.set('muscles', String(filters.muscles))
 
   const data = await wgerFetch<WgerPaginated<WgerExerciseInfo>>(
     `/exerciseinfo/?${params}`,
@@ -50,6 +60,21 @@ export async function searchExercises(
     count: data.count,
     nextOffset: data.next ? offset + data.results.length : null,
   }
+}
+
+export async function getExerciseCategories(): Promise<WgerExerciseCategory[]> {
+  const data = await wgerFetch<WgerPaginated<WgerExerciseCategory>>('/exercisecategory/?limit=50')
+  return data.results
+}
+
+export async function getWgerEquipmentList(): Promise<WgerEquipment[]> {
+  const data = await wgerFetch<WgerPaginated<WgerEquipment>>('/equipment/?limit=50')
+  return data.results
+}
+
+export async function getWgerMuscles(): Promise<WgerMuscle[]> {
+  const data = await wgerFetch<WgerPaginated<WgerMuscle>>('/muscle/?limit=50')
+  return data.results
 }
 
 export async function getExercise(id: number, language = WGER_LANG_NL): Promise<WgerExerciseInfo> {

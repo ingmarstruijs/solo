@@ -128,9 +128,9 @@ export function WorkoutCard({
           <ActionButton
             label={workout.favorite ? 'Favoriet' : 'Favoriet maken'}
             onClick={() => onToggleFavorite(workout.id)}
-            className={workout.favorite ? 'text-warn' : undefined}
+            className={workout.favorite ? 'text-accent' : undefined}
           >
-            <Star className={cn('size-5', workout.favorite && 'fill-warn')} />
+            <Star className={cn('size-5', workout.favorite && 'fill-accent')} />
           </ActionButton>
         </div>
       )}

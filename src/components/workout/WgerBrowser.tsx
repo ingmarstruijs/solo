@@ -2,7 +2,7 @@ import { ChevronRight, Loader2, Search, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { WorkoutExercise } from '@/types/workout'
 import type { WgerExerciseInfo } from '@/types/wger'
-import { searchExercises, exerciseDisplayName, stripHtml } from '@/lib/wger/client'
+import { searchExercises, exerciseDisplayName, stripHtml, type WgerSearchFilters } from '@/lib/wger/client'
 import {
   buildWorkoutFromWgerExercises,
   wgerExerciseToWorkoutExercise,
@@ -11,6 +11,7 @@ import { suggestWgerWorkoutName } from '@/lib/wger/suggestWorkoutName'
 import { mapWgerEquipment } from '@/lib/wger/mapEquipment'
 import { LabActionButton } from '@/components/lab/LabPrimitives'
 import { WgerExercisePreview } from '@/components/workout/WgerExercisePreview'
+import { WgerFilterBar } from '@/components/workout/WgerFilterBar'
 import { cn } from '@/lib/cn'
 
 type WgerBrowserProps = {
@@ -25,6 +26,7 @@ type WgerBrowserProps = {
 export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: WgerBrowserProps) {
   const addMode = Boolean(onAddExercises)
   const [query, setQuery] = useState('')
+  const [filters, setFilters] = useState<WgerSearchFilters>({})
   const [results, setResults] = useState<WgerExerciseInfo[]>([])
   const [count, setCount] = useState(0)
   const [nextOffset, setNextOffset] = useState<number | null>(null)
@@ -37,11 +39,11 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
   const listRef = useRef<HTMLUListElement>(null)
   const sentinelRef = useRef<HTMLLIElement>(null)
 
-  const search = useCallback(async (q: string) => {
+  const search = useCallback(async (q: string, activeFilters: WgerSearchFilters) => {
     setLoading(true)
     setError(null)
     try {
-      const page = await searchExercises(q)
+      const page = await searchExercises(q, undefined, 50, 0, activeFilters)
       setResults(page.results)
       setCount(page.count)
       setNextOffset(page.nextOffset)
@@ -59,7 +61,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
     if (nextOffset == null || loadingMore) return
     setLoadingMore(true)
     try {
-      const page = await searchExercises(query, undefined, undefined, nextOffset)
+      const page = await searchExercises(query, undefined, 50, nextOffset, filters)
       setResults((prev) => {
         const seen = new Set(prev.map((r) => r.id))
         return [...prev, ...page.results.filter((r) => !seen.has(r.id))]
@@ -71,7 +73,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
     } finally {
       setLoadingMore(false)
     }
-  }, [nextOffset, loadingMore, query])
+  }, [nextOffset, loadingMore, query, filters])
 
   useEffect(() => {
     if (!open || loading || loadingMore || nextOffset == null) return
@@ -92,18 +94,22 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
 
   useEffect(() => {
     if (!open) return
-    const timer = setTimeout(() => search(query), 350)
+    const timer = setTimeout(() => search(query, filters), 350)
     return () => clearTimeout(timer)
-  }, [query, open, search])
+  }, [query, filters, open, search])
 
   useEffect(() => {
-    if (open && results.length === 0 && !query) search('')
-  }, [open, query, results.length, search])
+    const hasFilters = Boolean(filters.category || filters.equipment || filters.muscles)
+    if (open && results.length === 0 && !query && !hasFilters) {
+      search('', filters)
+    }
+  }, [open, query, results.length, search, filters])
 
   useEffect(() => {
     if (!open) {
       setPreview(null)
       setSelected(new Map())
+      setFilters({})
     }
   }, [open])
 
@@ -187,6 +193,8 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
                 </p>
               )}
             </div>
+
+            <WgerFilterBar filters={filters} onChange={setFilters} />
 
             <ul ref={listRef} className="flex-1 overflow-y-auto p-2">
               {loading && (

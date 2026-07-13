@@ -24,7 +24,7 @@ const variantClasses: Record<
   prep: 'border-solo-400 bg-solo-400 shadow-solo-600/30',
   success: 'border-success bg-success shadow-success/30 ring-4 ring-success/25 animate-pulse',
   danger: 'border-danger bg-danger text-ink shadow-danger/30',
-  wait: 'border-warn/50 bg-warn/20 text-warn shadow-warn/20',
+  wait: 'border-solo-400/50 bg-solo-400/20 text-solo-300 shadow-solo-400/20',
   muted: 'border-line bg-surface-2 text-muted shadow-none',
 }
 
@@ -33,7 +33,7 @@ const badgeClasses: Record<ReturnType<typeof resolveCenterNav>['variant'], strin
   prep: 'bg-surface-2 text-fg',
   success: 'bg-success text-ink',
   danger: 'bg-danger text-ink',
-  wait: 'bg-warn/20 text-warn',
+  wait: 'bg-solo-400/20 text-solo-300',
   muted: 'bg-surface-2 text-faint',
 }
 

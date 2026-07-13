@@ -25,38 +25,53 @@ function trendMeta(trend: ExerciseTrend, percent: number) {
     return {
       icon: TrendingUp,
       label: `${percent}% langzamer`,
-      className: 'text-warn',
+      className: 'text-muted',
     }
   }
   return { icon: Minus, label: 'Stabiel', className: 'text-muted' }
 }
 
-function Sparkline({
+function DurationPlot({
   values,
+  phaseLabel,
   variant,
 }: {
   values: number[]
+  phaseLabel: string
   variant: 'mobile' | 'tv'
 }) {
   const max = Math.max(...values, 1)
   const isTv = variant === 'tv'
 
   return (
-    <div
-      className={cn('flex items-end', isTv ? 'h-[4vh] gap-[0.4vh]' : 'h-8 gap-0.5')}
-      aria-hidden
-    >
-      {values.map((value, index) => (
-        <div
-          key={index}
-          className={cn(
-            'flex-1 rounded-sm bg-solo-400/70',
-            value === max && max > 0 && 'bg-solo-400',
-          )}
-          style={{ height: `${Math.max(12, Math.round((value / max) * 100))}%` }}
-          title={`Set ${index + 1}: ${formatDuration(value)}`}
-        />
-      ))}
+    <div className={cn('mt-2', isTv ? 'mt-[1vh]' : '')}>
+      <div
+        className={cn(
+          'flex items-end rounded-lg bg-surface-2/80 px-1',
+          isTv ? 'h-[5vh] gap-[0.5vh] py-[0.8vh]' : 'h-10 gap-1 py-1.5',
+        )}
+        aria-hidden
+      >
+        {values.map((value, index) => {
+          const heightPct = value > 0 ? Math.max(14, Math.round((value / max) * 100)) : 8
+          return (
+            <div key={index} className="flex flex-1 flex-col items-center justify-end gap-0.5">
+              <div
+                className={cn(
+                  'w-full rounded-sm transition-colors',
+                  value > 0 ? 'bg-solo-400' : 'bg-line',
+                  value === max && max > 0 && value > 0 && 'bg-solo-300',
+                )}
+                style={{ height: `${heightPct}%` }}
+                title={`${phaseLabel} ${index + 1}: ${formatDuration(value)}`}
+              />
+              <span className={cn('font-mono text-faint', isTv ? 'text-[1.1vh]' : 'text-[8px]')}>
+                {index + 1}
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -100,6 +115,7 @@ export function WorkoutSummary({
   const isTv = variant === 'tv'
   const { stats } = summary
   const multiSet = summary.sets.length > 1
+  const timedExercises = summary.exercises.filter((ex) => ex.metric !== 'reps')
 
   return (
     <div className={cn('flex flex-col', isTv ? 'gap-[2vh]' : 'gap-4', className)}>
@@ -121,25 +137,11 @@ export function WorkoutSummary({
           label={`Gem. ${stats.phaseLabel.toLowerCase()}`}
           value={formatDuration(stats.avgSetDurationSeconds)}
         />
-        <StatCard
-          variant={variant}
-          label="Gem. per oefening"
-          value={formatDuration(stats.avgExercisePerSetSeconds)}
-        />
-        {stats.fastestSet && (
+        {timedExercises.length > 0 && (
           <StatCard
             variant={variant}
-            label={`Snelste ${stats.phaseLabel.toLowerCase()}`}
-            value={formatDuration(stats.fastestSet.seconds)}
-            sub={`${stats.phaseLabel} ${stats.fastestSet.setNumber}`}
-          />
-        )}
-        {stats.slowestSet && (
-          <StatCard
-            variant={variant}
-            label={`Langzaamste ${stats.phaseLabel.toLowerCase()}`}
-            value={formatDuration(stats.slowestSet.seconds)}
-            sub={`${stats.phaseLabel} ${stats.slowestSet.setNumber}`}
+            label="Gem. per oefening"
+            value={formatDuration(stats.avgExercisePerSetSeconds)}
           />
         )}
       </section>
@@ -150,31 +152,12 @@ export function WorkoutSummary({
           <p className={cn('text-muted', isTv ? 'mt-[0.5vh] text-[1.8vh]' : 'mt-0.5 text-xs')}>
             {stats.paceLabel}
           </p>
+          <DurationPlot
+            values={summary.sets.map((set) => set.durationSeconds)}
+            phaseLabel={stats.phaseLabel}
+            variant={variant}
+          />
         </div>
-      )}
-
-      {summary.sets.length > 0 && (
-        <section>
-          <h3 className={cn('mb-2 font-semibold', isTv ? 'text-[2.2vh]' : 'text-sm')}>
-            Tijd per {stats.phaseLabel.toLowerCase()}
-          </h3>
-          <ol className={cn('flex flex-col', isTv ? 'gap-[1vh]' : 'gap-1.5')}>
-            {summary.sets.map((set) => (
-              <li
-                key={set.setNumber}
-                className={cn(
-                  'flex items-center justify-between rounded-xl border border-line bg-surface',
-                  isTv ? 'px-[2vh] py-[1.5vh] text-[2vh]' : 'px-3 py-2 text-sm',
-                )}
-              >
-                <span className="font-medium">{set.label}</span>
-                <span className="font-mono font-bold tabular-nums text-solo-400">
-                  {formatDuration(set.durationSeconds)}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </section>
       )}
 
       <section>
@@ -183,8 +166,10 @@ export function WorkoutSummary({
         </h3>
         <ol className={cn('flex flex-col', isTv ? 'gap-[1.2vh]' : 'gap-2')}>
           {summary.exercises.map((ex, i) => {
-            const trend = trendMeta(ex.trend, ex.trendPercent)
-            const TrendIcon = trend.icon
+            const tracksTime = ex.metric !== 'reps'
+            const hasPlot = multiSet && tracksTime && ex.durationsBySet.some((value) => value > 0)
+            const trend = hasPlot ? trendMeta(ex.trend, ex.trendPercent) : null
+            const TrendIcon = trend?.icon
 
             return (
               <li
@@ -194,79 +179,55 @@ export function WorkoutSummary({
                   isTv ? 'p-[2vh]' : 'p-3',
                 )}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <span className="flex min-w-0 items-center gap-2">
                     <Check className={cn('shrink-0 text-success', isTv ? 'size-[2vh]' : 'size-4')} />
                     <span className={cn('truncate font-medium', isTv ? 'text-[2.2vh]' : 'text-sm')}>
                       {ex.name}
                     </span>
                   </span>
-                  <div className="shrink-0 text-right">
-                    <p
+                  {tracksTime && ex.durationSeconds > 0 ? (
+                    <span
                       className={cn(
-                        'font-mono font-bold tabular-nums text-solo-400',
-                        isTv ? 'text-[2.8vh]' : 'text-lg',
+                        'shrink-0 font-mono font-bold tabular-nums text-solo-400',
+                        isTv ? 'text-[2.4vh]' : 'text-base',
                       )}
                     >
                       {formatDuration(ex.durationSeconds)}
-                    </p>
-                    {ex.avgPerSet > 0 && (
-                      <p className={cn('text-muted', isTv ? 'text-[1.4vh]' : 'text-[10px]')}>
-                        ø {formatDuration(ex.avgPerSet)} / {stats.phaseLabel.toLowerCase()}
-                      </p>
-                    )}
-                  </div>
+                    </span>
+                  ) : (
+                    <span className={cn('shrink-0 text-muted', isTv ? 'text-[1.8vh]' : 'text-xs')}>
+                      Afgerond
+                    </span>
+                  )}
                 </div>
 
-                {multiSet && ex.durationsBySet.some((value) => value > 0) && (
-                  <div className={cn('mt-3', isTv ? 'mt-[1.5vh]' : '')}>
-                    <Sparkline values={ex.durationsBySet} variant={variant} />
-                    <div
-                      className={cn(
-                        'mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1',
-                        isTv ? 'text-[1.4vh]' : 'text-[10px]',
-                      )}
-                    >
-                      {ex.durationsBySet.map((value, setIndex) => (
-                        <span key={setIndex} className="font-mono text-muted">
-                          {stats.phaseLabel[0]}
-                          {setIndex + 1}:{' '}
-                          <span className="text-fg">{formatDuration(value)}</span>
-                        </span>
-                      ))}
-                      <span className={cn('flex items-center gap-1', trend.className)}>
+                {hasPlot && (
+                  <>
+                    <DurationPlot
+                      values={ex.durationsBySet}
+                      phaseLabel={stats.phaseLabel}
+                      variant={variant}
+                    />
+                    {trend && TrendIcon && (
+                      <p
+                        className={cn(
+                          'mt-1.5 flex items-center gap-1',
+                          trend.className,
+                          isTv ? 'text-[1.4vh]' : 'text-[10px]',
+                        )}
+                      >
                         <TrendIcon className={isTv ? 'size-[1.6vh]' : 'size-3'} />
                         {trend.label}
-                      </span>
-                    </div>
-                  </div>
+                      </p>
+                    )}
+                  </>
                 )}
               </li>
             )
           })}
         </ol>
       </section>
-
-      {(stats.fastestExercise || stats.slowestExercise) && (
-        <section className={cn('grid grid-cols-2', isTv ? 'gap-[1.2vh]' : 'gap-2')}>
-          {stats.fastestExercise && (
-            <StatCard
-              variant={variant}
-              label="Snelste oefening (ø)"
-              value={formatDuration(stats.fastestExercise.avgSeconds)}
-              sub={stats.fastestExercise.name}
-            />
-          )}
-          {stats.slowestExercise && (
-            <StatCard
-              variant={variant}
-              label="Langzaamste oefening (ø)"
-              value={formatDuration(stats.slowestExercise.avgSeconds)}
-              sub={stats.slowestExercise.name}
-            />
-          )}
-        </section>
-      )}
     </div>
   )
 }

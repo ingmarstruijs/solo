@@ -46,7 +46,17 @@ export function advanceToNextSet(): void {
   })
 }
 
-export function toggleExerciseComplete(exerciseId: string): void {
+export type ToggleExerciseCompleteOptions = {
+  /** Wacht met starten van de volgende oefening-timer tot rust voorbij is. */
+  deferNextExerciseStart?: boolean
+  /** Geen duur bijhouden (bijv. reps-oefeningen). */
+  skipDuration?: boolean
+}
+
+export function toggleExerciseComplete(
+  exerciseId: string,
+  options?: ToggleExerciseCompleteOptions,
+): void {
   const session = getActiveSession()
   if (!session) return
   const done = new Set(session.completedExerciseIds)
@@ -55,8 +65,8 @@ export function toggleExerciseComplete(exerciseId: string): void {
   else done.add(exerciseId)
 
   const now = Date.now()
-  const startedMs = new Date(session.currentExerciseStartedAt ?? session.startedAt).getTime()
-  const duration = Math.max(1, Math.floor((now - startedMs) / 1000))
+  const exercise = session.workout.exercises.find((e) => e.id === exerciseId)
+  const tracksTime = exercise?.metric !== 'reps' && !options?.skipDuration
   const exerciseDurations = { ...(session.exerciseDurations ?? {}) }
   const lastExerciseDuration = { ...(session.lastExerciseDuration ?? {}) }
   const exerciseDurationsBySet = { ...(session.exerciseDurationsBySet ?? {}) }
@@ -72,7 +82,9 @@ export function toggleExerciseComplete(exerciseId: string): void {
       }
     }
     delete lastExerciseDuration[exerciseId]
-  } else {
+  } else if (tracksTime) {
+    const startedMs = new Date(session.currentExerciseStartedAt ?? session.startedAt).getTime()
+    const duration = Math.max(1, Math.floor((now - startedMs) / 1000))
     lastExerciseDuration[exerciseId] = duration
     exerciseDurations[exerciseId] = (exerciseDurations[exerciseId] ?? 0) + duration
     setMap[exerciseId] = duration
@@ -80,13 +92,28 @@ export function toggleExerciseComplete(exerciseId: string): void {
 
   exerciseDurationsBySet[session.currentSet] = setMap
 
-  saveActiveSession({
+  const patch: ActiveSession = {
     ...session,
     completedExerciseIds: [...done],
-    currentExerciseStartedAt: new Date(now).toISOString(),
     exerciseDurations,
     exerciseDurationsBySet,
     lastExerciseDuration,
+  }
+
+  if (!options?.deferNextExerciseStart) {
+    patch.currentExerciseStartedAt = new Date(now).toISOString()
+  }
+
+  saveActiveSession(patch)
+}
+
+/** Start de timer voor de huidige oefening (na rust of overslaan). */
+export function startCurrentExerciseTimer(): void {
+  const session = getActiveSession()
+  if (!session?.exercisesStarted) return
+  saveActiveSession({
+    ...session,
+    currentExerciseStartedAt: new Date().toISOString(),
   })
 }
 

@@ -1,11 +1,12 @@
 import { ChevronDown, ChevronUp, GripVertical, Trash2, X } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, SetMetric, WorkoutExercise } from '@/types/workout'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import { MarkdownField } from '@/components/MarkdownField'
+import { TouchNumberField } from '@/components/ui/TouchNumberField'
 import { cn } from '@/lib/cn'
 
 type ExerciseBlockProps = {
@@ -164,21 +165,37 @@ export function ExerciseBlock({
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Field label="Type" hint={METRIC_HINTS[exercise.metric]}>
-          <select
-            value={exercise.metric}
-            onChange={(e) => patch({ metric: e.target.value as SetMetric })}
-            className={inputClass}
-          >
-            <option value="reps">Reps</option>
-            <option value="time">Tijd</option>
-            <option value="distance">Afstand</option>
-          </select>
+          <div className="flex overflow-hidden rounded-xl border border-line bg-surface-2">
+            {(
+              [
+                { id: 'reps' as const, label: 'Reps' },
+                { id: 'time' as const, label: 'Tijd' },
+                { id: 'distance' as const, label: 'Afstand' },
+              ] as const
+            ).map((opt, index, list) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => patch({ metric: opt.id })}
+                className={cn(
+                  'min-h-11 flex-1 px-1 text-sm font-semibold transition-colors',
+                  exercise.metric === opt.id
+                    ? 'bg-solo-400/10 text-solo-300'
+                    : 'text-muted active:bg-surface-3',
+                  index < list.length - 1 && 'border-r border-line',
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </Field>
         <NumberField
           label={targetLabel}
           hint="Doel per set"
           value={exercise.target}
           min={1}
+          preset={exercise.metric === 'reps' ? 'reps' : exercise.metric === 'distance' ? 'distance' : 'rest'}
           onChange={(v) => patch({ target: v })}
         />
         <NumberField
@@ -186,7 +203,7 @@ export function ExerciseBlock({
           hint="0 = lichaamsgewicht"
           value={exercise.weightKg}
           min={0}
-          step={0.5}
+          preset="weight"
           disabled={exercise.metric === 'distance'}
           onChange={(v) => patch({ weightKg: v })}
         />
@@ -196,6 +213,7 @@ export function ExerciseBlock({
             hint="Pauze voor volgende oefening"
             value={exercise.restSeconds}
             min={0}
+            preset="rest"
             onChange={(v) => patch({ restSeconds: v })}
           />
         )}
@@ -312,7 +330,7 @@ function NumberField({
   hint,
   value,
   min,
-  step,
+  preset,
   disabled,
   onChange,
 }: {
@@ -320,46 +338,20 @@ function NumberField({
   hint?: string
   value: number
   min?: number
-  step?: number
+  preset?: import('@/components/ui/TouchNumberField').TouchNumberPreset
   disabled?: boolean
   onChange: (value: number) => void
 }) {
-  const [text, setText] = useState(String(value))
-
-  useEffect(() => {
-    setText(String(value))
-  }, [value])
-
-  function commit(raw: string) {
-    if (raw.trim() === '') {
-      onChange(min ?? 0)
-      setText(String(min ?? 0))
-      return
-    }
-    const parsed = step != null && step < 1 ? parseFloat(raw) : parseInt(raw, 10)
-    if (Number.isNaN(parsed)) {
-      setText(String(value))
-      return
-    }
-    const next = min != null ? Math.max(min, parsed) : parsed
-    onChange(next)
-    setText(String(next))
-  }
-
   return (
-    <Field label={label} hint={hint}>
-      <input
-        type="number"
-        inputMode={step != null && step < 1 ? 'decimal' : 'numeric'}
-        min={min}
-        step={step}
-        value={text}
-        disabled={disabled}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={() => commit(text)}
-        className={inputClass}
-      />
-    </Field>
+    <TouchNumberField
+      label={label}
+      hint={hint}
+      value={value}
+      min={min}
+      preset={preset}
+      disabled={disabled}
+      onChange={onChange}
+    />
   )
 }
 
@@ -377,6 +369,3 @@ function inferKind(metric: SetMetric): ExerciseKind {
   if (metric === 'distance' || metric === 'time') return 'cardio'
   return 'strength'
 }
-
-const inputClass =
-  'w-full rounded-lg border border-line bg-surface-2 px-2.5 py-2 text-sm outline-none focus:border-solo-400/50'

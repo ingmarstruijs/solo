@@ -103,6 +103,9 @@
     --color-solo-600: #4f46e5;
     --color-accent: #c7d2fe;
     --color-calm: #5eead4;
+    --color-warn: #fbbf24;
+    --color-danger: #f87171;
+    --color-success: #34d399;
   }
 
   /* Nacht — diep zwart, neutraal, klassiek SOLO-blauw (dark) */
@@ -122,6 +125,9 @@
     --color-solo-600: #3e7fd6;
     --color-accent: #9bd0ff;
     --color-calm: #5cb8a8;
+    --color-warn: #fcd34d;
+    --color-danger: #f87171;
+    --color-success: #4ade80;
   }
 
   html,

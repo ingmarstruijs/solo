@@ -26,7 +26,7 @@ import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { buildSessionTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
 import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
-import { advanceToNextSet } from '@/lib/storage/sessionStore'
+import { advanceToNextSet, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
 import {
   buildCompletionAnnouncement,
   buildNextSetReadyAnnouncement,
@@ -91,7 +91,10 @@ export function SessionPage() {
   const handleSkipRest = useCallback(() => {
     drainPendingCoachAnnouncement()
     setRestTimer(null)
-  }, [drainPendingCoachAnnouncement])
+    if (restTimer?.kind === 'exercise') {
+      startCurrentExerciseTimer()
+    }
+  }, [drainPendingCoachAnnouncement, restTimer?.kind])
 
   const queue = useMemo(() => loadWorkoutQueue(), [session?.workout.id])
 
@@ -195,6 +198,9 @@ export function SessionPage() {
 
     if (wasActive && !restCountdown.active && restTimer) {
       drainPendingCoachAnnouncement()
+      if (restTimer.kind === 'exercise') {
+        startCurrentExerciseTimer()
+      }
       setRestTimer(null)
     }
   }, [restTimer, restCountdown.active, drainPendingCoachAnnouncement])
@@ -285,14 +291,20 @@ export function SessionPage() {
     const projectedDoneCount = completedExerciseIds.length + 1
     const willBeAllDone = projectedDoneCount === workout.exercises.length
 
-    toggleComplete(exerciseId)
+    const startsPhaseRest = willBeAllDone && !isLastPhase && phaseRestSeconds > 0
+    const deferNextExerciseStart =
+      !startsPhaseRest && Boolean(ex?.restSeconds && ex.restSeconds > 0)
+
+    toggleComplete(exerciseId, {
+      deferNextExerciseStart,
+      skipDuration: ex?.metric === 'reps',
+    })
 
     const projected: ActiveSession = {
       ...activeSession,
       completedExerciseIds: [...completedExerciseIds, exerciseId],
     }
 
-    const startsPhaseRest = willBeAllDone && !isLastPhase && phaseRestSeconds > 0
     let startsExerciseRest = false
 
     const awaitingNextSet = willBeAllDone && !isLastPhase
@@ -430,7 +442,7 @@ export function SessionPage() {
             : `Voorbereiden · ${workout.name}`
         }
         onBack={exercisesStarted ? undefined : handleBackFromSetup}
-        titleClassName={exercisesStarted ? 'text-success' : 'text-warn'}
+        titleClassName={exercisesStarted ? 'text-success' : 'text-solo-400'}
       />
 
       <SessionControlBar
@@ -448,7 +460,7 @@ export function SessionPage() {
       {!exercisesStarted && (
         <div
           id="session-setup"
-          className="shrink-0 rounded-card border border-warn/30 bg-warn/10 p-4"
+          className="shrink-0 rounded-card border border-solo-400/30 bg-solo-400/10 p-4"
         >
           <p className="text-sm font-semibold">Materiaal klaarleggen</p>
           <p className="mt-1 text-xs text-muted">
@@ -616,7 +628,8 @@ function SessionExerciseRow({
 }: SessionExerciseRowProps) {
   const [showWeight, setShowWeight] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
-  const timerActive = isCurrent && !done && exercisesStarted && !isPaused && !restBlocked
+  const tracksTime = ex.metric !== 'reps'
+  const timerActive = tracksTime && isCurrent && !done && exercisesStarted && !isPaused && !restBlocked
   const exerciseTimer = useElapsedTimer(new Date(exerciseStartedAt).getTime(), timerActive)
   const awaitingStart = isCurrent && !done && exercisesStarted && restBlocked
 
@@ -646,7 +659,7 @@ function SessionExerciseRow({
               className={cn(
                 'mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
                 isPaused
-                  ? 'bg-warn/20 text-warn'
+                  ? 'bg-solo-400/20 text-solo-300'
                   : awaitingStart
                     ? 'border border-solo-400/35 bg-surface-2 text-solo-300'
                     : 'bg-solo-400 text-ink',
@@ -669,7 +682,7 @@ function SessionExerciseRow({
                 </span>
               )}
               {isPaused && isCurrent && (
-                <span className="font-mono text-sm text-warn">⏸</span>
+                <span className="font-mono text-sm text-muted">⏸</span>
               )}
               <span className={cn('label-mono text-faint', isCurrent && 'text-solo-400')}>#{index + 1}</span>
             </div>

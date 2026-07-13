@@ -3,6 +3,20 @@ export type WgerEquipment = {
   name: string
 }
 
+export type WgerExerciseCategory = {
+  id: number
+  name: string
+}
+
+export type WgerMuscle = {
+  id: number
+  name: string
+  name_en: string
+  is_front: boolean
+  image_url_main: string
+  image_url_secondary: string
+}
+
 export type WgerTranslation = {
   id: number
   name: string
