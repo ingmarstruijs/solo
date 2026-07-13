@@ -11,6 +11,9 @@ import { cn } from '@/lib/cn'
 import { ExerciseBlock } from './ExerciseBlock'
 import { WgerBrowser } from './WgerBrowser'
 
+const DISCARD_CONFIRM =
+  'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt annuleren?'
+
 type WorkoutBuilderProps = {
   title: string
   backTo: string
@@ -44,6 +47,29 @@ export function WorkoutBuilder({
   const [wgerOpen, setWgerOpen] = useState(false)
   const [bulkRestSeconds, setBulkRestSeconds] = useState(60)
   const nameInputRef = useRef<HTMLInputElement>(null)
+  const initialSnapshotRef = useRef<string | null>(null)
+
+  function currentSnapshot(): string {
+    return serializeWorkoutForm({
+      name,
+      description,
+      structure,
+      sets,
+      restBetweenSets,
+      circuitRounds,
+      exercises,
+    })
+  }
+
+  if (initialSnapshotRef.current === null) {
+    initialSnapshotRef.current = currentSnapshot()
+  }
+
+  const isDirty = currentSnapshot() !== initialSnapshotRef.current
+
+  function requestLeave(action: () => void) {
+    if (!isDirty || confirm(DISCARD_CONFIRM)) action()
+  }
 
   function setStructureMode(next: WorkoutStructure) {
     setStructure(next)
@@ -129,12 +155,12 @@ export function WorkoutBuilder({
     <div className="flex flex-col gap-3">
       <PageStickyHeader
         title={title}
-        onBack={() => navigate(backTo)}
+        onBack={() => requestLeave(() => navigate(backTo))}
         actions={
           <>
             <StickyHeaderIconButton icon={Search} label="Zoeken in Wger" onClick={() => setWgerOpen(true)} />
             <StickyHeaderIconButton icon={Plus} label="Oefening toevoegen" onClick={addExercise} />
-            <StickyHeaderIconButton icon={X} label="Annuleren" onClick={onCancel} />
+            <StickyHeaderIconButton icon={X} label="Annuleren" onClick={() => requestLeave(onCancel)} />
             <StickyHeaderIconButton icon={Check} label="Opslaan" onClick={handleSave} variant="primary" />
           </>
         }
@@ -294,3 +320,48 @@ function emptyExercise(): WorkoutExercise {
 
 const inputClass =
   'w-full rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm text-fg outline-none focus:border-solo-400/50'
+
+type WorkoutFormSnapshotInput = {
+  name: string
+  description: string
+  structure: WorkoutStructure
+  sets: number
+  restBetweenSets: number
+  circuitRounds: number
+  exercises: WorkoutExercise[]
+}
+
+function serializeWorkoutForm(form: WorkoutFormSnapshotInput): string {
+  const exercises =
+    form.structure === 'circuit'
+      ? form.exercises.map((ex) => ({ ...ex, restSeconds: 0 }))
+      : form.exercises
+
+  return JSON.stringify({
+    name: form.name.trim(),
+    description: form.description.trim(),
+    structure: form.structure,
+    sets: form.structure === 'strength' ? form.sets : 1,
+    restBetweenSets: form.structure === 'strength' ? form.restBetweenSets : 0,
+    circuitRounds: form.structure === 'circuit' ? form.circuitRounds : null,
+    exercises: exercises.map(serializeExercise),
+  })
+}
+
+function serializeExercise(ex: WorkoutExercise) {
+  return {
+    id: ex.id,
+    name: ex.name,
+    externalId: ex.externalId ?? null,
+    kind: ex.kind ?? null,
+    metric: ex.metric,
+    target: ex.target,
+    weightKg: ex.weightKg,
+    restSeconds: ex.restSeconds,
+    equipment: [...ex.equipment].sort(),
+    icon: ex.icon ?? null,
+    description: ex.description?.trim() || null,
+    notes: ex.notes?.trim() || null,
+    media: ex.media ?? null,
+  }
+}

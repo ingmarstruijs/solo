@@ -165,15 +165,30 @@ export function ExerciseBlock({
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Field label="Type" hint={METRIC_HINTS[exercise.metric]}>
-          <select
-            value={exercise.metric}
-            onChange={(e) => patch({ metric: e.target.value as SetMetric })}
-            className={inputClass}
-          >
-            <option value="reps">Reps</option>
-            <option value="time">Tijd</option>
-            <option value="distance">Afstand</option>
-          </select>
+          <div className="flex overflow-hidden rounded-xl border border-line bg-surface-2">
+            {(
+              [
+                { id: 'reps' as const, label: 'Reps' },
+                { id: 'time' as const, label: 'Tijd' },
+                { id: 'distance' as const, label: 'Afstand' },
+              ] as const
+            ).map((opt, index, list) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => patch({ metric: opt.id })}
+                className={cn(
+                  'min-h-11 flex-1 px-1 text-sm font-semibold transition-colors',
+                  exercise.metric === opt.id
+                    ? 'bg-solo-400/10 text-solo-300'
+                    : 'text-muted active:bg-surface-3',
+                  index < list.length - 1 && 'border-r border-line',
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </Field>
         <NumberField
           label={targetLabel}
@@ -354,6 +369,3 @@ function inferKind(metric: SetMetric): ExerciseKind {
   if (metric === 'distance' || metric === 'time') return 'cardio'
   return 'strength'
 }
-
-const inputClass =
-  'w-full rounded-lg border border-line bg-surface-2 px-2.5 py-2 text-sm outline-none focus:border-solo-400/50'
