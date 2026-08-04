@@ -41,7 +41,7 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 - **Live session** — two-phase start (material setup → **Klaar — start workout**); tap-to-complete exercises; sticky active row; set/round progression; automatic per-exercise and phase rest timers; optional front-camera preview on phone
 - **Coach** — Web Speech API announcements for exercise and set transitions; **set rust** vs exercise rest cues; “get ready for next set” after phase rest; first exercise readout when starting a new set; pause/resume lines; male/female voice; rest countdown in the last 5 seconds (toggle in session)
 - **Rest overlay** — Full-screen rust / set rust on phone and TV with countdown and the upcoming exercise (name + target)
-- **TV receiver** — passive `/tv` surface synced via `BroadcastChannel`; shows session HUD, prep, summary, or idle; connect/disconnect from session with receiver handshake (reuses an already-open TV tab)
+- **TV receiver** — passive `/tv` surface synced via `BroadcastChannel`; shows session HUD (with large timer for timed exercises), voorbereiden/setup materials, prep, summary, or idle; connect/disconnect from session with receiver handshake (reuses an already-open TV tab)
 - **Exercise visuals** — lightweight icon-based visuals today; curated licensed demo loops are planned once asset licenses and attribution are verified
 - **History** — completed sessions stored with full summary (set times, trends, sparklines); browse in the logbook, open, delete per entry or clear all; cancelled sessions are not recorded
 - **Home** — optional Garmin recovery (settings toggle), weekly stats; **Sessie bezig** banner only during a live (started) session

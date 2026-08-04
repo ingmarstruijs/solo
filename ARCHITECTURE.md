@@ -178,7 +178,7 @@ Coach lines use the Web Speech API (`useCoachAnnouncement`, `useRestCoach`, `coa
 | After last exercise in set, no phase rest | **Maak je klaar voor set N** immediately |
 | User taps **Volgende set** | First exercise of the new set (full details) |
 | Pause / resume | **Oefening gepauzeerd.** / **Hervat: {name}.** |
-| Rest start | **Set rust** / **Ronde rust** / **Rust na oefening** + duration |
+| Rest start | **Set rust** / **Ronde rust** / **Rust** + duration |
 | Rest countdown | Spoken ticks for the last 5 seconds |
 
 Next-exercise announcements are queued in `pendingCoachAfterRestRef` so they never overlap with an active rest timer.
@@ -201,6 +201,8 @@ graph TD
 ```
 
 HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Coach and camera flags travel with session TV state.
+
+Before exercises start, TV shows a **Voorbereiden** page with the materials checklist (instead of the live session HUD). Timed exercises broadcast `exerciseStartedAt` so the TV can count up locally in a large timer.
 
 Rest on TV mirrors the phone: a full-screen overlay with countdown. Exercise rest uses calm/teal styling; **set rust** / **ronde rust** uses SOLO accent styling. Both show the upcoming exercise (and for phase rest, which set/ronde comes next).
 

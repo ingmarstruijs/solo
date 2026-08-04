@@ -115,7 +115,7 @@ export function buildRestStartAnnouncement(
     const label = phaseLabel === 'Ronde' ? 'Ronde rust' : 'Set rust'
     return `${label}. ${seconds} seconden.`
   }
-  return `Rust na oefening. ${seconds} seconden.`
+  return `Rust. ${seconds} seconden.`
 }
 
 const COUNTDOWN_WORDS: Record<number, string> = {
