@@ -1,6 +1,6 @@
 import { ArrowLeft, Dumbbell, Play, Plus } from 'lucide-react'
 import { useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 import { importSharedWorkout } from '@/lib/storage/workoutStore'
 import { readWorkoutShareFromLocation } from '@/lib/workout/shareLink'
 import { structureSummary } from '@/lib/workout/workoutStructure'

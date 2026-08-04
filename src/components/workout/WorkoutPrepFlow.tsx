@@ -1,6 +1,6 @@
 import { Cast, ChevronRight, Heart, Scale, Tv } from 'lucide-react'
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import type { OverloadTarget, WorkoutTemplate } from '@/types/workout'
 import { isRecoveryCritical } from '@/lib/storage/recoveryStore'
 import { PipelineStage } from '@/components/lab/LabPrimitives'

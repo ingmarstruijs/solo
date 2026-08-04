@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { labs, labHubIcon as LabHubIcon } from '@/config/labs'
 
 export function LabHubPage() {

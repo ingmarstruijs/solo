@@ -1,5 +1,5 @@
 import { BarChart3, ChevronRight, Clock, Dumbbell, Flame, Trash2, TrendingUp } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useHistory } from '@/hooks/useHistory'
 import { formatDuration } from '@/lib/workout/sessionSummary'
 

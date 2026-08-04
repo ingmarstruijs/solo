@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router'
 import { MobileShell } from '@/components/layout/MobileShell'
 import { AboutPage } from '@/pages/AboutPage'
 import { ActiveSetLabPage } from '@/pages/ActiveSetLabPage'

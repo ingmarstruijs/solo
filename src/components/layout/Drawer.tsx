@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router'
 import { Logo } from '@/components/Logo'
 import { drawerNav } from '@/config/nav'
 import { cn } from '@/lib/cn'

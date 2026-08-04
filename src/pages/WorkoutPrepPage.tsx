@@ -1,6 +1,6 @@
 import { ChevronRight, Pencil } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 import { PageStickyHeader, StickyHeaderIconButton } from '@/components/layout/PageStickyHeader'
 import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'

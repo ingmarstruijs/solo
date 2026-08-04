@@ -1,6 +1,6 @@
 import { CheckSquare, Dumbbell, Square } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { parseFitFile } from '@/lib/workout/fitImport'
 import { shareWorkoutLink } from '@/lib/workout/shareLink'
 import { useWorkouts } from '@/hooks/useWorkouts'
