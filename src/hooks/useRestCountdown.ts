@@ -11,6 +11,9 @@ export type RestTimer = {
   phaseLabel?: string
   /** Set/ronde number just completed (phase rest only). */
   completedPhase?: number
+  /** Exercise that starts when rest ends (same set or first of next set). */
+  nextExerciseName?: string
+  nextExerciseTarget?: string
 }
 
 export type RestCountdown = {
@@ -22,6 +25,8 @@ export type RestCountdown = {
   kind: RestTimerKind
   phaseLabel?: string
   completedPhase?: number
+  nextExerciseName?: string
+  nextExerciseTarget?: string
 }
 
 const IDLE: RestCountdown = {
@@ -58,6 +63,8 @@ export function useRestCountdown(timer: RestTimer | null): RestCountdown {
     kind: timer.kind ?? 'exercise',
     phaseLabel: timer.phaseLabel,
     completedPhase: timer.completedPhase,
+    nextExerciseName: timer.nextExerciseName,
+    nextExerciseTarget: timer.nextExerciseTarget,
   }
 }
 
@@ -88,6 +95,21 @@ export function restCountdownSubtitle(
       : 'Rust tussen sets'
   }
   return `Na ${countdown.afterExerciseName}`
+}
+
+/** Label above the upcoming exercise on the rest overlay. */
+export function restNextExerciseLabel(
+  countdown: Pick<RestCountdown, 'kind' | 'phaseLabel' | 'completedPhase'>,
+): string {
+  if (countdown.kind === 'phase') {
+    const n = countdown.completedPhase
+    if (n != null) {
+      const unit = countdown.phaseLabel === 'Ronde' ? 'ronde' : 'set'
+      return `Volgende · ${unit} ${n + 1}`
+    }
+    return 'Volgende'
+  }
+  return 'Volgende oefening'
 }
 
 export function formatRestSeconds(seconds: number): string {

@@ -34,6 +34,7 @@ export function TvPage() {
   }, [state?.theme])
 
   const connected = state != null
+  const sessionRest = connected && state.mode === 'session' ? state.rest : null
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-ink p-[2.5vh] text-fg">
@@ -48,6 +49,7 @@ export function TvPage() {
       ) : (
         <SessionDashboard state={state} />
       )}
+      <TvRestTimer rest={sessionRest} />
     </div>
   )
 }
@@ -156,6 +158,7 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
   })
 
   const progress = state.progressPercent
+  const restActive = Boolean(state.rest?.active)
 
   return (
     <div className="mx-auto flex h-full w-full max-w-[120rem] flex-col gap-[2vh]">
@@ -207,7 +210,7 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
                 <span className="font-mono font-bold">{state.weightKg} kg</span>
               )}
             </div>
-            {state.nextExerciseName && (
+            {state.nextExerciseName && !restActive && (
               <p className="mt-[1.5vh] text-[1.6vh] text-muted">
                 Volgende: <span className="text-fg">{state.nextExerciseName}</span>
               </p>
@@ -235,9 +238,6 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
         </div>
       </div>
 
-      <div className="shrink-0">
-        <TvRestTimer rest={state.rest} />
-      </div>
       <div className="shrink-0">
         <TvSensorStrip sensor={state.sensor} />
       </div>
