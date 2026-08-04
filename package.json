@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "description": "SOLO. — Solo training. Zero noise.",
+  "engines": {
+    "node": ">=22.22.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -21,7 +24,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.18.1",
+    "react-router": "^8.3.0",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {

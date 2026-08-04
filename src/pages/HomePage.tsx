@@ -8,7 +8,7 @@ import {
   Watch,
 } from 'lucide-react'
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useActiveSession } from '@/hooks/useActiveSession'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLocker } from '@/hooks/useLocker'

@@ -6,7 +6,7 @@ import {
   Scale,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { PageStickyHeader } from '@/components/layout/PageStickyHeader'
 import { useActiveSession } from '@/hooks/useActiveSession'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'

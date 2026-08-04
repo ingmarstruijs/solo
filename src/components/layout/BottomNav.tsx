@@ -1,4 +1,4 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router'
 import { Dumbbell, Package, Play, Square } from 'lucide-react'
 import { useMemo } from 'react'
 import { LogoMark } from '@/components/Logo'

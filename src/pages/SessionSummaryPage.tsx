@@ -1,6 +1,6 @@
 import { ChevronRight, Trash2 } from 'lucide-react'
 import { useEffect } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { PageBackButton } from '@/components/layout/PageBackButton'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { useHistory } from '@/hooks/useHistory'
