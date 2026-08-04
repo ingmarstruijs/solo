@@ -65,6 +65,28 @@ export type TvSessionState = {
   sensor: TvSensorState
   coachEnabled: boolean
   rest: TvRestState
+  /** ISO start of the current exercise timer (count-up on TV for timed work). */
+  exerciseStartedAt?: string | null
+  /** Whether the exercise elapsed timer should tick on the TV. */
+  exerciseTimerActive?: boolean
+  updatedAt: string
+}
+
+export type TvSetupMaterial = {
+  id: string
+  category: EquipmentCategory
+  label: string
+}
+
+/** Session setup / materials klaarleggen before exercises start. */
+export type TvSetupState = {
+  mode: 'setup'
+  theme: ThemeId
+  workoutName: string
+  exerciseCount: number
+  materials: TvSetupMaterial[]
+  garminConnected: boolean
+  recoveryScore?: number
   updatedAt: string
 }
 
@@ -89,7 +111,12 @@ export type TvSummaryState = {
   updatedAt: string
 } & SessionSummary
 
-export type TvMessage = TvSessionState | TvPrepState | TvIdleState | TvSummaryState
+export type TvMessage =
+  | TvSessionState
+  | TvSetupState
+  | TvPrepState
+  | TvIdleState
+  | TvSummaryState
 
 export type SessionTvOptions = {
   cameraEnabled?: boolean
@@ -97,6 +124,8 @@ export type SessionTvOptions = {
   completedExerciseIds?: string[]
   coachEnabled?: boolean
   rest?: TvRestState | null
+  exerciseStartedAt?: string | null
+  exerciseTimerActive?: boolean
 }
 
 let tvWindowRef: Window | null = null
@@ -247,6 +276,25 @@ export function buildPrepTvState(
   }
 }
 
+export function buildSetupTvState(
+  workout: WorkoutTemplate,
+  materials: TvSetupMaterial[],
+  recoveryScore: number,
+  theme: ThemeId,
+): TvSetupState {
+  const garminConnected = getGarminConnected()
+  return {
+    mode: 'setup',
+    theme,
+    workoutName: workout.name,
+    exerciseCount: workout.exercises.length,
+    materials,
+    garminConnected,
+    recoveryScore: garminConnected ? recoveryScore : undefined,
+    updatedAt: new Date().toISOString(),
+  }
+}
+
 export function buildIdleTvState(theme: ThemeId): TvIdleState {
   return {
     mode: 'idle',
@@ -343,6 +391,8 @@ export function buildSessionTvState(
     sensor,
     coachEnabled,
     rest,
+    exerciseStartedAt: options.exerciseStartedAt ?? null,
+    exerciseTimerActive: options.exerciseTimerActive ?? false,
     updatedAt: new Date().toISOString(),
   }
 }

@@ -74,7 +74,7 @@ export function restCountdownTitle(
   if (countdown.kind === 'phase') {
     return countdown.phaseLabel === 'Ronde' ? 'Ronde rust' : 'Set rust'
   }
-  return 'Rust na oefening'
+  return 'Rust'
 }
 
 export function restCountdownSubtitle(

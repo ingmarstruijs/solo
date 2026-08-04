@@ -23,7 +23,7 @@ import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { SessionMaterialsChecklist } from '@/components/session/SessionMaterialsChecklist'
 import { RestTimerBar } from '@/components/session/RestTimerBar'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
-import { buildSessionTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
+import { buildSessionTvState, buildSetupTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
 import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
 import { advanceToNextSet, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
@@ -127,6 +127,11 @@ export function SessionPage() {
 
   const sessionTv = useMemo(() => {
     if (!session) return null
+
+    if (!exercisesStarted) {
+      return buildSetupTvState(session.workout, sessionMaterials, recoveryScore, theme)
+    }
+
     const rest =
       restTimer && restCountdown.active
         ? {
@@ -142,6 +147,17 @@ export function SessionPage() {
           }
         : { active: false, endsAt: null, totalSeconds: 0 }
 
+    const activeEx = session.workout.exercises[activeIndex]
+    const isTimed = activeEx?.metric === 'time'
+    const isPaused = Boolean(
+      activeEx && (session.pausedExerciseIds ?? []).includes(activeEx.id),
+    )
+    const exerciseDone = activeEx
+      ? session.completedExerciseIds.includes(activeEx.id)
+      : true
+    const exerciseTimerActive =
+      Boolean(isTimed && activeEx) && !exerciseDone && !isPaused && !rest.active
+
     return buildSessionTvState(
       session.workout,
       session.targets,
@@ -155,10 +171,14 @@ export function SessionPage() {
         completedExerciseIds: session.completedExerciseIds,
         coachEnabled,
         rest,
+        exerciseStartedAt: session.currentExerciseStartedAt ?? session.startedAt,
+        exerciseTimerActive,
       },
     )
   }, [
     session,
+    exercisesStarted,
+    sessionMaterials,
     activeIndex,
     recoveryScore,
     theme,
