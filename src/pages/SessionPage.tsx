@@ -137,6 +137,8 @@ export function SessionPage() {
             kind: restTimer.kind,
             phaseLabel: restTimer.phaseLabel,
             completedPhase: restTimer.completedPhase,
+            nextExerciseName: restTimer.nextExerciseName,
+            nextExerciseTarget: restTimer.nextExerciseTarget,
           }
         : { active: false, endsAt: null, totalSeconds: 0 }
 
@@ -260,19 +262,27 @@ export function SessionPage() {
     pendingCoachAfterRestRef.current = { text, key }
   }
 
-  function startExerciseRest(exercise: (typeof workout.exercises)[number]) {
+  function startExerciseRest(
+    exercise: (typeof workout.exercises)[number],
+    next: (typeof workout.exercises)[number] | undefined,
+  ) {
     if (exercise.restSeconds <= 0 || restCountdown.active) return
+    const nextWeight = next ? getExerciseWeight(next, targets) : 0
     setRestTimer({
       id: `${exercise.id}-${Date.now()}`,
       endsAt: Date.now() + exercise.restSeconds * 1000,
       totalSeconds: exercise.restSeconds,
       afterExerciseName: exercise.name,
       kind: 'exercise',
+      nextExerciseName: next?.name,
+      nextExerciseTarget: next ? formatExerciseTargetLine(next, nextWeight) : undefined,
     })
   }
 
   function startPhaseRest() {
     if (phaseRestSeconds <= 0 || restCountdown.active) return
+    const next = workout.exercises[0]
+    const nextWeight = next ? getExerciseWeight(next, targets) : 0
     setRestTimer({
       id: `phase-${currentSet}-${Date.now()}`,
       endsAt: Date.now() + phaseRestSeconds * 1000,
@@ -281,6 +291,8 @@ export function SessionPage() {
       kind: 'phase',
       phaseLabel: phase.label,
       completedPhase: currentSet,
+      nextExerciseName: next?.name,
+      nextExerciseTarget: next ? formatExerciseTargetLine(next, nextWeight) : undefined,
     })
   }
 
@@ -308,6 +320,7 @@ export function SessionPage() {
     let startsExerciseRest = false
 
     const awaitingNextSet = willBeAllDone && !isLastPhase
+    const nextExercise = workout.exercises.find((e) => !projected.completedExerciseIds.includes(e.id))
 
     if (startsPhaseRest) {
       startPhaseRest()
@@ -316,7 +329,7 @@ export function SessionPage() {
         `after-phase-rest-${currentSet}`,
       )
     } else if (ex && ex.restSeconds > 0) {
-      startExerciseRest(ex)
+      startExerciseRest(ex, nextExercise)
       startsExerciseRest = true
     }
 
@@ -455,8 +468,6 @@ export function SessionPage() {
         onDisconnectTv={handleDisconnectTv}
       />
 
-      <RestTimerBar countdown={restCountdown} onSkip={handleSkipRest} className="shrink-0" />
-
       {!exercisesStarted && (
         <div
           id="session-setup"
@@ -585,6 +596,8 @@ export function SessionPage() {
           )
         })}
       </ol>
+
+      <RestTimerBar countdown={restCountdown} onSkip={handleSkipRest} />
     </section>
   )
 }

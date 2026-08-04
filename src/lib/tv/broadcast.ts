@@ -32,6 +32,9 @@ export type TvRestState = {
   kind?: 'exercise' | 'phase'
   phaseLabel?: string
   completedPhase?: number
+  /** Exercise that starts when rest ends (same set or first of next set). */
+  nextExerciseName?: string
+  nextExerciseTarget?: string
 }
 
 export type TvSessionState = {

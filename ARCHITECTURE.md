@@ -152,13 +152,14 @@ graph TD
 - The current exercise is pinned in a sticky card; the list below hides the duplicate row.
 - During **exercise rest**, the active badge reads **Volgende oefening**, the per-exercise timer pauses, and **Klaar** / **Pauze** are disabled until rest ends or is skipped.
 - Rest starts automatically after **Klaar** when `restSeconds` is configured — there are no manual “start rest” buttons.
+- During rest, phone and TV show a **full-screen overlay** with the rust / set rust title, countdown, and the **exercise coming next** (name + target). Phase rest labels the next set/ronde and shows the first exercise of that phase.
 
 ### Set / phase transitions
 
 - When every exercise in the current set is done, **phase rest** starts automatically if configured (`getPhaseRestSeconds`).
 - Set rest is visually distinct from exercise rest: **Set rust** / **Ronde rust** title, SOLO accent colours on phone and TV.
 - While phase rest runs, the **Volgende set** button is hidden; it appears when rest ends or is skipped.
-- **Overslaan** on the rest bar ends the timer early and triggers the same post-rest behaviour.
+- **Overslaan** on the rest overlay ends the timer early and triggers the same post-rest behaviour.
 
 Cancelled or incomplete sessions are cleared without a history entry.
 
@@ -201,7 +202,7 @@ graph TD
 
 HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Coach and camera flags travel with session TV state.
 
-Rest on TV mirrors the phone: exercise rest uses calm/teal styling; **set rust** / **ronde rust** uses SOLO accent styling with title, subtitle (e.g. “Set 1 voltooid · daarna set 2”), and countdown.
+Rest on TV mirrors the phone: a full-screen overlay with countdown. Exercise rest uses calm/teal styling; **set rust** / **ronde rust** uses SOLO accent styling. Both show the upcoming exercise (and for phase rest, which set/ronde comes next).
 
 ---
 
