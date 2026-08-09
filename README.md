@@ -17,7 +17,7 @@
 
 SOLO. is an open-source Progressive Web App for autonomous home training. Build workouts, match weights to your home locker, run live sessions with an optional TV dashboard, and review detailed summaries — all on-device. No subscriptions, no vendor backend.
 
-For planned features (Garmin live sync, MediaPipe pose, WebLLM analytics, canvas cast pipeline), see **[ROADMAP.md](ROADMAP.md)**.
+For planned features (Connect IQ reps/velocity, MediaPipe pose, WebLLM analytics, canvas cast pipeline), see **[ROADMAP.md](ROADMAP.md)**.
 
 ## The 5 Pillars of SOLO.
 
@@ -26,7 +26,7 @@ Five ideas guide the product. **Now** is what you can use today; **Next** is on 
 | # | Pillar | Now | Next |
 |---|---|---|---|
 | 1 | **Your gear, your weights** | Locker profiles, overload planner, and plate configurator match every workout to the equipment you actually own | Time-under-tension when you hit your home weight ceiling |
-| 2 | **Garmin as live sensor** | BLE feasibility lab (`/lab/garmin-sync`) — probe only, not in sessions yet | Live HR, reps, and velocity in the session UI and TV HUD |
+| 2 | **Garmin as live sensor** | Manual recovery slider; BLE HR band in session/TV (Chrome/Edge) | Connect IQ reps/velocity; Health API recovery |
 | 3 | **See your form and the workout** | Camera preview on phone; exercise icons and live session board on TV (`/tv` via BroadcastChannel) | Pose form cues, licensed exercise loops, canvas compositor, cast stream |
 | 4 | **Coach in your ear** | Spoken exercise cues, set-rust vs exercise-rest announcements, pause/resume, male/female voice | Strain-triggered coaching, style options, on-screen strain feedback |
 | 5 | **Proof on your device** | Session summary, logbook, trends, and sparklines — all stored locally | WebLLM workout report, RPE logging, shareable proof reels |
@@ -44,7 +44,8 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 - **TV receiver** — passive `/tv` surface synced via `BroadcastChannel`; shows session HUD (with large timer for timed exercises), voorbereiden/setup materials, prep, summary, or idle; connect/disconnect from session with receiver handshake (reuses an already-open TV tab)
 - **Exercise visuals** — lightweight icon-based visuals today; curated licensed demo loops are planned once asset licenses and attribution are verified
 - **History** — completed sessions stored with full summary (set times, trends, sparklines); browse in the logbook, open, delete per entry or clear all; cancelled sessions are not recorded
-- **Home** — optional Garmin recovery (settings toggle), weekly stats; **Sessie bezig** banner only during a live (started) session
+- **Home** — optional recovery card with manual slider (settings toggle), weekly stats; **Sessie bezig** banner only during a live (started) session
+- **Live HR** — optional BLE heart-rate band (Chrome/Edge) from Settings or session controls; BPM on phone control bar and TV sensor strip
 - **Themes** — automatic time-of-day themes or manual override in Settings
 - **Labs** — isolated feasibility pages for Garmin BLE, pose/camera, canvas compositor, and cast stream (not part of the main session flow yet)
 
@@ -70,7 +71,7 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 | Coach voice | Web Speech API |
 | Exercise data | [Wger API](https://wger.de) (`/exerciseinfo/`, `name__search`) |
 | FIT import | `@garmin/fitsdk` |
-| BLE (lab) | Web Bluetooth API — Garmin feasibility probe |
+| BLE HR | Web Bluetooth API — product HR band + Garmin lab probe |
 
 ## Getting Started
 

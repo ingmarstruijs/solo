@@ -6,6 +6,7 @@ import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'
 import { useCoachEnabled } from '@/hooks/useCoachEnabled'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
+import { useLiveHeartRate } from '@/hooks/useLiveHeartRate'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useTheme } from '@/hooks/useTheme'
@@ -24,8 +25,9 @@ export function WorkoutPrepPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { items: lockerItems, activeProfile } = useLocker()
-  const { score: recoveryScore } = useRecoveryScore()
+  const { score: recoveryScore, setScore: setRecoveryScore } = useRecoveryScore()
   const { connected: garminConnected } = useGarminConnected()
+  const heartRate = useLiveHeartRate()
   const { theme } = useTheme()
   const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
   const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
@@ -37,8 +39,13 @@ export function WorkoutPrepPage() {
   }, [params])
 
   const prep = useMemo(
-    () => (ids.length > 0 ? prepareWorkouts(ids, lockerItems, recoveryScore) : null),
-    [ids, lockerItems, recoveryScore],
+    () =>
+      ids.length > 0
+        ? prepareWorkouts(ids, lockerItems, recoveryScore, {
+            applyRecovery: garminConnected,
+          })
+        : null,
+    [ids, lockerItems, recoveryScore, garminConnected],
   )
 
   if (!prep || prep.workouts.length === 0) {
@@ -102,7 +109,16 @@ export function WorkoutPrepPage() {
         tvStatus={tvStatus}
         onConnectTv={handleConnectTv}
         onDisconnectTv={handleDisconnectTv}
+        hrEnabled={garminConnected}
+        hrConnecting={heartRate.status === 'connecting'}
+        hrLive={heartRate.live}
+        hrBpm={heartRate.bpm}
+        onHrConnect={heartRate.connect}
+        onHrDisconnect={heartRate.disconnect}
       />
+      {garminConnected && heartRate.error && (
+        <p className="text-[11px] text-warn">{heartRate.error}</p>
+      )}
 
       <p className="text-[11px] text-faint">
         Druk op <strong>Voorbereiden</strong> onderin om materiaal klaar te leggen. De workout start pas na bevestiging op de sessiepagina.
@@ -111,6 +127,7 @@ export function WorkoutPrepPage() {
       <PrepInsightsPanel
         workouts={sessionPrep.workouts}
         recoveryScore={recoveryScore}
+        onRecoveryChange={setRecoveryScore}
         lockerCount={lockerItems.length}
         lockerName={activeProfile.name}
         garminConnected={garminConnected}

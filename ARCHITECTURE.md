@@ -200,7 +200,7 @@ graph TD
   G -- No --> I[Periodic ping detects closed receiver]
 ```
 
-HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Coach and camera flags travel with session TV state.
+HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Live BLE HR (standard 0x180D) streams via `hrConnection` into `computeSessionSensor`; without a band the strip falls back to a mock zone %. Coach and camera flags travel with session TV state.
 
 Before exercises start, TV shows a **Voorbereiden** page with the materials checklist (instead of the live session HUD). Timed exercises broadcast `exerciseStartedAt` so the TV can count up locally in a large timer.
 
@@ -234,8 +234,8 @@ graph TD
 | `solo-lockers` | Locker profiles + equipment items |
 | `solo-active-session` | In-progress session (`exercisesStarted`, pause, notes, …) |
 | `solo-history` | Completed session records + full summaries |
-| `solo-recovery-score` | Manual recovery % (mock until Health API) |
-| `solo-garmin-connected` | Settings toggle — shows recovery UI when on |
+| `solo-recovery-score` | Manual recovery % (slider; Health API later) |
+| `solo-garmin-connected` | Settings toggle — shows recovery/HR UI when on |
 | `solo-coach-enabled` / `solo-coach-voice-gender` | Coach prefs |
 | `solo-camera-enabled` | Camera preview preference |
 | `solo-theme` | Theme preference |

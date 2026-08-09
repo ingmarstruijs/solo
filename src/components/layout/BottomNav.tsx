@@ -3,6 +3,7 @@ import { Dumbbell, Package, Play, Square } from 'lucide-react'
 import { useMemo } from 'react'
 import { LogoMark } from '@/components/Logo'
 import { useActiveSession } from '@/hooks/useActiveSession'
+import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useSessionActions } from '@/hooks/useSessionActions'
@@ -45,6 +46,7 @@ export function BottomNav() {
   const { theme } = useTheme()
   const { items: lockerItems } = useLocker()
   const { score: recoveryScore } = useRecoveryScore()
+  const { connected: garminConnected } = useGarminConnected()
   const { selectionMode, selectedCount, selectedIds } = useWorkoutSelection()
   const onPrep = location.pathname === '/workouts/prep'
 
@@ -56,9 +58,11 @@ export function BottomNav() {
 
   const prepReady = useMemo(() => {
     if (!onPrep || prepIds.length === 0) return false
-    const prep = prepareWorkouts(prepIds, lockerItems, recoveryScore)
+    const prep = prepareWorkouts(prepIds, lockerItems, recoveryScore, {
+      applyRecovery: garminConnected,
+    })
     return Boolean(prep && prep.workouts.length > 0)
-  }, [onPrep, prepIds, lockerItems, recoveryScore])
+  }, [onPrep, prepIds, lockerItems, recoveryScore, garminConnected])
 
   const center = resolveCenterNav({
     pathname: location.pathname,
@@ -95,7 +99,9 @@ export function BottomNav() {
     }
 
     if (onPrep && prepReady) {
-      const prep = prepareWorkouts(prepIds, lockerItems, recoveryScore)
+      const prep = prepareWorkouts(prepIds, lockerItems, recoveryScore, {
+        applyRecovery: garminConnected,
+      })
       if (prep) {
         startSessionFromPrep(prep, theme)
         navigate('/session')

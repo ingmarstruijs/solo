@@ -17,18 +17,26 @@ export type SessionPrep = {
 
 const PREP_KEY = 'solo-session-prep'
 
+export type PrepareWorkoutsOptions = {
+  /** When false, recovery does not reduce overload targets (Garmin features off). */
+  applyRecovery?: boolean
+}
+
 export function prepareWorkouts(
   ids: string[],
   lockerItems: LockerItem[],
   recoveryScore: number,
+  options: PrepareWorkoutsOptions = {},
 ): SessionPrep | null {
   const workouts = ids.map((id) => getWorkout(id)).filter((w): w is WorkoutTemplate => w != null)
   if (workouts.length === 0) return null
 
+  const plannerScore = options.applyRecovery === false ? 100 : recoveryScore
+
   return {
     workouts: workouts.map((workout) => ({
       workout,
-      targets: planOverloadTargets(workout, lockerItems, recoveryScore),
+      targets: planOverloadTargets(workout, lockerItems, plannerScore),
     })),
     recoveryScore,
     createdAt: new Date().toISOString(),

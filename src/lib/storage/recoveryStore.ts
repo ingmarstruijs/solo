@@ -2,7 +2,10 @@ import { readStore, subscribeStore, writeStore } from './localStore'
 
 const KEY = 'solo-recovery-score'
 
-/** Mock recovery score until Health Connect / Apple Health integration lands. */
+/**
+ * Manual recovery score (0–100), edited via the Home/Settings/Prep slider.
+ * Apple Health / Health Connect ingestion remains a later integration.
+ */
 export function getRecoveryScore(): number {
   return readStore<number>(KEY, 78)
 }
