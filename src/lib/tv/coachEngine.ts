@@ -1,9 +1,14 @@
 import type { ActiveSession, OverloadTarget, WorkoutExercise } from '@/types/workout'
 import { equipmentSummary, metricLabel } from '@/components/workout/ExerciseIcon'
+import { bpmToPercentMax } from '@/lib/ble/heartRateMath'
 
 export type TvSensorState = {
   cameraEnabled: boolean
   garminConnected: boolean
+  /** True when a live BLE heart-rate monitor is streaming. */
+  heartRateLive: boolean
+  /** Latest BPM from BLE, when available. */
+  heartRateBpm: number | null
   velocityDropPercent: number
   heartRatePercentMax: number
 }
@@ -15,21 +20,29 @@ type SensorInput = {
   elapsedMs: number
   cameraEnabled: boolean
   garminConnected: boolean
+  /** Live BLE BPM — preferred over the mock HR path when present. */
+  liveHeartRateBpm?: number | null
 }
 
-/** Deterministic mock sensor values until Edge AI / wearables land. */
-export function computeMockSensor({
+/**
+ * Session/TV sensor strip values.
+ * HR prefers a live BLE sample; velocity stays mock until Connect IQ lands.
+ */
+export function computeSessionSensor({
   exerciseIndex,
   setIndex,
   recoveryScore,
   elapsedMs,
   cameraEnabled,
   garminConnected,
+  liveHeartRateBpm = null,
 }: SensorInput): TvSensorState {
   if (!garminConnected) {
     return {
       cameraEnabled,
       garminConnected: false,
+      heartRateLive: false,
+      heartRateBpm: null,
       velocityDropPercent: 0,
       heartRatePercentMax: 0,
     }
@@ -41,18 +54,27 @@ export function computeMockSensor({
     100,
     Math.round(setIndex * 14 + exerciseIndex * 9 + fatigue + elapsedMin * 6),
   )
-  const heartRatePercentMax = Math.min(
-    100,
-    Math.round(62 + setIndex * 9 + exerciseIndex * 4 + elapsedMin * 8 + fatigue * 0.2),
-  )
+
+  const hasLiveHr = liveHeartRateBpm != null && liveHeartRateBpm > 0
+  const heartRatePercentMax = hasLiveHr
+    ? bpmToPercentMax(liveHeartRateBpm)
+    : Math.min(
+        100,
+        Math.round(62 + setIndex * 9 + exerciseIndex * 4 + elapsedMin * 8 + fatigue * 0.2),
+      )
 
   return {
     cameraEnabled,
     garminConnected: true,
+    heartRateLive: hasLiveHr,
+    heartRateBpm: hasLiveHr ? liveHeartRateBpm : null,
     velocityDropPercent,
     heartRatePercentMax,
   }
 }
+
+/** @deprecated Use {@link computeSessionSensor}. Kept for older imports. */
+export const computeMockSensor = computeSessionSensor
 
 function formatExerciseDetails(ex: WorkoutExercise, weightKg: number): string {
   const parts: string[] = []

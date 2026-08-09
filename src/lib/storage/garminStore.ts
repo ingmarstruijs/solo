@@ -1,3 +1,4 @@
+import { disconnectHeartRateMonitor } from '@/lib/ble/hrConnection'
 import { readStore, subscribeStore, writeStore } from './localStore'
 
 const GARMIN_CONNECTED_KEY = 'solo-garmin-connected'
@@ -8,6 +9,7 @@ export function getGarminConnected(): boolean {
 
 export function setGarminConnected(connected: boolean): void {
   writeStore(GARMIN_CONNECTED_KEY, connected)
+  if (!connected) disconnectHeartRateMonitor()
 }
 
 export function subscribeGarminConnected(onChange: () => void): () => void {

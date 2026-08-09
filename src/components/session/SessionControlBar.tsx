@@ -1,4 +1,4 @@
-import { Camera, Mic, Tv } from 'lucide-react'
+import { Camera, Heart, Mic, Tv } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { TvConnectionStatus } from '@/lib/tv/transport'
@@ -13,9 +13,16 @@ type SessionControlBarProps = {
   tvStatus?: TvConnectionStatus
   onConnectTv?: () => void
   onDisconnectTv?: () => void
+  /** Live BLE heart rate — optional until Garmin features are on. */
+  hrEnabled?: boolean
+  hrConnecting?: boolean
+  hrLive?: boolean
+  hrBpm?: number | null
+  onHrConnect?: () => void
+  onHrDisconnect?: () => void
 }
 
-/** Compact controls: camera, coach and TV status always fit one row. */
+/** Compact controls: camera, coach, HR and TV status always fit one row. */
 export function SessionControlBar({
   cameraEnabled,
   onCameraChange,
@@ -24,6 +31,12 @@ export function SessionControlBar({
   tvStatus = 'disconnected',
   onConnectTv,
   onDisconnectTv,
+  hrEnabled = false,
+  hrConnecting = false,
+  hrLive = false,
+  hrBpm = null,
+  onHrConnect,
+  onHrDisconnect,
 }: SessionControlBarProps) {
   const streamRef = useRef<MediaStream | null>(null)
   const [live, setLive] = useState(false)
@@ -32,6 +45,7 @@ export function SessionControlBar({
   const tvConnected = tvStatus === 'connected'
   const tvConnecting = tvStatus === 'connecting'
   const showPhonePreview = cameraEnabled && live && !tvConnected
+  const showHr = hrEnabled && Boolean(onHrConnect || onHrDisconnect)
 
   useEffect(() => {
     if (!cameraEnabled) {
@@ -85,6 +99,19 @@ export function SessionControlBar({
     onCameraChange(false)
   }
 
+  function handleHrClick() {
+    if (hrLive || hrConnecting) onHrDisconnect?.()
+    else onHrConnect?.()
+  }
+
+  const hrLabel = hrConnecting
+    ? 'HR…'
+    : hrLive && hrBpm != null
+      ? `${hrBpm}`
+      : hrLive
+        ? 'HR ●'
+        : 'HR'
+
   return (
     <>
       <section className="flex flex-col gap-1.5 rounded-card border border-line bg-surface p-1.5">
@@ -106,6 +133,17 @@ export function SessionControlBar({
           >
             <Mic className="size-4" />
           </IconToggle>
+
+          {showHr && (
+            <IconToggle
+              label={hrLabel}
+              active={hrLive || hrConnecting}
+              activeClass="border-success/40 bg-success/10 text-success"
+              onClick={handleHrClick}
+            >
+              <Heart className="size-4" />
+            </IconToggle>
+          )}
 
           <IconToggle
             label={tvConnected ? 'TV ●' : tvConnecting ? 'TV…' : 'TV'}

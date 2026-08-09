@@ -1,9 +1,12 @@
-import { Play, Settings, Watch } from 'lucide-react'
+import { Heart, Play, Settings, Watch } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { RecoverySlider } from '@/components/workout/RecoverySlider'
 import { THEMES, getThemeLabel } from '@/lib/theme/themes'
 import { useAutoTranslateWger } from '@/hooks/useAutoTranslateWger'
 import { useCoachVoiceGender } from '@/hooks/useCoachVoiceGender'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
+import { useLiveHeartRate } from '@/hooks/useLiveHeartRate'
+import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useTheme } from '@/hooks/useTheme'
 import { describeCoachVoice, isCoachVoiceSupported, previewCoachVoice } from '@/lib/tv/coachVoice'
 import { cn } from '@/lib/cn'
@@ -13,6 +16,8 @@ export function SettingsPage() {
   const { gender, setGender } = useCoachVoiceGender()
   const { enabled: autoTranslateWger, setEnabled: setAutoTranslateWger } = useAutoTranslateWger()
   const { connected: garminConnected, setConnected: setGarminConnected } = useGarminConnected()
+  const { score: recoveryScore, setScore: setRecoveryScore } = useRecoveryScore()
+  const heartRate = useLiveHeartRate()
   const voiceSupported = isCoachVoiceSupported()
   const [activeVoice, setActiveVoice] = useState<string | null>(null)
   const [voiceNote, setVoiceNote] = useState<string | undefined>()
@@ -143,9 +148,10 @@ export function SettingsPage() {
       </section>
 
       <section className="rounded-card border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">Garmin</h2>
+        <h2 className="text-sm font-semibold">Garmin & herstel</h2>
         <p className="mt-1 text-xs text-muted">
-          Koppel je Garmin-wearable om recovery-data op het startscherm te tonen.
+          Toon herstel en hartslag tijdens prep en sessie. Stel herstel handmatig in; koppel
+          optioneel een BLE-hartslagband voor live HR op telefoon en TV.
         </p>
         <button
           type="button"
@@ -160,11 +166,11 @@ export function SettingsPage() {
               <Watch className="size-4" />
             </span>
             <div>
-              <p className="font-semibold">Garmin verbonden</p>
+              <p className="font-semibold">Wearable-functies</p>
               <p className="text-xs text-muted">
                 {garminConnected
-                  ? 'Recovery en wearable-data zichtbaar op Home'
-                  : 'Uit — geen Garmin-data op Home'}
+                  ? 'Herstel en HR zichtbaar op Home, prep en TV'
+                  : 'Uit — geen herstel- of HR-data'}
               </p>
             </div>
           </div>
@@ -177,9 +183,62 @@ export function SettingsPage() {
             {garminConnected ? 'Aan' : 'Uit'}
           </span>
         </button>
-        <p className="mt-2 text-[11px] text-faint">
-          Echte BLE-koppeling volgt later — deze schakelaar simuleert de verbinding voor nu.
-        </p>
+
+        {garminConnected && (
+          <div className="mt-3 flex flex-col gap-3">
+            <RecoverySlider
+              id="settings-recovery-score"
+              score={recoveryScore}
+              onChange={setRecoveryScore}
+            />
+
+            <button
+              type="button"
+              onClick={() =>
+                heartRate.status === 'connected' || heartRate.status === 'connecting'
+                  ? heartRate.disconnect()
+                  : heartRate.connect()
+              }
+              className={cn(
+                'flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors active:bg-surface-2',
+                heartRate.live ? 'border-success/40 bg-success/5' : 'border-line',
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid size-9 place-items-center rounded-lg bg-surface-2 text-solo-400">
+                  <Heart className="size-4" />
+                </span>
+                <div>
+                  <p className="font-semibold">Hartslagband (BLE)</p>
+                  <p className="text-xs text-muted">
+                    {heartRate.status === 'connecting'
+                      ? 'Verbinden… kies je band in de browser'
+                      : heartRate.live
+                        ? `${heartRate.deviceName ?? 'Band'} · ${heartRate.bpm ?? '—'} bpm`
+                        : 'Koppel een standaard HR-band (0x180D)'}
+                  </p>
+                </div>
+              </div>
+              <span
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
+                  heartRate.live ? 'bg-success/15 text-success' : 'bg-surface-2 text-faint',
+                )}
+              >
+                {heartRate.status === 'connecting'
+                  ? '…'
+                  : heartRate.live
+                    ? 'Live'
+                    : 'Koppel'}
+              </span>
+            </button>
+            {heartRate.error && <p className="text-[11px] text-warn">{heartRate.error}</p>}
+            <p className="text-[11px] text-faint">
+              Chrome of Edge op Android/desktop. Safari/iOS ondersteunt Web Bluetooth niet. Reps en
+              velocity volgen later via Connect IQ.
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="rounded-card border border-line bg-surface p-4">

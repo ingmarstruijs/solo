@@ -12,6 +12,7 @@ import { useActiveSession } from '@/hooks/useActiveSession'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'
 import { useCoachEnabled } from '@/hooks/useCoachEnabled'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
+import { useLiveHeartRate } from '@/hooks/useLiveHeartRate'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useSessionActions } from '@/hooks/useSessionActions'
 import { useTheme } from '@/hooks/useTheme'
@@ -63,6 +64,7 @@ export function SessionPage() {
   } = useSessionActions()
   const { score: recoveryScore } = useRecoveryScore()
   const { connected: garminConnected } = useGarminConnected()
+  const heartRate = useLiveHeartRate()
   const { theme } = useTheme()
   const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
   const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
@@ -187,6 +189,8 @@ export function SessionPage() {
     restTimer,
     restCountdown.active,
     garminConnected,
+    heartRate.bpm,
+    heartRate.status,
   ])
 
   useCoachAnnouncement(
@@ -486,7 +490,16 @@ export function SessionPage() {
         tvStatus={tvStatus}
         onConnectTv={handleConnectTv}
         onDisconnectTv={handleDisconnectTv}
+        hrEnabled={garminConnected}
+        hrConnecting={heartRate.status === 'connecting'}
+        hrLive={heartRate.live}
+        hrBpm={heartRate.bpm}
+        onHrConnect={heartRate.connect}
+        onHrDisconnect={heartRate.disconnect}
       />
+      {garminConnected && heartRate.error && (
+        <p className="text-[11px] text-warn">{heartRate.error}</p>
+      )}
 
       {!exercisesStarted && (
         <div

@@ -2,6 +2,7 @@ import { Boxes, ChevronDown, Scale, X } from 'lucide-react'
 import { useState } from 'react'
 import type { OverloadTarget, WorkoutTemplate } from '@/types/workout'
 import { isRecoveryCritical } from '@/lib/storage/recoveryStore'
+import { RecoverySlider } from './RecoverySlider'
 import { WeightAssistant } from './WeightAssistant'
 import { cn } from '@/lib/cn'
 
@@ -13,6 +14,7 @@ type PreparedWorkoutInsights = {
 type PrepInsightsPanelProps = {
   workouts: PreparedWorkoutInsights[]
   recoveryScore: number
+  onRecoveryChange?: (score: number) => void
   lockerCount: number
   lockerName: string
   garminConnected: boolean
@@ -21,6 +23,7 @@ type PrepInsightsPanelProps = {
 export function PrepInsightsPanel({
   workouts,
   recoveryScore,
+  onRecoveryChange,
   lockerCount,
   lockerName,
   garminConnected,
@@ -71,6 +74,15 @@ export function PrepInsightsPanel({
               {garminConnected && ' en herstel'}
               {garminConnected ? '. Bij laag herstel worden zware targets iets verlaagd.' : '.'}
             </p>
+            {garminConnected && onRecoveryChange && (
+              <RecoverySlider
+                id="prep-recovery-score"
+                compact
+                className="mt-3"
+                score={recoveryScore}
+                onChange={onRecoveryChange}
+              />
+            )}
             {critical && (
               <p className="mt-2 text-xs text-warn">Laag herstel — gewichten verlaagd met 5–10%</p>
             )}

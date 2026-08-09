@@ -54,7 +54,7 @@ export function WorkoutPrepFlow({
         <PipelineStage
           step="1"
           title="Recovery score"
-          description="Mock score — Health Connect integratie volgt later."
+          description="Handmatige herstelscore — Health Connect / Apple Health volgt later."
           status={critical ? 'warn' : 'ok'}
         >
           <div className="flex items-center gap-3">

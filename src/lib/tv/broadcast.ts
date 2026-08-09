@@ -3,9 +3,10 @@ import { appUrl } from '@/lib/appBase'
 import type { SessionSummary } from '@/lib/workout/sessionSummary'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, ExerciseMedia, OverloadTarget, SetMetric, WorkoutTemplate } from '@/types/workout'
+import { getLiveHeartRateBpm } from '@/lib/ble/hrConnection'
 import { getCoachEnabled } from '@/lib/storage/coachStore'
 import { getGarminConnected } from '@/lib/storage/garminStore'
-import { computeMockSensor } from '@/lib/tv/coachEngine'
+import { computeSessionSensor } from '@/lib/tv/coachEngine'
 import { computeWorkoutProgress, getPhaseInfo } from '@/lib/workout/workoutStructure'
 
 export const TV_CHANNEL = 'solo-tv-sync'
@@ -20,6 +21,8 @@ type TvControlMessage =
 export type TvSensorState = {
   cameraEnabled: boolean
   garminConnected: boolean
+  heartRateLive: boolean
+  heartRateBpm: number | null
   velocityDropPercent: number
   heartRatePercentMax: number
 }
@@ -345,13 +348,14 @@ export function buildSessionTvState(
     totalSeconds: 0,
   }
 
-  const sensor = computeMockSensor({
+  const sensor = computeSessionSensor({
     exerciseIndex,
     setIndex,
     recoveryScore,
     elapsedMs,
     cameraEnabled,
     garminConnected,
+    liveHeartRateBpm: getLiveHeartRateBpm(),
   })
 
   const phase = getPhaseInfo(workout)
