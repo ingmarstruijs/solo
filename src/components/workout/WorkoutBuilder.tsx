@@ -1,5 +1,5 @@
 import { Check, Plus, Search, X } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { WorkoutExercise, WorkoutTemplate } from '@/types/workout'
 import { createId } from '@/lib/storage/localStore'
@@ -43,6 +43,7 @@ export function WorkoutBuilder({
   const [exercises, setExercises] = useState<WorkoutExercise[]>(
     initial?.exercises ?? [emptyExercise()],
   )
+  const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null)
   const [nameError, setNameError] = useState(false)
   const [wgerOpen, setWgerOpen] = useState(false)
   const [bulkRestSeconds, setBulkRestSeconds] = useState(60)
@@ -67,6 +68,12 @@ export function WorkoutBuilder({
 
   const isDirty = currentSnapshot() !== initialSnapshotRef.current
 
+  useEffect(() => {
+    if (!focusExerciseId) return
+    const timer = window.setTimeout(() => setFocusExerciseId(null), 800)
+    return () => window.clearTimeout(timer)
+  }, [focusExerciseId])
+
   function requestLeave(action: () => void) {
     if (!isDirty || confirm(DISCARD_CONFIRM)) action()
   }
@@ -87,10 +94,10 @@ export function WorkoutBuilder({
   }
 
   function addExercise() {
-    setExercises((prev) => [
-      ...prev,
-      structure === 'circuit' ? { ...emptyExercise(), restSeconds: 0 } : emptyExercise(),
-    ])
+    const next =
+      structure === 'circuit' ? { ...emptyExercise(), restSeconds: 0 } : emptyExercise()
+    setExercises((prev) => [...prev, next])
+    setFocusExerciseId(next.id)
   }
 
   function reorderExercise(from: number, to: number) {
@@ -265,6 +272,7 @@ export function WorkoutBuilder({
             canMoveUp={i > 0}
             canMoveDown={i < exercises.length - 1}
             circuitMode={structure === 'circuit'}
+            autoFocusName={focusExerciseId === ex.id}
             onChange={(updated) => updateExercise(i, updated)}
             onRemove={() => removeExercise(i)}
             onMoveUp={() => moveExercise(i, -1)}
