@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, GripVertical, Trash2, X } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, SetMetric, WorkoutExercise } from '@/types/workout'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
@@ -20,6 +20,8 @@ type ExerciseBlockProps = {
   onMoveDown: () => void
   onReorder: (fromIndex: number, toIndex: number) => void
   circuitMode?: boolean
+  /** Scroll into view and focus the name field (e.g. after adding an empty exercise). */
+  autoFocusName?: boolean
 }
 
 const DRAG_MIME = 'application/x-solo-exercise-index'
@@ -41,9 +43,18 @@ export function ExerciseBlock({
   onMoveDown,
   onReorder,
   circuitMode = false,
+  autoFocusName = false,
 }: ExerciseBlockProps) {
   const [dragOver, setDragOver] = useState(false)
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!autoFocusName) return
+    rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    nameInputRef.current?.focus({ preventScroll: true })
+  }, [autoFocusName])
 
   function patch(partial: Partial<WorkoutExercise>) {
     const next = { ...exercise, ...partial }
@@ -65,6 +76,7 @@ export function ExerciseBlock({
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         'rounded-card border bg-surface p-3 transition-colors',
         dragOver ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
@@ -130,6 +142,7 @@ export function ExerciseBlock({
           />
         </button>
         <input
+          ref={nameInputRef}
           value={exercise.name}
           onChange={(e) => patch({ name: e.target.value })}
           placeholder="Oefening naam"

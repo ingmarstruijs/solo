@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { WgerExerciseCategory, WgerEquipment, WgerMuscle } from '@/types/wger'
 import {
   getExerciseCategories,
@@ -91,10 +92,15 @@ function FilterChip({
   )
 }
 
+function equipmentLabel(item: WgerEquipment): string {
+  return item.name.replace('none (bodyweight exercise)', 'Lichaam')
+}
+
 export function WgerFilterBar({ filters, onChange }: WgerFilterBarProps) {
   const [categories, setCategories] = useState<WgerExerciseCategory[]>([])
   const [equipment, setEquipment] = useState<WgerEquipment[]>([])
   const [muscles, setMuscles] = useState<WgerMuscle[]>([])
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     void Promise.all([getExerciseCategories(), getWgerEquipmentList(), getWgerMuscles()])
@@ -112,41 +118,93 @@ export function WgerFilterBar({ filters, onChange }: WgerFilterBarProps) {
     onChange({ ...filters, ...partial })
   }
 
+  const activeLabels = useMemo(() => {
+    const labels: string[] = []
+    const category = categories.find((c) => c.id === filters.category)
+    if (category) labels.push(category.name)
+    const eq = equipment.find((e) => e.id === filters.equipment)
+    if (eq) labels.push(equipmentLabel(eq))
+    const muscle = muscles.find((m) => m.id === filters.muscles)
+    if (muscle) labels.push(muscleFilterLabel(muscle))
+    return labels
+  }, [categories, equipment, muscles, filters.category, filters.equipment, filters.muscles])
+
+  const activeCount = activeLabels.length
+  const summary =
+    activeCount === 0
+      ? 'Categorie, materiaal, spier'
+      : activeLabels.join(' · ')
+
   return (
-    <div className="flex flex-col gap-2.5 border-b border-line px-4 py-3">
-      <FilterGroup
-        label="Categorie"
-        items={categories}
-        selectedId={filters.category}
-        onSelect={(category) => patch({ category })}
-        renderLabel={(item) => item.name}
-        renderImage={(item) => {
-          const src = categoryFilterImage(item)
-          return src ? (
-            <img src={src} alt="" className="size-8 object-contain" loading="lazy" />
-          ) : null
-        }}
-      />
-      <FilterGroup
-        label="Materiaal"
-        items={equipment}
-        selectedId={filters.equipment}
-        onSelect={(equipmentId) => patch({ equipment: equipmentId })}
-        renderLabel={(item) => item.name.replace('none (bodyweight exercise)', 'Lichaam')}
-        renderImage={(item) => (
-          <EquipmentIcon category={equipmentFilterCategory(item)} size={28} />
-        )}
-      />
-      <FilterGroup
-        label="Spier"
-        items={muscles}
-        selectedId={filters.muscles}
-        onSelect={(musclesId) => patch({ muscles: musclesId })}
-        renderLabel={(item) => muscleFilterLabel(item)}
-        renderImage={(item) => (
-          <img src={item.image_url_main} alt="" className="size-8 object-contain" loading="lazy" />
-        )}
-      />
+    <div className="border-b border-line">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left active:bg-surface-2"
+        aria-expanded={expanded}
+      >
+        <SlidersHorizontal className="size-3.5 shrink-0 text-solo-400" />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold">
+            Filters
+            {activeCount > 0 && (
+              <span className="ml-1.5 rounded-md bg-solo-400/15 px-1.5 py-0.5 text-[10px] font-semibold text-solo-300">
+                {activeCount}
+              </span>
+            )}
+          </p>
+          <p className="truncate text-[11px] text-muted">{summary}</p>
+        </div>
+        <ChevronDown
+          className={cn(
+            'size-4 shrink-0 text-faint transition-transform',
+            expanded && 'rotate-180',
+          )}
+        />
+      </button>
+
+      {expanded && (
+        <div className="flex flex-col gap-2.5 border-t border-line px-4 py-3">
+          <FilterGroup
+            label="Categorie"
+            items={categories}
+            selectedId={filters.category}
+            onSelect={(category) => patch({ category })}
+            renderLabel={(item) => item.name}
+            renderImage={(item) => {
+              const src = categoryFilterImage(item)
+              return src ? (
+                <img src={src} alt="" className="size-8 object-contain" loading="lazy" />
+              ) : null
+            }}
+          />
+          <FilterGroup
+            label="Materiaal"
+            items={equipment}
+            selectedId={filters.equipment}
+            onSelect={(equipmentId) => patch({ equipment: equipmentId })}
+            renderLabel={equipmentLabel}
+            renderImage={(item) => (
+              <EquipmentIcon category={equipmentFilterCategory(item)} size={28} />
+            )}
+          />
+          <FilterGroup
+            label="Spier"
+            items={muscles}
+            selectedId={filters.muscles}
+            onSelect={(musclesId) => patch({ muscles: musclesId })}
+            renderLabel={(item) => muscleFilterLabel(item)}
+            renderImage={(item) => (
+              <img
+                src={item.image_url_main}
+                alt=""
+                className="size-8 object-contain"
+                loading="lazy"
+              />
+            )}
+          />
+        </div>
+      )}
     </div>
   )
 }
