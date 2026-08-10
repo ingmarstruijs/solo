@@ -15,6 +15,7 @@ import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useSessionActions } from '@/hooks/useSessionActions'
 import { useTheme } from '@/hooks/useTheme'
+import { useWakeLock } from '@/hooks/useWakeLock'
 import { loadWorkoutQueue, popNextQueuedWorkout } from '@/lib/workout/sessionPrep'
 import { useTvConnection } from '@/hooks/useTvConnection'
 import { useCoachAnnouncement } from '@/hooks/useCoachVoice'
@@ -99,6 +100,8 @@ export function SessionPage() {
   const queue = useMemo(() => loadWorkoutQueue(), [session?.workout.id])
 
   const exercisesStarted = session?.exercisesStarted ?? Boolean(session?.currentExerciseStartedAt)
+
+  useWakeLock(Boolean(session && exercisesStarted))
 
   const sessionMaterials = useMemo(
     () => (session ? collectWorkoutMaterials(session.workout, session.targets) : []),
