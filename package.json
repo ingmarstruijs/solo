@@ -20,7 +20,7 @@
   "dependencies": {
     "@garmin/fitsdk": "^21.208.0",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.28.0",
+    "lucide-react": "^1.30.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-markdown": "^10.1.0",
