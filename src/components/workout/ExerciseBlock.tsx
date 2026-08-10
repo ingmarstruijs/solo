@@ -222,7 +222,7 @@ export function ExerciseBlock({
         />
         {!circuitMode && (
           <NumberField
-            label="Rust na oefening (s)"
+            label="Rust (s)"
             hint="Pauze voor volgende oefening"
             value={exercise.restSeconds}
             min={0}

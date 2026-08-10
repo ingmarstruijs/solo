@@ -29,11 +29,11 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Item | Status | Notes |
 |---|---|---|
 | Garmin connected toggle (settings) | **Shipped** | `[garminStore.ts](src/lib/storage/garminStore.ts)` — gates recovery UI |
-| Recovery card on Home | **Shipped** | Shown only when Garmin toggle on; score still manual mock |
-| Recovery in prep insights + TV strip | **Shipped** | Hidden when Garmin toggle off |
-| Garmin BLE HR (standard 0x180D) | Lab | `[/lab/garmin-sync](src/pages/GarminFeasibilityPage.tsx)` — device probe only |
+| Recovery card on Home | **Shipped** | Shown only when Garmin toggle on; manual slider edits score |
+| Recovery in prep insights + TV strip | **Shipped** | Hidden when Garmin toggle off; slider in prep + settings |
+| Garmin BLE HR (standard 0x180D) | **Shipped** | Product path via `[hrConnection.ts](src/lib/ble/hrConnection.ts)`; lab probe remains |
 | Connect IQ companion bridge (reps, velocity) | **Next** | Requires native companion or CIQ data channel |
-| Live HR in session UI | **Next** | Replace mock `heartRatePercentMax` in `[coachEngine.ts](src/lib/tv/coachEngine.ts)` |
+| Live HR in session UI | **Shipped** | BLE BPM on session/prep control bar + TV strip; mock % fallback without band |
 | Live rep counter on TV | **Next** | Oversized rep HUD in canvas composite |
 | Velocity-based fatigue detection | **Next** | >35% velocity drop trigger |
 
@@ -110,7 +110,7 @@ graph TD
 
 | Item | Status | Notes |
 |---|---|---|
-| Recovery score from Apple Health / Health Connect | **Next** | Currently manual mock in `[recoveryStore.ts](src/lib/storage/recoveryStore.ts)` |
+| Recovery score from Apple Health / Health Connect | **Next** | Manual slider shipped in `[recoveryStore.ts](src/lib/storage/recoveryStore.ts)` |
 | HRV and sleep score ingestion | **Next** | Pre-workout calibration flow |
 | Strava export | **Next** | Placeholder at `[/integrations](src/pages/IntegrationsPage.tsx)` |
 | Integrations hub UI | Placeholder | Page exists; no connectors yet |
@@ -148,9 +148,10 @@ Current integrated lab slice: **Active Set Loop** (`/lab/active-set`) — end-to
 
 ### Phase A — Sensors (Garmin + recovery)
 
-- Real recovery input (Health API or manual slider UI)
-- Live HR in session and on TV
-- Replace mock sensor strip with BLE data
+- [x] Manual recovery slider (Home / Settings / Prep)
+- [x] Live BLE HR in session control bar and on TV
+- [x] Sensor strip prefers live BPM (mock % fallback; velocity still mock)
+- [ ] Health API recovery ingestion (Apple Health / Health Connect)
 
 ### Phase B — Vision (pose + loops)
 

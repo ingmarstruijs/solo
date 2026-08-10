@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router'
 import { useAutoThemeWatcher } from '@/hooks/useTheme'
 import { useCancelSetupOnLeave } from '@/hooks/useCancelSetupOnLeave'
 import { AppHeader } from './AppHeader'

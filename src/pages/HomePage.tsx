@@ -8,13 +8,14 @@ import {
   Watch,
 } from 'lucide-react'
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useActiveSession } from '@/hooks/useActiveSession'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useHistory } from '@/hooks/useHistory'
 import { LockerProfileSwitcher } from '@/components/locker/LockerProfileSwitcher'
+import { RecoverySlider } from '@/components/workout/RecoverySlider'
 import { cn } from '@/lib/cn'
 
 function greeting(hour: number): string {
@@ -44,7 +45,7 @@ export function HomePage() {
   const navigate = useNavigate()
   const { activeProfile } = useLocker()
   const { connected: garminConnected } = useGarminConnected()
-  const { score: recoveryScore } = useRecoveryScore()
+  const { score: recoveryScore, setScore: setRecoveryScore } = useRecoveryScore()
   const { session, active } = useActiveSession()
   const { history, stats } = useHistory()
   const recent = useMemo(() => history.slice(0, 3), [history])
@@ -87,40 +88,47 @@ export function HomePage() {
       )}
 
       {garminConnected && (
-        <section className="grid grid-cols-[auto_1fr] gap-4 rounded-card border border-line bg-surface p-4">
-          <div className="relative grid size-20 place-items-center">
-            <svg viewBox="0 0 80 80" className="size-20 -rotate-90">
-              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--color-line)" strokeWidth="7" />
-              <circle
-                cx="40"
-                cy="40"
-                r="34"
-                fill="none"
-                stroke={tone.color}
-                strokeWidth="7"
-                strokeLinecap="round"
-                strokeDasharray={ringCirc}
-                strokeDashoffset={ringOffset}
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center">
-              <span className="text-lg font-bold tabular-nums">{recoveryScore}</span>
-              <span className="label-mono text-[8px] text-faint">{tone.label}</span>
+        <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4">
+          <div className="grid grid-cols-[auto_1fr] gap-4">
+            <div className="relative grid size-20 place-items-center">
+              <svg viewBox="0 0 80 80" className="size-20 -rotate-90">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="var(--color-line)" strokeWidth="7" />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  fill="none"
+                  stroke={tone.color}
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  strokeDasharray={ringCirc}
+                  strokeDashoffset={ringOffset}
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center">
+                <span className="text-lg font-bold tabular-nums">{recoveryScore}</span>
+                <span className="label-mono text-[8px] text-faint">{tone.label}</span>
+              </div>
+            </div>
+            <div className="flex flex-col justify-center gap-2">
+              <div className="flex items-center gap-2">
+                <Watch className="size-4 text-solo-400" />
+                <p className="text-sm font-semibold">Herstel</p>
+              </div>
+              <p className="text-xs text-muted">
+                {recoveryScore >= 75
+                  ? 'Je bent fris — goede dag voor een zware sessie.'
+                  : recoveryScore >= 50
+                    ? 'Redelijk hersteld. Houd het volume in de gaten.'
+                    : 'Beperkt hersteld. Overweeg een lichte sessie of rust.'}
+              </p>
             </div>
           </div>
-          <div className="flex flex-col justify-center gap-2">
-            <div className="flex items-center gap-2">
-              <Watch className="size-4 text-solo-400" />
-              <p className="text-sm font-semibold">Garmin recovery</p>
-            </div>
-            <p className="text-xs text-muted">
-              {recoveryScore >= 75
-                ? 'Je bent fris — goede dag voor een zware sessie.'
-                : recoveryScore >= 50
-                  ? 'Redelijk hersteld. Houd het volume in de gaten.'
-                  : 'Beperkt hersteld. Overweeg een lichte sessie of rust.'}
-            </p>
-          </div>
+          <RecoverySlider
+            id="home-recovery-score"
+            score={recoveryScore}
+            onChange={setRecoveryScore}
+          />
         </section>
       )}
 

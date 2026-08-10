@@ -13,8 +13,14 @@ export function TvSensorStrip({ sensor }: { sensor: TvSensorState }) {
       />
       <SensorTile
         icon={Heart}
-        label="HR zone"
-        value={sensor.garminConnected ? `${sensor.heartRatePercentMax}%` : 'OFF'}
+        label={sensor.heartRateLive && sensor.heartRateBpm != null ? 'HR bpm' : 'HR zone'}
+        value={
+          !sensor.garminConnected
+            ? 'OFF'
+            : sensor.heartRateLive && sensor.heartRateBpm != null
+              ? `${sensor.heartRateBpm}`
+              : `${sensor.heartRatePercentMax}%`
+        }
         active={sensor.garminConnected}
         warn={sensor.garminConnected && sensor.heartRatePercentMax >= 85}
       />

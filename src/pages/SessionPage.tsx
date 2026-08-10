@@ -6,12 +6,13 @@ import {
   Scale,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { PageStickyHeader } from '@/components/layout/PageStickyHeader'
 import { useActiveSession } from '@/hooks/useActiveSession'
 import { useCameraEnabled } from '@/hooks/useCameraEnabled'
 import { useCoachEnabled } from '@/hooks/useCoachEnabled'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
+import { useLiveHeartRate } from '@/hooks/useLiveHeartRate'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useSessionActions } from '@/hooks/useSessionActions'
 import { useTheme } from '@/hooks/useTheme'
@@ -24,7 +25,7 @@ import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { SessionMaterialsChecklist } from '@/components/session/SessionMaterialsChecklist'
 import { RestTimerBar } from '@/components/session/RestTimerBar'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
-import { buildSessionTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
+import { buildSessionTvState, buildSetupTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
 import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
 import { advanceToNextSet, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
@@ -64,6 +65,7 @@ export function SessionPage() {
   } = useSessionActions()
   const { score: recoveryScore } = useRecoveryScore()
   const { connected: garminConnected } = useGarminConnected()
+  const heartRate = useLiveHeartRate()
   const { theme } = useTheme()
   const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
   const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
@@ -130,6 +132,11 @@ export function SessionPage() {
 
   const sessionTv = useMemo(() => {
     if (!session) return null
+
+    if (!exercisesStarted) {
+      return buildSetupTvState(session.workout, sessionMaterials, recoveryScore, theme)
+    }
+
     const rest =
       restTimer && restCountdown.active
         ? {
@@ -140,8 +147,21 @@ export function SessionPage() {
             kind: restTimer.kind,
             phaseLabel: restTimer.phaseLabel,
             completedPhase: restTimer.completedPhase,
+            nextExerciseName: restTimer.nextExerciseName,
+            nextExerciseTarget: restTimer.nextExerciseTarget,
           }
         : { active: false, endsAt: null, totalSeconds: 0 }
+
+    const activeEx = session.workout.exercises[activeIndex]
+    const isTimed = activeEx?.metric === 'time'
+    const isPaused = Boolean(
+      activeEx && (session.pausedExerciseIds ?? []).includes(activeEx.id),
+    )
+    const exerciseDone = activeEx
+      ? session.completedExerciseIds.includes(activeEx.id)
+      : true
+    const exerciseTimerActive =
+      Boolean(isTimed && activeEx) && !exerciseDone && !isPaused && !rest.active
 
     return buildSessionTvState(
       session.workout,
@@ -156,10 +176,14 @@ export function SessionPage() {
         completedExerciseIds: session.completedExerciseIds,
         coachEnabled,
         rest,
+        exerciseStartedAt: session.currentExerciseStartedAt ?? session.startedAt,
+        exerciseTimerActive,
       },
     )
   }, [
     session,
+    exercisesStarted,
+    sessionMaterials,
     activeIndex,
     recoveryScore,
     theme,
@@ -168,6 +192,8 @@ export function SessionPage() {
     restTimer,
     restCountdown.active,
     garminConnected,
+    heartRate.bpm,
+    heartRate.status,
   ])
 
   useCoachAnnouncement(
@@ -263,19 +289,27 @@ export function SessionPage() {
     pendingCoachAfterRestRef.current = { text, key }
   }
 
-  function startExerciseRest(exercise: (typeof workout.exercises)[number]) {
+  function startExerciseRest(
+    exercise: (typeof workout.exercises)[number],
+    next: (typeof workout.exercises)[number] | undefined,
+  ) {
     if (exercise.restSeconds <= 0 || restCountdown.active) return
+    const nextWeight = next ? getExerciseWeight(next, targets) : 0
     setRestTimer({
       id: `${exercise.id}-${Date.now()}`,
       endsAt: Date.now() + exercise.restSeconds * 1000,
       totalSeconds: exercise.restSeconds,
       afterExerciseName: exercise.name,
       kind: 'exercise',
+      nextExerciseName: next?.name,
+      nextExerciseTarget: next ? formatExerciseTargetLine(next, nextWeight) : undefined,
     })
   }
 
   function startPhaseRest() {
     if (phaseRestSeconds <= 0 || restCountdown.active) return
+    const next = workout.exercises[0]
+    const nextWeight = next ? getExerciseWeight(next, targets) : 0
     setRestTimer({
       id: `phase-${currentSet}-${Date.now()}`,
       endsAt: Date.now() + phaseRestSeconds * 1000,
@@ -284,6 +318,8 @@ export function SessionPage() {
       kind: 'phase',
       phaseLabel: phase.label,
       completedPhase: currentSet,
+      nextExerciseName: next?.name,
+      nextExerciseTarget: next ? formatExerciseTargetLine(next, nextWeight) : undefined,
     })
   }
 
@@ -311,6 +347,7 @@ export function SessionPage() {
     let startsExerciseRest = false
 
     const awaitingNextSet = willBeAllDone && !isLastPhase
+    const nextExercise = workout.exercises.find((e) => !projected.completedExerciseIds.includes(e.id))
 
     if (startsPhaseRest) {
       startPhaseRest()
@@ -319,7 +356,7 @@ export function SessionPage() {
         `after-phase-rest-${currentSet}`,
       )
     } else if (ex && ex.restSeconds > 0) {
-      startExerciseRest(ex)
+      startExerciseRest(ex, nextExercise)
       startsExerciseRest = true
     }
 
@@ -456,9 +493,16 @@ export function SessionPage() {
         tvStatus={tvStatus}
         onConnectTv={handleConnectTv}
         onDisconnectTv={handleDisconnectTv}
+        hrEnabled={garminConnected}
+        hrConnecting={heartRate.status === 'connecting'}
+        hrLive={heartRate.live}
+        hrBpm={heartRate.bpm}
+        onHrConnect={heartRate.connect}
+        onHrDisconnect={heartRate.disconnect}
       />
-
-      <RestTimerBar countdown={restCountdown} onSkip={handleSkipRest} className="shrink-0" />
+      {garminConnected && heartRate.error && (
+        <p className="text-[11px] text-warn">{heartRate.error}</p>
+      )}
 
       {!exercisesStarted && (
         <div
@@ -588,6 +632,8 @@ export function SessionPage() {
           )
         })}
       </ol>
+
+      <RestTimerBar countdown={restCountdown} onSkip={handleSkipRest} />
     </section>
   )
 }

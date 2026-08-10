@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 import { useTheme } from '@/hooks/useTheme'
 import { clearActiveSession, getActiveSession } from '@/lib/storage/sessionStore'
 import { publishTvIdle } from '@/lib/tv/transport'

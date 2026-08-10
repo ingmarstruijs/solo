@@ -3,9 +3,10 @@ import { appUrl } from '@/lib/appBase'
 import type { SessionSummary } from '@/lib/workout/sessionSummary'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, ExerciseMedia, OverloadTarget, SetMetric, WorkoutTemplate } from '@/types/workout'
+import { getLiveHeartRateBpm } from '@/lib/ble/hrConnection'
 import { getCoachEnabled } from '@/lib/storage/coachStore'
 import { getGarminConnected } from '@/lib/storage/garminStore'
-import { computeMockSensor } from '@/lib/tv/coachEngine'
+import { computeSessionSensor } from '@/lib/tv/coachEngine'
 import { computeWorkoutProgress, getPhaseInfo } from '@/lib/workout/workoutStructure'
 
 export const TV_CHANNEL = 'solo-tv-sync'
@@ -20,6 +21,8 @@ type TvControlMessage =
 export type TvSensorState = {
   cameraEnabled: boolean
   garminConnected: boolean
+  heartRateLive: boolean
+  heartRateBpm: number | null
   velocityDropPercent: number
   heartRatePercentMax: number
 }
@@ -32,6 +35,9 @@ export type TvRestState = {
   kind?: 'exercise' | 'phase'
   phaseLabel?: string
   completedPhase?: number
+  /** Exercise that starts when rest ends (same set or first of next set). */
+  nextExerciseName?: string
+  nextExerciseTarget?: string
 }
 
 export type TvSessionState = {
@@ -62,6 +68,28 @@ export type TvSessionState = {
   sensor: TvSensorState
   coachEnabled: boolean
   rest: TvRestState
+  /** ISO start of the current exercise timer (count-up on TV for timed work). */
+  exerciseStartedAt?: string | null
+  /** Whether the exercise elapsed timer should tick on the TV. */
+  exerciseTimerActive?: boolean
+  updatedAt: string
+}
+
+export type TvSetupMaterial = {
+  id: string
+  category: EquipmentCategory
+  label: string
+}
+
+/** Session setup / materials klaarleggen before exercises start. */
+export type TvSetupState = {
+  mode: 'setup'
+  theme: ThemeId
+  workoutName: string
+  exerciseCount: number
+  materials: TvSetupMaterial[]
+  garminConnected: boolean
+  recoveryScore?: number
   updatedAt: string
 }
 
@@ -86,7 +114,12 @@ export type TvSummaryState = {
   updatedAt: string
 } & SessionSummary
 
-export type TvMessage = TvSessionState | TvPrepState | TvIdleState | TvSummaryState
+export type TvMessage =
+  | TvSessionState
+  | TvSetupState
+  | TvPrepState
+  | TvIdleState
+  | TvSummaryState
 
 export type SessionTvOptions = {
   cameraEnabled?: boolean
@@ -94,6 +127,8 @@ export type SessionTvOptions = {
   completedExerciseIds?: string[]
   coachEnabled?: boolean
   rest?: TvRestState | null
+  exerciseStartedAt?: string | null
+  exerciseTimerActive?: boolean
 }
 
 let tvWindowRef: Window | null = null
@@ -244,6 +279,25 @@ export function buildPrepTvState(
   }
 }
 
+export function buildSetupTvState(
+  workout: WorkoutTemplate,
+  materials: TvSetupMaterial[],
+  recoveryScore: number,
+  theme: ThemeId,
+): TvSetupState {
+  const garminConnected = getGarminConnected()
+  return {
+    mode: 'setup',
+    theme,
+    workoutName: workout.name,
+    exerciseCount: workout.exercises.length,
+    materials,
+    garminConnected,
+    recoveryScore: garminConnected ? recoveryScore : undefined,
+    updatedAt: new Date().toISOString(),
+  }
+}
+
 export function buildIdleTvState(theme: ThemeId): TvIdleState {
   return {
     mode: 'idle',
@@ -294,13 +348,14 @@ export function buildSessionTvState(
     totalSeconds: 0,
   }
 
-  const sensor = computeMockSensor({
+  const sensor = computeSessionSensor({
     exerciseIndex,
     setIndex,
     recoveryScore,
     elapsedMs,
     cameraEnabled,
     garminConnected,
+    liveHeartRateBpm: getLiveHeartRateBpm(),
   })
 
   const phase = getPhaseInfo(workout)
@@ -340,6 +395,8 @@ export function buildSessionTvState(
     sensor,
     coachEnabled,
     rest,
+    exerciseStartedAt: options.exerciseStartedAt ?? null,
+    exerciseTimerActive: options.exerciseTimerActive ?? false,
     updatedAt: new Date().toISOString(),
   }
 }

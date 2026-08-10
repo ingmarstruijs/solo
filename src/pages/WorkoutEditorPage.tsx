@@ -1,4 +1,4 @@
-import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router'
 import { getWorkout } from '@/lib/storage/workoutStore'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { WorkoutBuilder } from '@/components/workout/WorkoutBuilder'

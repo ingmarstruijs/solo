@@ -1,6 +1,6 @@
 import { Check, Plus, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import type { WorkoutExercise, WorkoutTemplate } from '@/types/workout'
 import { createId } from '@/lib/storage/localStore'
 import { recalcWorkoutDuration } from '@/lib/workout/overloadPlanner'

@@ -152,13 +152,14 @@ graph TD
 - The current exercise is pinned in a sticky card; the list below hides the duplicate row.
 - During **exercise rest**, the active badge reads **Volgende oefening**, the per-exercise timer pauses, and **Klaar** / **Pauze** are disabled until rest ends or is skipped.
 - Rest starts automatically after **Klaar** when `restSeconds` is configured — there are no manual “start rest” buttons.
+- During rest, phone and TV show a **full-screen overlay** with the rust / set rust title, countdown, and the **exercise coming next** (name + target). Phase rest labels the next set/ronde and shows the first exercise of that phase.
 
 ### Set / phase transitions
 
 - When every exercise in the current set is done, **phase rest** starts automatically if configured (`getPhaseRestSeconds`).
 - Set rest is visually distinct from exercise rest: **Set rust** / **Ronde rust** title, SOLO accent colours on phone and TV.
 - While phase rest runs, the **Volgende set** button is hidden; it appears when rest ends or is skipped.
-- **Overslaan** on the rest bar ends the timer early and triggers the same post-rest behaviour.
+- **Overslaan** on the rest overlay ends the timer early and triggers the same post-rest behaviour.
 
 Cancelled or incomplete sessions are cleared without a history entry.
 
@@ -177,7 +178,7 @@ Coach lines use the Web Speech API (`useCoachAnnouncement`, `useRestCoach`, `coa
 | After last exercise in set, no phase rest | **Maak je klaar voor set N** immediately |
 | User taps **Volgende set** | First exercise of the new set (full details) |
 | Pause / resume | **Oefening gepauzeerd.** / **Hervat: {name}.** |
-| Rest start | **Set rust** / **Ronde rust** / **Rust na oefening** + duration |
+| Rest start | **Set rust** / **Ronde rust** / **Rust** + duration |
 | Rest countdown | Spoken ticks for the last 5 seconds |
 
 Next-exercise announcements are queued in `pendingCoachAfterRestRef` so they never overlap with an active rest timer.
@@ -199,9 +200,11 @@ graph TD
   G -- No --> I[Periodic ping detects closed receiver]
 ```
 
-HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Coach and camera flags travel with session TV state.
+HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Live BLE HR (standard 0x180D) streams via `hrConnection` into `computeSessionSensor`; without a band the strip falls back to a mock zone %. Coach and camera flags travel with session TV state.
 
-Rest on TV mirrors the phone: exercise rest uses calm/teal styling; **set rust** / **ronde rust** uses SOLO accent styling with title, subtitle (e.g. “Set 1 voltooid · daarna set 2”), and countdown.
+Before exercises start, TV shows a **Voorbereiden** page with the materials checklist (instead of the live session HUD). Timed exercises broadcast `exerciseStartedAt` so the TV can count up locally in a large timer.
+
+Rest on TV mirrors the phone: a full-screen overlay with countdown. Exercise rest uses calm/teal styling; **set rust** / **ronde rust** uses SOLO accent styling. Both show the upcoming exercise (and for phase rest, which set/ronde comes next).
 
 ---
 
@@ -231,8 +234,8 @@ graph TD
 | `solo-lockers` | Locker profiles + equipment items |
 | `solo-active-session` | In-progress session (`exercisesStarted`, pause, notes, …) |
 | `solo-history` | Completed session records + full summaries |
-| `solo-recovery-score` | Manual recovery % (mock until Health API) |
-| `solo-garmin-connected` | Settings toggle — shows recovery UI when on |
+| `solo-recovery-score` | Manual recovery % (slider; Health API later) |
+| `solo-garmin-connected` | Settings toggle — shows recovery/HR UI when on |
 | `solo-coach-enabled` / `solo-coach-voice-gender` | Coach prefs |
 | `solo-camera-enabled` | Camera preview preference |
 | `solo-theme` | Theme preference |

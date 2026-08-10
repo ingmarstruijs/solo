@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { LogoMark } from '@/components/Logo'
+import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import { TvCameraPanel } from '@/components/tv/TvCoachOverlay'
 import { TvRestTimer } from '@/components/tv/TvRestTimer'
 import { TvExerciseVisual } from '@/components/tv/TvExerciseVisual'
@@ -7,10 +8,17 @@ import { TvSensorStrip } from '@/components/tv/TvSensorStrip'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { MarkdownText } from '@/components/MarkdownText'
 import { useAutoThemeWatcher } from '@/hooks/useTheme'
+import { useElapsedTimer } from '@/hooks/useElapsedTimer'
 import { formatDuration, normalizeSummary } from '@/lib/workout/sessionSummary'
 import { resolveExerciseVisual } from '@/lib/tv/exerciseMedia'
 import { applyTheme } from '@/lib/theme/themes'
-import { announceTvReceiver, subscribeTv, type TvMessage, type TvSessionState } from '@/lib/tv/broadcast'
+import {
+  announceTvReceiver,
+  subscribeTv,
+  type TvMessage,
+  type TvSessionState,
+  type TvSetupState,
+} from '@/lib/tv/broadcast'
 /**
  * Passive TV display surface. Listens for session state via BroadcastChannel
  * from the mobile controller. Open via Workout Prep → Test TV.
@@ -34,6 +42,7 @@ export function TvPage() {
   }, [state?.theme])
 
   const connected = state != null
+  const sessionRest = connected && state.mode === 'session' ? state.rest : null
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-ink p-[2.5vh] text-fg">
@@ -41,6 +50,8 @@ export function TvPage() {
         <WaitingScreen />
       ) : state.mode === 'prep' ? (
         <PrepDashboard state={state} />
+      ) : state.mode === 'setup' ? (
+        <SetupDashboard state={state} />
       ) : state.mode === 'idle' ? (
         <IdleDashboard />
       ) : state.mode === 'summary' ? (
@@ -48,6 +59,7 @@ export function TvPage() {
       ) : (
         <SessionDashboard state={state} />
       )}
+      <TvRestTimer rest={sessionRest} />
     </div>
   )
 }
@@ -97,6 +109,53 @@ function PrepDashboard({ state }: { state: Extract<TvMessage, { mode: 'prep' }> 
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+function SetupDashboard({ state }: { state: TvSetupState }) {
+  return (
+    <div className="mx-auto flex h-full w-full max-w-[90vw] flex-col gap-[3vh] py-[1vh]">
+      <header className="flex shrink-0 items-end justify-between gap-[2vh]">
+        <div>
+          <p className="label-mono text-[1.4vh] text-solo-300">VERBONDEN · VOORBEREIDEN</p>
+          <h1 className="text-[4.5vh] font-bold leading-tight">Voorbereiden</h1>
+          <p className="mt-[0.8vh] text-[2.4vh] text-muted">
+            {state.workoutName}
+            <span className="text-faint"> · {state.exerciseCount} oefeningen</span>
+          </p>
+        </div>
+        {state.garminConnected && state.recoveryScore != null && (
+          <p className="shrink-0 text-[2vh] text-muted">Recovery {state.recoveryScore}%</p>
+        )}
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-[2vh]">
+        <div className="rounded-[1.5vh] border border-solo-400/35 bg-solo-400/10 px-[3vh] py-[2vh]">
+          <p className="text-[2.4vh] font-semibold text-solo-200">Materiaal klaarleggen</p>
+          <p className="mt-[0.6vh] text-[1.8vh] text-muted">
+            Leg alles klaar op je telefoon en start de workout wanneer je er bent.
+          </p>
+        </div>
+
+        {state.materials.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center rounded-[1.5vh] border border-line bg-surface px-[3vh] py-[4vh] text-center">
+            <p className="text-[2.4vh] text-muted">Geen materiaal nodig — bodyweight workout.</p>
+          </div>
+        ) : (
+          <ul className="grid min-h-0 flex-1 content-start gap-[1.2vh] overflow-y-auto sm:grid-cols-2">
+            {state.materials.map((line) => (
+              <li
+                key={line.id}
+                className="flex items-center gap-[2vh] rounded-[1.5vh] border border-line bg-surface px-[2.5vh] py-[2vh]"
+              >
+                <EquipmentIcon category={line.category} size={48} className="shrink-0" />
+                <span className="text-[2.4vh] font-semibold leading-tight">{line.label}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }
@@ -156,6 +215,13 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
   })
 
   const progress = state.progressPercent
+  const restActive = Boolean(state.rest?.active)
+  const showExerciseTimer =
+    state.metric === 'time' && !restActive && Boolean(state.exerciseTimerActive)
+  const timerStartedAt = state.exerciseStartedAt
+    ? new Date(state.exerciseStartedAt).getTime()
+    : null
+  const exerciseTimer = useElapsedTimer(timerStartedAt, showExerciseTimer)
 
   return (
     <div className="mx-auto flex h-full w-full max-w-[120rem] flex-col gap-[2vh]">
@@ -207,12 +273,22 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
                 <span className="font-mono font-bold">{state.weightKg} kg</span>
               )}
             </div>
-            {state.nextExerciseName && (
+            {state.nextExerciseName && !restActive && (
               <p className="mt-[1.5vh] text-[1.6vh] text-muted">
                 Volgende: <span className="text-fg">{state.nextExerciseName}</span>
               </p>
             )}
           </div>
+
+          {showExerciseTimer && (
+            <div className="flex shrink-0 flex-col items-center justify-center rounded-[1.5vh] border border-solo-400/35 bg-solo-400/10 px-[2vh] py-[2.5vh]">
+              <p className="label-mono text-[1.4vh] text-solo-300">TIJD</p>
+              <p className="mt-[0.5vh] font-mono text-[14vh] font-bold leading-none tabular-nums tracking-tight text-solo-300">
+                {exerciseTimer.formatted}
+              </p>
+              <p className="mt-[1.5vh] text-[2vh] text-muted">doel {state.targetLabel}</p>
+            </div>
+          )}
 
           <div className="min-h-0 flex-1">
             <TvCameraPanel enabled={state.sensor.cameraEnabled} />
@@ -235,9 +311,6 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
         </div>
       </div>
 
-      <div className="shrink-0">
-        <TvRestTimer rest={state.rest} />
-      </div>
       <div className="shrink-0">
         <TvSensorStrip sensor={state.sensor} />
       </div>
