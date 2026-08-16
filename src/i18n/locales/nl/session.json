@@ -143,6 +143,7 @@
   "prepReasonTut": "Max thuisgewicht — +{{seconds}}s TUT",
   "tutTempo": "{{seconds}}s TUT",
   "tutBadge": "+{{seconds}}s TUT",
+  "strainCoach": "Zak wat terug — hartslag is hoog.",
   "prepBody": "Doelgewichten op basis van locker <strong>{{name}}</strong>{{recoveryPart}}.",
   "prepBodyRecovery": " en herstel",
   "prepBodyHint": ". Bij laag herstel worden zware targets iets verlaagd.",

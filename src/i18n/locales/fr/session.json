@@ -143,6 +143,7 @@
   "prepReasonTut": "Poids max à domicile — +{{seconds}} s TUT",
   "tutTempo": "{{seconds}} s TUT",
   "tutBadge": "+{{seconds}} s TUT",
+  "strainCoach": "Ralentissez un peu — le rythme cardiaque est élevé.",
   "prepBody": "Poids cibles selon le casier <strong>{{name}}</strong>{{recoveryPart}}.",
   "prepBodyRecovery": " et la récupération",
   "prepBodyHint": ". En cas de faible récupération, les cibles lourdes sont légèrement réduites.",

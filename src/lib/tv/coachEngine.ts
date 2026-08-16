@@ -158,6 +158,10 @@ export function restCountdownWord(seconds: number): string {
   return translated
 }
 
+export function buildStrainAnnouncement(): string {
+  return i18n.t('session:strainCoach')
+}
+
 export function formatExerciseTargetLine(
   ex: WorkoutExercise,
   weightKg: number,

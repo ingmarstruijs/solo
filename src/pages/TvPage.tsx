@@ -6,6 +6,7 @@ import { TvRestTimer } from '@/components/tv/TvRestTimer'
 import { TvExerciseVisual } from '@/components/tv/TvExerciseVisual'
 import { TvSensorStrip } from '@/components/tv/TvSensorStrip'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
+import { StrainEdgeFeedback } from '@/components/session/StrainEdgeFeedback'
 import { MarkdownText } from '@/components/MarkdownText'
 import { useAutoThemeWatcher } from '@/hooks/useTheme'
 import { useElapsedTimer } from '@/hooks/useElapsedTimer'
@@ -13,6 +14,7 @@ import { formatDuration, normalizeSummary } from '@/lib/workout/sessionSummary'
 import { resolveExerciseVisual } from '@/lib/tv/exerciseMedia'
 import { applyTheme } from '@/lib/theme/themes'
 import { useTranslation } from '@/i18n/hooks'
+import { STRAIN_HR_PERCENT } from '@/lib/session/strain'
 import {
   announceTvReceiver,
   subscribeTv,
@@ -314,6 +316,14 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
       <div className="shrink-0">
         <TvSensorStrip sensor={state.sensor} />
       </div>
+
+      <StrainEdgeFeedback
+        variant="tv"
+        active={
+          state.sensor.garminConnected &&
+          state.sensor.heartRatePercentMax >= STRAIN_HR_PERCENT
+        }
+      />
     </div>
   )
 }

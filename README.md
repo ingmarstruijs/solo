@@ -28,7 +28,7 @@ Five ideas guide the product. **Now** is what you can use today; **Next** is on 
 | 1 | **Your gear, your weights** | Locker profiles, overload planner, plate configurator, and TUT when you hit your home weight ceiling | — |
 | 2 | **Garmin as live sensor** | Manual recovery slider; BLE HR band in session/TV (Chrome/Edge) | Connect IQ reps/velocity; Health API recovery |
 | 3 | **See your form and the workout** | Camera preview on phone with optional MediaPipe form cues; exercise icons and live session board on TV (`/tv` via BroadcastChannel) | Licensed exercise loops, canvas compositor, cast stream |
-| 4 | **Coach in your ear** | Spoken exercise cues, set-rust vs exercise-rest announcements, pause/resume, male/female voice | Strain-triggered coaching, style options, on-screen strain feedback |
+| 4 | **Coach in your ear** | Spoken exercise cues, set-rust vs exercise-rest announcements, pause/resume, male/female voice; HR strain edge pulse + calm coach cue | Velocity-triggered coaching, style options |
 | 5 | **Proof on your device** | Session summary, logbook, trends, sparklines, and optional RPE after each set — all stored locally | WebLLM workout report, shareable proof reels |
 
 Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
