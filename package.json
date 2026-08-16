@@ -12,6 +12,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "tsc -b --noEmit",
+    "postinstall": "node scripts/fetch-mediapipe-assets.mjs",
     "seed:workouts": "node scripts/seed-workouts.mjs",
     "seed:workouts:merge": "node scripts/seed-workouts.mjs --merge",
     "seed:workouts:export": "tsx scripts/export-seed-workouts.ts",
@@ -19,6 +20,7 @@
   },
   "dependencies": {
     "@garmin/fitsdk": "^21.212.0",
+    "@mediapipe/tasks-vision": "^1.0.1",
     "clsx": "^2.1.1",
     "i18next": "^26.3.6",
     "lucide-react": "^1.30.0",

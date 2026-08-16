@@ -34,5 +34,8 @@ Thumbs.db
 .env.*
 !.env.example
 
+# MediaPipe runtime assets (synced by scripts/fetch-mediapipe-assets.mjs)
+public/mediapipe/
+
 # TS build info
 *.tsbuildinfo

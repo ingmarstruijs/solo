@@ -51,8 +51,8 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Exercise info modal on phone (prep + session) | **Shipped** | `[ExerciseVisualMobile](src/components/workout/ExerciseVisualMobile.tsx)` — same asset logic as TV |
 | Front-camera preview in session | **Shipped** | Toggle in session; preference in `[sessionUiStore](src/lib/storage/sessionUiStore.ts)` |
 | Cast tab to TV (AirPlay / Chromecast) | Partial | User opens `/tv` and casts browser tab manually |
-| MediaPipe Pose Landmarker (Wasm/GPU) | Lab | `[/lab/pose](src/pages/PoseLabPage.tsx)` |
-| Form deviation cues (knee valgus, lumbar flexion) | **Next** | Guidance only, not diagnosis |
+| MediaPipe Pose Landmarker (Wasm/GPU) | **Shipped** | Session camera preview + `/lab/pose`; lite model via `[poseEngine.ts](src/lib/pose/poseEngine.ts)` |
+| Form deviation cues (knee valgus, lumbar flexion) | **Shipped** | Advisory cues in camera preview; toggleable; not diagnosis |
 | Curated licensed exercise video loops | **Next** | Verify CC-BY / project-owned assets; Wger media where license metadata allows |
 | Velocity overlay on barbell/dumbbell | **Next** | Canvas vector tracking |
 | 16:9 canvas compositor (loop + skeleton + HUD) | Lab | `[/lab/canvas-composite](src/pages/CanvasCompositeLabPage.tsx)` |
@@ -141,7 +141,11 @@ A lab graduates when:
 3. It does not require cloud services or paid infrastructure.
 4. UX is integrated into Workout Prep or Session — not a separate `/lab` route.
 
-Current integrated lab slice: **Active Set Loop** (`/lab/active-set`) — end-to-end prototype; not yet merged into `/session`.
+Current integrated lab slices:
+
+- **BLE HR** — graduated to product via `[hrConnection.ts](src/lib/ble/hrConnection.ts)`
+- **Pose form cues** — graduated to session camera preview via `[poseEngine.ts](src/lib/pose/poseEngine.ts)`; `/lab/pose` remains a diagnostic
+- **Active Set Loop** (`/lab/active-set`) — end-to-end storyboard; not yet a single merged pipeline
 
 ---
 
@@ -156,9 +160,9 @@ Current integrated lab slice: **Active Set Loop** (`/lab/active-set`) — end-to
 
 ### Phase B — Vision (pose + loops)
 
-- MediaPipe in active set
+- [x] MediaPipe in session camera preview (lite model, graceful degrade)
+- [x] Form cue overlay (knee valgus + forward collapse; advisory)
 - Licensed exercise loops on TV (beyond icon placeholders)
-- Form cue overlay
 
 ### Phase C — Cast composite (Pillar 3)
 
