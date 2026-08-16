@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { TvConnectionStatus } from '@/lib/tv/transport'
 import { CameraPreviewOverlay } from '@/components/session/CameraPreviewOverlay'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type SessionControlBarProps = {
@@ -38,6 +39,7 @@ export function SessionControlBar({
   onHrConnect,
   onHrDisconnect,
 }: SessionControlBarProps) {
+  const { t } = useTranslation('session')
   const streamRef = useRef<MediaStream | null>(null)
   const [live, setLive] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -49,7 +51,7 @@ export function SessionControlBar({
 
   useEffect(() => {
     if (!cameraEnabled) {
-      streamRef.current?.getTracks().forEach((t) => t.stop())
+      streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
       setLive(false)
       setPreviewOpen(false)
@@ -61,7 +63,7 @@ export function SessionControlBar({
       .getUserMedia({ video: { facingMode: 'user' }, audio: false })
       .then((stream) => {
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop())
+          stream.getTracks().forEach((track) => track.stop())
           return
         }
         streamRef.current = stream
@@ -73,7 +75,7 @@ export function SessionControlBar({
 
     return () => {
       cancelled = true
-      streamRef.current?.getTracks().forEach((t) => t.stop())
+      streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
   }, [cameraEnabled, onCameraChange])
@@ -105,19 +107,21 @@ export function SessionControlBar({
   }
 
   const hrLabel = hrConnecting
-    ? 'HR…'
+    ? t('hrLoading')
     : hrLive && hrBpm != null
       ? `${hrBpm}`
       : hrLive
-        ? 'HR ●'
-        : 'HR'
+        ? t('hrLive')
+        : t('hr')
 
   return (
     <>
       <section className="flex flex-col gap-1.5 rounded-card border border-line bg-surface p-1.5">
         <div className="flex items-stretch gap-1.5">
           <IconToggle
-            label={cameraEnabled ? (live ? 'Cam ●' : 'Cam…') : 'Camera'}
+            label={
+              cameraEnabled ? (live ? t('camLive') : t('camLoading')) : t('camera')
+            }
             active={cameraEnabled}
             activeClass="border-success/40 bg-success/10 text-success"
             onClick={handleCameraClick}
@@ -126,7 +130,7 @@ export function SessionControlBar({
           </IconToggle>
 
           <IconToggle
-            label="Coach"
+            label={t('coach')}
             active={coachEnabled}
             activeClass="border-success/40 bg-success/10 text-success"
             onClick={onCoachToggle}
@@ -146,7 +150,7 @@ export function SessionControlBar({
           )}
 
           <IconToggle
-            label={tvConnected ? 'TV ●' : tvConnecting ? 'TV…' : 'TV'}
+            label={tvConnected ? t('tvLive') : tvConnecting ? t('tvLoading') : t('tv')}
             active={tvConnected}
             activeClass="border-success/40 bg-success/10 text-success"
             onClick={tvConnected ? onDisconnectTv : onConnectTv}

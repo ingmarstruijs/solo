@@ -6,6 +6,7 @@ import {
   useRestCountdown,
 } from '@/hooks/useRestCountdown'
 import type { TvRestState } from '@/lib/tv/broadcast'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 /**
@@ -13,6 +14,7 @@ import { cn } from '@/lib/cn'
  * Covers the session HUD with rust / set rust and the upcoming exercise.
  */
 export function TvRestTimer({ rest }: { rest: TvRestState | null | undefined }) {
+  const { t } = useTranslation('tv')
   const timer =
     rest?.active && rest.endsAt
       ? {
@@ -70,7 +72,7 @@ export function TvRestTimer({ rest }: { rest: TvRestState | null | undefined }) 
           </div>
 
           <p className="text-[1.8vh] text-muted">
-            {countdown.remaining} / {countdown.total} seconden
+            {t('seconds', { remaining: countdown.remaining, total: countdown.total })}
           </p>
 
           {countdown.nextExerciseName && (

@@ -2,6 +2,7 @@ import { Check, ChevronRight, Clock, Copy, Dumbbell, Pencil, Share2, Star, Trash
 import type { WorkoutTemplate } from '@/types/workout'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { getWorkoutStructure } from '@/lib/workout/workoutStructure'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type WorkoutCardProps = {
@@ -29,6 +30,7 @@ export function WorkoutCard({
   onDelete,
   onToggleFavorite,
 }: WorkoutCardProps) {
+  const { t } = useTranslation('workouts')
   const preview = workout.exercises.slice(0, 4)
   const isSelected = selected || multiSelected
 
@@ -69,16 +71,18 @@ export function WorkoutCard({
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
             <span className="flex items-center gap-1">
               <Clock className="size-3" />
-              {workout.estimatedMinutes} min
+              {t('estimated', { minutes: workout.estimatedMinutes })}
             </span>
             <span className="flex items-center gap-1">
               <Dumbbell className="size-3" />
               {workout.exercises.length}
             </span>
             {getWorkoutStructure(workout) === 'circuit' ? (
-              <span className="label-mono text-faint">{workout.circuitRounds} rondes</span>
+              <span className="label-mono text-faint">
+                {t('rounds', { count: workout.circuitRounds })}
+              </span>
             ) : (
-              <span className="label-mono text-faint">{workout.sets} sets</span>
+              <span className="label-mono text-faint">{t('setsCount', { count: workout.sets })}</span>
             )}
           </div>
 
@@ -106,27 +110,27 @@ export function WorkoutCard({
       {!selectionMode && (
         <div className="grid grid-cols-5 border-t border-line">
           {onEdit && (
-            <ActionButton label="Bewerken" onClick={() => onEdit(workout)}>
+            <ActionButton label={t('editAction')} onClick={() => onEdit(workout)}>
               <Pencil className="size-5" />
             </ActionButton>
           )}
           {onDuplicate && (
-            <ActionButton label="Dupliceer" onClick={() => onDuplicate(workout)}>
+            <ActionButton label={t('duplicateAction')} onClick={() => onDuplicate(workout)}>
               <Copy className="size-5" />
             </ActionButton>
           )}
           {onShare && (
-            <ActionButton label="Delen" onClick={() => onShare(workout)} className="text-solo-400">
+            <ActionButton label={t('shareAction')} onClick={() => onShare(workout)} className="text-solo-400">
               <Share2 className="size-5" />
             </ActionButton>
           )}
           {onDelete && (
-            <ActionButton label="Verwijderen" onClick={() => onDelete(workout.id)} className="text-danger">
+            <ActionButton label={t('deleteAction')} onClick={() => onDelete(workout.id)} className="text-danger">
               <Trash2 className="size-5" />
             </ActionButton>
           )}
           <ActionButton
-            label={workout.favorite ? 'Favoriet' : 'Favoriet maken'}
+            label={workout.favorite ? t('favoriteOn') : t('favoriteOff')}
             onClick={() => onToggleFavorite(workout.id)}
             className={workout.favorite ? 'text-accent' : undefined}
           >

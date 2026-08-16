@@ -1,9 +1,10 @@
 import type { WgerTranslation } from '@/types/wger'
-import { WGER_DESCRIPTION_PRIORITY } from '@/lib/translate/wgerLanguages'
+import { getAppLocale } from '@/i18n'
+import { descriptionPriorityForLocale } from '@/lib/translate/wgerLanguages'
 
 export function pickWgerTranslation(
   translations: WgerTranslation[],
-  preferredLanguageIds: readonly number[] = WGER_DESCRIPTION_PRIORITY,
+  preferredLanguageIds: readonly number[] = descriptionPriorityForLocale(getAppLocale()),
 ): WgerTranslation | undefined {
   for (const languageId of preferredLanguageIds) {
     const hit = translations.find(

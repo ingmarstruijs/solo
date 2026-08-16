@@ -20,9 +20,11 @@
   "dependencies": {
     "@garmin/fitsdk": "^21.208.0",
     "clsx": "^2.1.1",
+    "i18next": "^26.3.6",
     "lucide-react": "^1.28.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-i18next": "^17.0.11",
     "react-markdown": "^10.1.0",
     "react-router": "^8.3.0",
     "tailwind-merge": "^3.6.0"

@@ -2,10 +2,12 @@ import { ArrowLeft, Check } from 'lucide-react'
 import type { WgerExerciseInfo } from '@/types/wger'
 import { MarkdownText } from '@/components/MarkdownText'
 import { LabActionButton } from '@/components/lab/LabPrimitives'
+import { useLocale, useTranslation } from '@/i18n/hooks'
+import { wgerIdForLocale } from '@/i18n/registry'
 import { exerciseDisplayName, htmlToMarkdown } from '@/lib/wger/client'
 import { mapWgerEquipment } from '@/lib/wger/mapEquipment'
 import { pickWgerTranslation } from '@/lib/wger/pickTranslation'
-import { wgerLanguageCode } from '@/lib/translate/wgerLanguages'
+import { descriptionPriorityForLocale, wgerLanguageCode } from '@/lib/translate/wgerLanguages'
 import { getAutoTranslateWger } from '@/lib/storage/translateStore'
 
 type WgerExercisePreviewProps = {
@@ -20,38 +22,25 @@ function previewImageUrl(info: WgerExerciseInfo): string | undefined {
   return image?.thumbnails?.medium ?? image?.thumbnails?.small ?? image?.image
 }
 
-function previewDescription(info: WgerExerciseInfo): string {
-  const translation = pickWgerTranslation(info.translations)
-  return htmlToMarkdown(translation?.description ?? '')
-}
-
-function previewLanguageLabel(info: WgerExerciseInfo): string | undefined {
-  const translation = pickWgerTranslation(info.translations)
-  if (!translation) return undefined
-  const code = wgerLanguageCode(translation.language)
-  const labels: Record<string, string> = {
-    nl: 'Nederlands',
-    en: 'Engels',
-    de: 'Duits',
-    fr: 'Frans',
-    es: 'Spaans',
-    it: 'Italiaans',
-  }
-  return labels[code] ?? code.toUpperCase()
-}
-
 export function WgerExercisePreview({
   info,
   selected,
   onBack,
   onToggleSelect,
 }: WgerExercisePreviewProps) {
-  const name = exerciseDisplayName(info)
+  const { t } = useTranslation(['wger', 'common', 'session'])
+  const { locale } = useLocale()
+  const name = exerciseDisplayName(info, wgerIdForLocale(locale))
   const imageUrl = previewImageUrl(info)
-  const description = previewDescription(info)
+  const translation = pickWgerTranslation(
+    info.translations,
+    descriptionPriorityForLocale(locale),
+  )
+  const description = htmlToMarkdown(translation?.description ?? '')
+  const sourceLang = translation ? wgerLanguageCode(translation.language) : undefined
   const equipment = mapWgerEquipment(info.equipment)
-  const languageLabel = previewLanguageLabel(info)
-  const willTranslate = getAutoTranslateWger() && languageLabel !== 'Nederlands' && Boolean(description)
+  const willTranslate =
+    getAutoTranslateWger() && Boolean(description) && Boolean(sourceLang) && sourceLang !== locale
 
   const muscles = [
     ...info.muscles.map((m) => m.name_en || m.name),
@@ -64,12 +53,12 @@ export function WgerExercisePreview({
           type="button"
           onClick={onBack}
           className="grid size-9 shrink-0 place-items-center rounded-lg text-muted active:bg-surface-2"
-          aria-label="Terug naar lijst"
+          aria-label={t('common:back')}
         >
           <ArrowLeft className="size-5" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="label-mono text-faint">Preview</p>
+          <p className="label-mono text-faint">{t('wger:preview')}</p>
           <h2 className="truncate text-lg font-bold">{name}</h2>
         </div>
       </header>
@@ -90,39 +79,40 @@ export function WgerExercisePreview({
           <span className="rounded-lg border border-line bg-surface-2 px-2 py-1 text-muted">
             {info.category.name}
           </span>
-          {languageLabel && (
-            <span className="rounded-lg border border-line bg-surface-2 px-2 py-1 text-muted">
-              {languageLabel}
+          {sourceLang && (
+            <span className="rounded-lg border border-line bg-surface-2 px-2 py-1 text-muted uppercase">
+              {sourceLang}
             </span>
           )}
           {willTranslate && (
             <span className="rounded-lg border border-solo-400/30 bg-solo-400/10 px-2 py-1 text-solo-300">
-              Vertaling bij import
+              {t('wger:translationOnImport')}
             </span>
           )}
         </div>
+        <p className="mt-2 text-[11px] text-faint">{t('wger:translationHint')}</p>
 
         {equipment.length > 0 && (
           <div className="mt-4">
-            <p className="label-mono text-faint">Materiaal</p>
+            <p className="label-mono text-faint">{t('session:materials')}</p>
             <p className="mt-1 text-sm text-muted">{equipment.join(' · ')}</p>
           </div>
         )}
 
         {muscles.length > 0 && (
           <div className="mt-4">
-            <p className="label-mono text-faint">Spieren</p>
+            <p className="label-mono text-faint">Muscles</p>
             <p className="mt-1 text-sm text-muted">{muscles.join(' · ')}</p>
           </div>
         )}
 
         {description ? (
           <div className="mt-4 border-t border-line pt-4">
-            <p className="label-mono text-faint">Uitleg</p>
+            <p className="label-mono text-faint">{t('session:instructions')}</p>
             <MarkdownText content={description} className="mt-2" />
           </div>
         ) : (
-          <p className="mt-4 text-sm text-muted">Geen uitleg beschikbaar voor deze oefening.</p>
+          <p className="mt-4 text-sm text-muted">{t('session:noDescription')}</p>
         )}
       </div>
 
@@ -135,10 +125,10 @@ export function WgerExercisePreview({
           {selected ? (
             <>
               <Check className="size-4" />
-              Geselecteerd — tik om te verwijderen
+              {t('wger:selected', { count: 1 })}
             </>
           ) : (
-            'Toevoegen aan selectie'
+            t('wger:addSelected')
           )}
         </LabActionButton>
       </footer>

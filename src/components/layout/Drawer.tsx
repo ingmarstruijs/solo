@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { Logo } from '@/components/Logo'
 import { drawerNav } from '@/config/nav'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type DrawerProps = {
@@ -11,6 +12,8 @@ type DrawerProps = {
 }
 
 export function Drawer({ open, onClose }: DrawerProps) {
+  const { t } = useTranslation(['nav', 'common'])
+
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -25,7 +28,6 @@ export function Drawer({ open, onClose }: DrawerProps) {
       className={cn('fixed inset-0 z-50', open ? 'pointer-events-auto' : 'pointer-events-none')}
       aria-hidden={!open}
     >
-      {/* Backdrop */}
       <div
         onClick={onClose}
         className={cn(
@@ -34,11 +36,10 @@ export function Drawer({ open, onClose }: DrawerProps) {
         )}
       />
 
-      {/* Panel */}
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="Navigatie"
+        aria-label={t('nav:home')}
         className={cn(
           'pt-safe pb-safe absolute inset-y-0 left-0 flex w-[78%] max-w-80 flex-col border-r border-line bg-surface shadow-2xl transition-transform duration-200 ease-out',
           open ? 'translate-x-0' : '-translate-x-full',
@@ -49,7 +50,7 @@ export function Drawer({ open, onClose }: DrawerProps) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Menu sluiten"
+            aria-label={t('common:close')}
             className="grid size-9 place-items-center rounded-xl text-muted transition-colors active:bg-surface-2"
           >
             <X className="size-5" />
@@ -58,7 +59,7 @@ export function Drawer({ open, onClose }: DrawerProps) {
 
         <nav className="flex-1 overflow-y-auto p-3">
           <ul className="flex flex-col gap-1">
-            {drawerNav.map(({ to, label, icon: Icon }) => (
+            {drawerNav.map(({ to, labelKey, icon: Icon }) => (
               <li key={to}>
                 <NavLink
                   to={to}
@@ -73,7 +74,7 @@ export function Drawer({ open, onClose }: DrawerProps) {
                   }
                 >
                   <Icon className="size-5 shrink-0" />
-                  {label}
+                  {t(`nav:${labelKey}`)}
                 </NavLink>
               </li>
             ))}

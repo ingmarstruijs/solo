@@ -239,7 +239,9 @@ graph TD
 | `solo-coach-enabled` / `solo-coach-voice-gender` | Coach prefs |
 | `solo-camera-enabled` | Camera preview preference |
 | `solo-theme` | Theme preference |
-| `solo-auto-translate-wger` | Wger auto-translate |
+| `solo-auto-translate-wger` | Wger auto-translate into app language |
+| `solo-locale` | App UI locale (`en` / `nl` / `de` / `fr`) |
+| `solo-translate-cache` | MyMemory translation cache (`from|to|text`) |
 
 ### sessionStorage (ephemeral)
 

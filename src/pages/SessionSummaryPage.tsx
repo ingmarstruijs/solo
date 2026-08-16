@@ -6,6 +6,8 @@ import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { useHistory } from '@/hooks/useHistory'
 import { useSessionActions } from '@/hooks/useSessionActions'
 import { useTheme } from '@/hooks/useTheme'
+import { getAppLocale } from '@/i18n'
+import { useTranslation } from '@/i18n/hooks'
 import { getSessionRecord } from '@/lib/storage/historyStore'
 import { buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle } from '@/lib/tv/transport'
@@ -24,6 +26,7 @@ type SummaryLocationState = {
 }
 
 export function SessionSummaryPage() {
+  const { t, i18n } = useTranslation(['session', 'common', 'history'])
   const navigate = useNavigate()
   const location = useLocation()
   const { sessionId } = useParams<{ sessionId?: string }>()
@@ -31,6 +34,7 @@ export function SessionSummaryPage() {
   const { startNextWorkout } = useSessionActions()
   const { remove: removeHistory } = useHistory()
   const isHistoryView = Boolean(sessionId)
+  const locale = i18n.language || getAppLocale()
 
   const state = location.state as SummaryLocationState | null
   const stored = loadLastSummary()
@@ -58,7 +62,7 @@ export function SessionSummaryPage() {
 
   function handleDeleteHistory() {
     if (!sessionId || !historyRecord) return
-    if (!confirm(`"${historyRecord.workoutName}" uit je logboek verwijderen?`)) return
+    if (!confirm(t('history:deleteConfirm', { name: historyRecord.workoutName }))) return
     removeHistory(sessionId)
     navigate('/history')
   }
@@ -87,19 +91,17 @@ export function SessionSummaryPage() {
     return (
       <section className="flex flex-col gap-4 py-2">
         <h1 className="text-xl font-bold">
-          {isHistoryView ? 'Sessie niet gevonden' : 'Geen samenvatting'}
+          {isHistoryView ? t('session:sessionNotFound') : t('session:summaryMissing')}
         </h1>
         <p className="text-sm text-muted">
-          {isHistoryView
-            ? 'Deze sessie staat niet meer in je logboek.'
-            : 'Rond eerst een workout af om het overzicht te zien.'}
+          {isHistoryView ? t('session:sessionNotFoundHint') : t('session:summaryMissingHint')}
         </p>
         <button
           type="button"
           onClick={() => navigate(isHistoryView ? '/history' : '/workouts')}
           className="rounded-xl bg-solo-400 py-3 text-sm font-semibold text-ink"
         >
-          {isHistoryView ? 'Terug naar logboek' : 'Naar workouts'}
+          {isHistoryView ? t('session:backToLogbook') : t('session:goToWorkouts')}
         </button>
       </section>
     )
@@ -110,7 +112,7 @@ export function SessionSummaryPage() {
       <div className="flex items-center gap-2">
         <PageBackButton
           to={isHistoryView ? '/history' : '/workouts'}
-          label={isHistoryView ? 'Logboek' : undefined}
+          label={isHistoryView ? t('history:title') : undefined}
         />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-bold">{summary.workoutName}</h1>
@@ -119,7 +121,7 @@ export function SessionSummaryPage() {
             {isHistoryView && historyRecord && (
               <>
                 {' · '}
-                {new Date(historyRecord.completedAt).toLocaleDateString('nl-NL', {
+                {new Date(historyRecord.completedAt).toLocaleDateString(locale, {
                   day: 'numeric',
                   month: 'short',
                   hour: '2-digit',
@@ -134,7 +136,7 @@ export function SessionSummaryPage() {
             type="button"
             onClick={handleDeleteHistory}
             className="grid size-11 shrink-0 place-items-center rounded-xl border border-danger/40 bg-danger/10 text-danger active:bg-danger/20"
-            aria-label="Verwijderen"
+            aria-label={t('common:delete')}
           >
             <Trash2 className="size-5" />
           </button>
@@ -152,7 +154,7 @@ export function SessionSummaryPage() {
             onClick={handleNextWorkout}
             className="flex items-center justify-center gap-2 rounded-xl bg-solo-400 py-3.5 text-sm font-bold text-ink active:bg-solo-500"
           >
-            Volgende workout
+            {t('session:nextWorkout')}
             <ChevronRight className="size-4" />
           </button>
         )}
@@ -162,7 +164,7 @@ export function SessionSummaryPage() {
             onClick={handleDone}
             className="rounded-xl border border-line py-3 text-sm font-semibold text-fg active:bg-surface-2"
           >
-            {hasNextWorkout ? 'Stoppen' : 'Terug naar workouts'}
+            {hasNextWorkout ? t('session:stop') : t('session:backToWorkouts')}
           </button>
         )}
       </div>

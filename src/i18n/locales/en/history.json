@@ -1,0 +1,15 @@
+{
+  "title": "Logbook",
+  "subtitle": "Your completed workouts",
+  "clearAll": "Clear all",
+  "clearConfirm": "Delete all sessions from your logbook?",
+  "deleteConfirm": "Remove \"{{name}}\" from your logbook?",
+  "deleteAria": "Delete {{name}}",
+  "empty": "No completed sessions yet. Finish a workout to keep your summary here.",
+  "thisWeek": "This week",
+  "sessions": "Sessions",
+  "minutes": "Minutes",
+  "exercises": "{{count}} exercises",
+  "sets": "{{count}} sets",
+  "todayAt": "Today · {{time}}"
+}

@@ -1,0 +1,36 @@
+{
+  "greeting": {
+    "morning": "Guten Morgen",
+    "afternoon": "Guten Tag",
+    "evening": "Guten Abend",
+    "night": "Gute Nacht"
+  },
+  "hero": "Bereit zum Trainieren",
+  "sessionLive": "Session läuft",
+  "resumeSet": "Satz {{set}} · tippen zum Fortsetzen",
+  "recovery": "Erholung",
+  "recoveryFresh": "Du bist frisch — guter Tag für eine harte Session.",
+  "recoveryOk": "Einigermaßen erholt. Achte auf das Volumen.",
+  "recoveryTired": "Begrenzt erholt. Leichte Session oder Pause erwägen.",
+  "toneFresh": "Frisch",
+  "toneOk": "OK",
+  "toneTired": "Müde",
+  "thisWeek": "Diese Woche",
+  "sessions": "Sessions",
+  "minutes": "Minuten",
+  "chooseWorkout": "Workout wählen",
+  "chooseWorkoutHint": "Auswählen, vorbereiten und starten.",
+  "activeLocker": "Aktiver Locker",
+  "manage": "Verwalten",
+  "lockerHint": "Die Prep nutzt Equipment aus dem gewählten Locker ({{name}}).",
+  "recent": "Zuletzt",
+  "seeAll": "Alle",
+  "recentMeta": "{{count}} Übungen · {{minutes}} Min.",
+  "relative": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "daysAgo": "vor {{count}} Tagen",
+    "weekAgo": "vor 1 Woche",
+    "weeksAgo": "vor {{count}} Wochen"
+  }
+}

@@ -17,15 +17,15 @@ export type LabDefinition = {
   icon: LucideIcon
 }
 
-/** Feasibility experiments — each maps to a slice of the SOLO. architecture. */
+/** Feasibility experiments — English only (not localized with the product UI). */
 export const labs: LabDefinition[] = [
   {
     id: 'active-set',
     path: '/lab/active-set',
     label: 'Active Set Loop',
-    pillar: 'Geïntegreerd',
+    pillar: 'Integrated',
     description:
-      'Volledige training-loop: Garmin BLE → telemetrie → camera/pose → canvas composite → TV-stream.',
+      'Full training loop: Garmin BLE → telemetry → camera/pose → canvas composite → TV stream.',
     icon: Workflow,
   },
   {
@@ -34,7 +34,7 @@ export const labs: LabDefinition[] = [
     label: 'Garmin BLE Channel',
     pillar: 'Pillar 2',
     description:
-      'HR-band via standaard BLE (0x180D) of brede scan voor toekomstige Connect IQ-bridge met reps/velocity.',
+      'HR band via standard BLE (0x180D) or broad scan for a future Connect IQ bridge with reps/velocity.',
     icon: Bluetooth,
   },
   {
@@ -43,7 +43,7 @@ export const labs: LabDefinition[] = [
     label: 'Camera & Pose',
     pillar: 'Pillar 3',
     description:
-      'Front-camera toegang en GPU/Wasm-readiness voor MediaPipe Pose Landmarker.',
+      'Front-camera access and GPU/Wasm readiness for MediaPipe Pose Landmarker.',
     icon: Camera,
   },
   {
@@ -52,7 +52,7 @@ export const labs: LabDefinition[] = [
     label: 'Canvas Compositor',
     pillar: 'Pillar 3',
     description:
-      '16:9 frame met studio loop-placeholder, skeleton overlay en oversized Garmin HUD.',
+      '16:9 frame with studio loop placeholder, skeleton overlay, and oversized Garmin HUD.',
     icon: Layers,
   },
   {
@@ -61,7 +61,7 @@ export const labs: LabDefinition[] = [
     label: 'TV Cast Stream',
     pillar: 'Web-to-Cast',
     description:
-      'canvas.captureStream op 30 FPS — AirPlay/Chromecast readiness en MediaStream-pipeline.',
+      'canvas.captureStream at 30 FPS — AirPlay/Chromecast readiness and MediaStream pipeline.',
     icon: Tv,
   },
 ]

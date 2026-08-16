@@ -1,0 +1,15 @@
+{
+  "title": "Wger",
+  "searchPlaceholder": "Übungen suchen…",
+  "importing": "Übersetzen & importieren…",
+  "import": "Importieren",
+  "addSelected": "Auswahl hinzufügen",
+  "selected": "{{count}} ausgewählt",
+  "translationOnImport": "Übersetzung beim Import",
+  "translationHint": "Text wird in deine App-Sprache gebracht beim Import oder Sprachwechsel.",
+  "noResults": "Keine Übungen gefunden",
+  "loadMore": "Mehr laden",
+  "preview": "Vorschau",
+  "error": "Übungen konnten nicht geladen werden",
+  "close": "Schließen"
+}

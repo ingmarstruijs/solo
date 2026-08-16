@@ -4,6 +4,7 @@ import {
   type ExerciseTrend,
   type SessionSummary,
 } from '@/lib/workout/sessionSummary'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type WorkoutSummaryProps = {
@@ -13,22 +14,26 @@ type WorkoutSummaryProps = {
   showHeader?: boolean
 }
 
-function trendMeta(trend: ExerciseTrend, percent: number) {
+function trendMeta(
+  trend: ExerciseTrend,
+  percent: number,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+) {
   if (trend === 'faster') {
     return {
       icon: TrendingDown,
-      label: `${Math.abs(percent)}% sneller`,
+      label: t('trendFaster', { percent: Math.abs(percent) }),
       className: 'text-success',
     }
   }
   if (trend === 'slower') {
     return {
       icon: TrendingUp,
-      label: `${percent}% langzamer`,
+      label: t('trendSlower', { percent }),
       className: 'text-muted',
     }
   }
-  return { icon: Minus, label: 'Stabiel', className: 'text-muted' }
+  return { icon: Minus, label: t('trendStable'), className: 'text-muted' }
 }
 
 function DurationPlot({
@@ -112,6 +117,7 @@ export function WorkoutSummary({
   variant = 'mobile',
   showHeader = true,
 }: WorkoutSummaryProps) {
+  const { t } = useTranslation('session')
   const isTv = variant === 'tv'
   const { stats } = summary
   const multiSet = summary.sets.length > 1
@@ -123,7 +129,7 @@ export function WorkoutSummary({
         <div className={cn('rounded-card border border-line bg-surface', isTv ? 'p-[2.5vh]' : 'p-4')}>
           <h2 className={cn('font-bold', isTv ? 'text-[4vh]' : 'text-xl')}>{summary.workoutName}</h2>
           <p className={cn('text-muted', isTv ? 'mt-[1vh] text-[2.2vh]' : 'mt-1 text-sm')}>
-            Totale tijd{' '}
+            {t('summaryTotalTime')}{' '}
             <span className="font-mono font-bold text-fg">
               {formatDuration(summary.totalDurationSeconds)}
             </span>
@@ -134,13 +140,13 @@ export function WorkoutSummary({
       <section className={cn('grid grid-cols-2', isTv ? 'gap-[1.2vh]' : 'gap-2')}>
         <StatCard
           variant={variant}
-          label={`Gem. ${stats.phaseLabel.toLowerCase()}`}
+          label={t('summaryAvgPhase', { phase: stats.phaseLabel.toLowerCase() })}
           value={formatDuration(stats.avgSetDurationSeconds)}
         />
         {timedExercises.length > 0 && (
           <StatCard
             variant={variant}
-            label="Gem. per oefening"
+            label={t('summaryAvgExercise')}
             value={formatDuration(stats.avgExercisePerSetSeconds)}
           />
         )}
@@ -148,7 +154,7 @@ export function WorkoutSummary({
 
       {multiSet && (
         <div className={cn('rounded-xl border border-line bg-surface', isTv ? 'p-[2vh]' : 'p-3')}>
-          <p className={cn('font-semibold', isTv ? 'text-[2vh]' : 'text-sm')}>Tempo</p>
+          <p className={cn('font-semibold', isTv ? 'text-[2vh]' : 'text-sm')}>{t('summaryPace')}</p>
           <p className={cn('text-muted', isTv ? 'mt-[0.5vh] text-[1.8vh]' : 'mt-0.5 text-xs')}>
             {stats.paceLabel}
           </p>
@@ -162,13 +168,13 @@ export function WorkoutSummary({
 
       <section>
         <h3 className={cn('mb-2 font-semibold', isTv ? 'text-[2.2vh]' : 'text-sm')}>
-          Oefeningen
+          {t('summaryExercises')}
         </h3>
         <ol className={cn('flex flex-col', isTv ? 'gap-[1.2vh]' : 'gap-2')}>
           {summary.exercises.map((ex, i) => {
             const tracksTime = ex.metric !== 'reps'
             const hasPlot = multiSet && tracksTime && ex.durationsBySet.some((value) => value > 0)
-            const trend = hasPlot ? trendMeta(ex.trend, ex.trendPercent) : null
+            const trend = hasPlot ? trendMeta(ex.trend, ex.trendPercent, t) : null
             const TrendIcon = trend?.icon
 
             return (
@@ -197,7 +203,7 @@ export function WorkoutSummary({
                     </span>
                   ) : (
                     <span className={cn('shrink-0 text-muted', isTv ? 'text-[1.8vh]' : 'text-xs')}>
-                      Afgerond
+                      {t('summaryCompleted')}
                     </span>
                   )}
                 </div>

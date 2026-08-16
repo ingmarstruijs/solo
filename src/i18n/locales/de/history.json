@@ -1,0 +1,15 @@
+{
+  "title": "Logbuch",
+  "subtitle": "Deine abgeschlossenen Workouts",
+  "clearAll": "Alles löschen",
+  "clearConfirm": "Alle Sessions aus dem Logbuch löschen?",
+  "deleteConfirm": "\"{{name}}\" aus dem Logbuch entfernen?",
+  "deleteAria": "{{name}} löschen",
+  "empty": "Noch keine abgeschlossenen Sessions. Beende ein Workout, um die Zusammenfassung hier zu speichern.",
+  "thisWeek": "Diese Woche",
+  "sessions": "Sessions",
+  "minutes": "Minuten",
+  "exercises": "{{count}} Übungen",
+  "sets": "{{count}} Sätze",
+  "todayAt": "Heute · {{time}}"
+}

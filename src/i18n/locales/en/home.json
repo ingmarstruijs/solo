@@ -1,0 +1,36 @@
+{
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "night": "Good night"
+  },
+  "hero": "Ready to train",
+  "sessionLive": "Session in progress",
+  "resumeSet": "Set {{set}} · tap to resume",
+  "recovery": "Recovery",
+  "recoveryFresh": "You're fresh — a good day for a hard session.",
+  "recoveryOk": "Reasonably recovered. Watch your volume.",
+  "recoveryTired": "Limited recovery. Consider a light session or rest.",
+  "toneFresh": "Fresh",
+  "toneOk": "OK",
+  "toneTired": "Tired",
+  "thisWeek": "This week",
+  "sessions": "Sessions",
+  "minutes": "Minutes",
+  "chooseWorkout": "Choose a workout",
+  "chooseWorkoutHint": "Select, prep, and start your session.",
+  "activeLocker": "Active locker",
+  "manage": "Manage",
+  "lockerHint": "Workout prep uses gear from the selected locker ({{name}}).",
+  "recent": "Recent",
+  "seeAll": "All",
+  "recentMeta": "{{count}} exercises · {{minutes}} min",
+  "relative": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}} days ago",
+    "weekAgo": "1 week ago",
+    "weeksAgo": "{{count}} weeks ago"
+  }
+}

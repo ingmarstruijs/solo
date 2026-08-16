@@ -1,6 +1,7 @@
 import { Bold, Eye, Heading3, Italic, List, Pencil } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { MarkdownText } from '@/components/MarkdownText'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type MarkdownFieldProps = {
@@ -16,10 +17,12 @@ type Tab = 'edit' | 'preview'
 export function MarkdownField({
   value,
   onChange,
-  placeholder = 'Instructies, tips of uitvoering…',
+  placeholder,
   rows = 6,
   id,
 }: MarkdownFieldProps) {
+  const { t } = useTranslation('workouts')
+  const resolvedPlaceholder = placeholder ?? t('markdownPlaceholder')
   const [tab, setTab] = useState<Tab>('edit')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -64,8 +67,8 @@ export function MarkdownField({
         <div className="flex rounded-lg border border-line p-0.5">
           {(
             [
-              { id: 'edit' as const, label: 'Bewerken', icon: Pencil },
-              { id: 'preview' as const, label: 'Voorbeeld', icon: Eye },
+              { id: 'edit' as const, label: t('editTab'), icon: Pencil },
+              { id: 'preview' as const, label: t('preview'), icon: Eye },
             ] as const
           ).map(({ id: tabId, label, icon: Icon }) => (
             <button
@@ -86,25 +89,25 @@ export function MarkdownField({
         {tab === 'edit' && (
           <div className="flex gap-0.5">
             <ToolbarButton
-              label="Vet"
-              onClick={() => wrapSelection('**', '**', 'vet')}
+              label={t('bold')}
+              onClick={() => wrapSelection('**', '**', t('bold'))}
             >
               <Bold className="size-3.5" />
             </ToolbarButton>
             <ToolbarButton
-              label="Cursief"
-              onClick={() => wrapSelection('*', '*', 'cursief')}
+              label={t('italic')}
+              onClick={() => wrapSelection('*', '*', t('italic'))}
             >
               <Italic className="size-3.5" />
             </ToolbarButton>
             <ToolbarButton
-              label="Kop"
+              label={t('heading')}
               onClick={() => insertLinePrefix('### ')}
             >
               <Heading3 className="size-3.5" />
             </ToolbarButton>
             <ToolbarButton
-              label="Lijst"
+              label={t('list')}
               onClick={() => insertLinePrefix('- ')}
             >
               <List className="size-3.5" />
@@ -119,7 +122,7 @@ export function MarkdownField({
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           rows={rows}
           className={cn(
             'w-full resize-y rounded-lg border border-line bg-surface-2 px-2.5 py-2 font-mono text-sm leading-relaxed outline-none focus:border-solo-400/50',
@@ -132,7 +135,7 @@ export function MarkdownField({
         </div>
       ) : (
         <p className="min-h-[7rem] rounded-lg border border-dashed border-line px-3 py-2 text-sm text-faint">
-          {placeholder}
+          {resolvedPlaceholder}
         </p>
       )}
     </div>

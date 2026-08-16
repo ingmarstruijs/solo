@@ -1,3 +1,5 @@
+import { i18n } from '@/i18n'
+
 export type ThemeId = 'ochtend' | 'middag' | 'avond' | 'nacht'
 
 export type ThemePreference = 'auto' | ThemeId
@@ -12,26 +14,26 @@ export type ThemeDefinition = {
 export const THEMES: ThemeDefinition[] = [
   {
     id: 'ochtend',
-    label: 'Ochtend',
-    description: 'Zacht licht, warme dageraad',
+    label: 'Morning',
+    description: 'Soft light, warm dawn',
     timeRange: '06:00 – 11:59',
   },
   {
     id: 'middag',
-    label: 'Middag',
-    description: 'Helder en fris daglicht',
+    label: 'Afternoon',
+    description: 'Bright, crisp daylight',
     timeRange: '12:00 – 17:59',
   },
   {
     id: 'avond',
-    label: 'Avond',
-    description: 'Frisse schemering, koel indigo',
+    label: 'Evening',
+    description: 'Cool dusk, indigo tones',
     timeRange: '18:00 – 21:59',
   },
   {
     id: 'nacht',
-    label: 'Nacht',
-    description: 'Diep zwart, minimaal SOLO-blauw',
+    label: 'Night',
+    description: 'Deep black, minimal SOLO blue',
     timeRange: '22:00 – 05:59',
   },
 ]
@@ -88,7 +90,17 @@ export function applyStoredTheme(): void {
 }
 
 export function getThemeLabel(id: ThemeId): string {
+  const key = `themes:${id}.label`
+  const translated = i18n.t(key)
+  if (translated !== key) return translated
   return THEMES.find((t) => t.id === id)?.label ?? id
+}
+
+export function getThemeDescription(id: ThemeId): string {
+  const key = `themes:${id}.description`
+  const translated = i18n.t(key)
+  if (translated !== key) return translated
+  return THEMES.find((t) => t.id === id)?.description ?? ''
 }
 
 function nextBoundaryDate(from = new Date()): Date {

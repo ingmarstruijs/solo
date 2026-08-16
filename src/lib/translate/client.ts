@@ -23,11 +23,11 @@ async function translateChunk(text: string, from: string, to: string): Promise<s
   })
 
   const res = await fetch(`${MYMEMORY_URL}?${params}`)
-  if (!res.ok) throw new Error(`Vertaling mislukt (${res.status})`)
+  if (!res.ok) throw new Error(`Translation failed (${res.status})`)
 
   const data = (await res.json()) as MyMemoryResponse
   if (data.responseStatus !== 200 || !data.responseData?.translatedText) {
-    throw new Error('Vertaling niet beschikbaar')
+    throw new Error('Translation unavailable')
   }
 
   const translated = data.responseData.translatedText.trim()
@@ -73,9 +73,18 @@ export async function translateText(
   return translated.join('\n\n')
 }
 
+export async function translateMarkdown(
+  markdown: string,
+  sourceLang: string,
+  targetLang: string,
+): Promise<string> {
+  return translateText(markdown, sourceLang, targetLang)
+}
+
+/** @deprecated Use {@link translateMarkdown} with an explicit target locale. */
 export async function translateMarkdownToDutch(
   markdown: string,
   sourceLang: string,
 ): Promise<string> {
-  return translateText(markdown, sourceLang, 'nl')
+  return translateMarkdown(markdown, sourceLang, 'nl')
 }

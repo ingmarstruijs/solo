@@ -2,6 +2,7 @@ import { Boxes, ChevronDown, Scale, X } from 'lucide-react'
 import { useState } from 'react'
 import type { OverloadTarget, WorkoutTemplate } from '@/types/workout'
 import { isRecoveryCritical } from '@/lib/storage/recoveryStore'
+import { useTranslation } from '@/i18n/hooks'
 import { RecoverySlider } from './RecoverySlider'
 import { WeightAssistant } from './WeightAssistant'
 import { cn } from '@/lib/cn'
@@ -28,22 +29,23 @@ export function PrepInsightsPanel({
   lockerName,
   garminConnected,
 }: PrepInsightsPanelProps) {
+  const { t } = useTranslation('session')
   const [expanded, setExpanded] = useState(false)
   const [weightFor, setWeightFor] = useState<{ workoutId: string; exerciseId: string } | null>(null)
 
   const allTargets = workouts.flatMap((w) => w.targets)
-  const adjustedCount = allTargets.filter((t) => t.adjustedWeightKg !== t.originalWeightKg).length
+  const adjustedCount = allTargets.filter((tgt) => tgt.adjustedWeightKg !== tgt.originalWeightKg).length
   const critical = garminConnected && isRecoveryCritical(recoveryScore)
-  const title = garminConnected ? 'Gewichten & herstel' : 'Gewichten'
+  const title = garminConnected ? t('prepWeightsRecovery') : t('prepWeights')
 
   const summaryParts: string[] = []
-  if (garminConnected) summaryParts.push(`herstel ${recoveryScore}%`)
-  if (adjustedCount > 0) summaryParts.push(`${adjustedCount} gewichten aangepast`)
-  if (summaryParts.length === 0) summaryParts.push('geen aanpassingen')
+  if (garminConnected) summaryParts.push(t('prepRecoverySummary', { score: recoveryScore }))
+  if (adjustedCount > 0) summaryParts.push(t('prepAdjusted', { count: adjustedCount }))
+  if (summaryParts.length === 0) summaryParts.push(t('prepNoAdjustments'))
 
   const weightWorkout = weightFor ? workouts.find((w) => w.workout.id === weightFor.workoutId) : null
   const weightTarget = weightFor
-    ? weightWorkout?.targets.find((t) => t.exerciseId === weightFor.exerciseId)
+    ? weightWorkout?.targets.find((tgt) => tgt.exerciseId === weightFor.exerciseId)
     : null
   const weightExercise = weightFor
     ? weightWorkout?.workout.exercises.find((e) => e.id === weightFor.exerciseId)
@@ -70,9 +72,16 @@ export function PrepInsightsPanel({
         {expanded && (
           <div className="border-t border-line px-3 pb-3 pt-2">
             <p className="text-xs leading-relaxed text-muted">
-              Doelgewichten op basis van locker <strong className="font-medium text-fg">{lockerName}</strong>
-              {garminConnected && ' en herstel'}
-              {garminConnected ? '. Bij laag herstel worden zware targets iets verlaagd.' : '.'}
+              {t('prepBodyBefore')}{' '}
+              <strong className="font-medium text-fg">{lockerName}</strong>
+              {garminConnected ? (
+                <>
+                  {t('prepBodyRecovery')}
+                  {t('prepBodyHint')}
+                </>
+              ) : (
+                t('prepBodyEnd')
+              )}
             </p>
             {garminConnected && onRecoveryChange && (
               <RecoverySlider
@@ -83,24 +92,22 @@ export function PrepInsightsPanel({
                 onChange={onRecoveryChange}
               />
             )}
-            {critical && (
-              <p className="mt-2 text-xs text-warn">Laag herstel — gewichten verlaagd met 5–10%</p>
-            )}
+            {critical && <p className="mt-2 text-xs text-warn">{t('prepCritical')}</p>}
             <div className="mt-2 flex items-center gap-2 text-xs text-muted">
               <Boxes className="size-3.5 text-solo-400" />
-              {lockerCount} items in {lockerName}
+              {t('prepLockerItems', { count: lockerCount, name: lockerName })}
             </div>
 
             {workouts.map(({ workout, targets }, wi) => (
               <div key={workout.id} className={cn('mt-3', wi > 0 && 'border-t border-line pt-3')}>
                 {workouts.length > 1 && (
                   <p className="label-mono mb-2 text-faint">
-                    Workout {wi + 1} · {workout.name}
+                    {t('workoutN', { n: wi + 1, name: workout.name })}
                   </p>
                 )}
                 <ul className="flex flex-col gap-2">
                   {workout.exercises.map((ex) => {
-                    const target = targets.find((t) => t.exerciseId === ex.id)
+                    const target = targets.find((tgt) => tgt.exerciseId === ex.id)
                     if (!target) return null
                     const changed = target.adjustedWeightKg !== target.originalWeightKg
                     return (
@@ -113,7 +120,7 @@ export function PrepInsightsPanel({
                           <p className="text-[10px] text-muted">
                             {target.adjustedWeightKg > 0
                               ? `${target.adjustedWeightKg} kg`
-                              : 'Lichaamsgewicht'}
+                              : t('bodyweight')}
                             {changed && target.reason && ` · ${target.reason}`}
                           </p>
                         </div>
@@ -124,7 +131,7 @@ export function PrepInsightsPanel({
                               setWeightFor({ workoutId: workout.id, exerciseId: ex.id })
                             }
                             className="grid size-9 shrink-0 place-items-center rounded-lg border border-line text-solo-400 active:bg-surface"
-                            aria-label={`Gewichten voor ${ex.name}`}
+                            aria-label={t('weightsFor', { name: ex.name })}
                           >
                             <Scale className="size-4" />
                           </button>
@@ -149,7 +156,7 @@ export function PrepInsightsPanel({
             className="w-full max-w-lg rounded-card border border-line bg-surface p-4"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
-            aria-label="Weight Assistant"
+            aria-label={t('weights')}
           >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold">{weightExercise.name}</h3>

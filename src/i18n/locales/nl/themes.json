@@ -1,0 +1,18 @@
+{
+  "ochtend": {
+    "label": "Ochtend",
+    "description": "Zacht licht, warme dageraad"
+  },
+  "middag": {
+    "label": "Middag",
+    "description": "Helder en fris daglicht"
+  },
+  "avond": {
+    "label": "Avond",
+    "description": "Frisse schemering, koel indigo"
+  },
+  "nacht": {
+    "label": "Nacht",
+    "description": "Diep zwart, minimaal SOLO-blauw"
+  }
+}

@@ -1,12 +1,12 @@
+import { getAppLocale, i18n } from '@/i18n'
+import { getLocaleMeta, speechTagForLocale, type AppLocale } from '@/i18n/registry'
 import { getCoachVoiceGender, type CoachVoiceGender } from '@/lib/storage/coachStore'
-
-const PREVIEW_LINE =
-  'Bench press klaar. Volgende: squat. Tien reps. Zestig kilo. Rust negentig seconden.'
 
 const FEMALE_HINTS = [
   'female',
   'vrouw',
   'femme',
+  'frau',
   'colette',
   'fenna',
   'zira',
@@ -23,6 +23,8 @@ const FEMALE_HINTS = [
 const MALE_HINTS = [
   'male',
   'man',
+  'homme',
+  'mann',
   'frank',
   'maarten',
   'david',
@@ -33,6 +35,7 @@ const MALE_HINTS = [
   'willem',
   'christopher',
   'james',
+  'thomas',
 ]
 
 let lastSpokenKey = ''
@@ -65,13 +68,18 @@ export function isMaleVoice(voice: SpeechSynthesisVoice): boolean {
   return matchesHints(voice, MALE_HINTS)
 }
 
-function baseScore(voice: SpeechSynthesisVoice): number {
+function matchesLocale(voice: SpeechSynthesisVoice, locale: AppLocale): boolean {
+  const lang = voice.lang.toLowerCase()
+  return getLocaleMeta(locale).speechTags.some((tag) => lang.startsWith(tag.toLowerCase().split('-')[0]!))
+}
+
+function baseScore(voice: SpeechSynthesisVoice, locale: AppLocale): number {
   const lang = voice.lang.toLowerCase()
   const name = voice.name.toLowerCase()
   let score = 0
-  if (lang.startsWith('nl')) score += 50
+  const primary = speechTagForLocale(locale).toLowerCase().split('-')[0]!
+  if (lang.startsWith(primary)) score += 50
   else if (lang.startsWith('en')) score += 20
-  else if (lang.startsWith('de') || lang.startsWith('be')) score += 8
   else score -= 20
   if (voice.localService) score += 8
   if (voice.default) score += 2
@@ -79,7 +87,11 @@ function baseScore(voice: SpeechSynthesisVoice): number {
   return score
 }
 
-function rankByGender(voices: SpeechSynthesisVoice[], gender: CoachVoiceGender): SpeechSynthesisVoice[] {
+function rankByGender(
+  voices: SpeechSynthesisVoice[],
+  gender: CoachVoiceGender,
+  locale: AppLocale,
+): SpeechSynthesisVoice[] {
   return voices.slice().sort((a, b) => {
     const genderBonus = (v: SpeechSynthesisVoice) => {
       if (gender === 'female' && isFemaleVoice(v)) return 100
@@ -88,42 +100,44 @@ function rankByGender(voices: SpeechSynthesisVoice[], gender: CoachVoiceGender):
       if (gender === 'male' && isFemaleVoice(v)) return -100
       return 0
     }
-    return baseScore(b) + genderBonus(b) - (baseScore(a) + genderBonus(a))
+    return baseScore(b, locale) + genderBonus(b) - (baseScore(a, locale) + genderBonus(a))
   })
 }
 
-function dutchVoices(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
-  return voices.filter((v) => v.lang.toLowerCase().startsWith('nl'))
+function localeVoices(voices: SpeechSynthesisVoice[], locale: AppLocale): SpeechSynthesisVoice[] {
+  return voices.filter((v) => matchesLocale(v, locale))
 }
 
 export function resolveCoachVoiceDetailed(
   voices: SpeechSynthesisVoice[],
   gender = getCoachVoiceGender(),
+  locale: AppLocale = getAppLocale(),
 ): CoachVoiceResolution {
   if (voices.length === 0) return { voice: null, mode: 'native' }
 
-  const nl = dutchVoices(voices)
-  const rankedAll = rankByGender(voices, gender)
+  const local = localeVoices(voices, locale)
+  const rankedAll = rankByGender(voices, gender, locale)
+  const localeLabel = locale.toUpperCase()
 
   if (gender === 'female') {
-    const nlFemale = nl.find(isFemaleVoice)
-    if (nlFemale) return { voice: nlFemale, mode: 'native' }
+    const localFemale = local.find(isFemaleVoice)
+    if (localFemale) return { voice: localFemale, mode: 'native' }
 
     const anyFemale = rankedAll.find(isFemaleVoice)
     if (anyFemale) {
       return {
         voice: anyFemale,
         mode: 'fallback',
-        note: 'Geen NL vrouwenstem — gebruikt vrouwelijke systeemstem',
+        note: i18n.t('settings:coach.noLocaleFemale', { locale: localeLabel }),
       }
     }
 
-    const nlNonMale = nl.find((v) => !isMaleVoice(v))
-    if (nlNonMale) {
+    const localNonMale = local.find((v) => !isMaleVoice(v))
+    if (localNonMale) {
       return {
-        voice: nlNonMale,
+        voice: localNonMale,
         mode: 'pitch',
-        note: 'Pitch aangepast (geen vrouwelijke stem gevonden)',
+        note: i18n.t('settings:coach.pitchAdjusted'),
       }
     }
 
@@ -132,32 +146,32 @@ export function resolveCoachVoiceDetailed(
       return {
         voice: nonMale,
         mode: 'pitch',
-        note: 'Pitch aangepast (geen vrouwelijke stem gevonden)',
+        note: i18n.t('settings:coach.pitchAdjusted'),
       }
     }
 
-    const frank = nl.find(isMaleVoice) ?? rankedAll[0] ?? null
+    const fallbackMale = local.find(isMaleVoice) ?? rankedAll[0] ?? null
     return {
-      voice: frank,
+      voice: fallbackMale,
       mode: 'pitch',
-      note: 'Alleen mannenstem beschikbaar — installeer Colette/Fenna in Windows',
+      note: i18n.t('settings:coach.installHint'),
     }
   }
 
-  const nlMale = nl.find(isMaleVoice)
-  if (nlMale) return { voice: nlMale, mode: 'native' }
+  const localMale = local.find(isMaleVoice)
+  if (localMale) return { voice: localMale, mode: 'native' }
 
   const anyMale = rankedAll.find(isMaleVoice)
   if (anyMale) {
     return {
       voice: anyMale,
       mode: 'fallback',
-      note: 'Geen NL mannenstem — gebruikt mannelijke systeemstem',
+      note: i18n.t('settings:coach.noLocaleMale', { locale: localeLabel }),
     }
   }
 
-  const nlNonFemale = nl.find((v) => !isFemaleVoice(v))
-  if (nlNonFemale) return { voice: nlNonFemale, mode: 'native' }
+  const localNonFemale = local.find((v) => !isFemaleVoice(v))
+  if (localNonFemale) return { voice: localNonFemale, mode: 'native' }
 
   return { voice: rankedAll[0] ?? null, mode: 'native' }
 }
@@ -222,14 +236,15 @@ function speak(
   const synth = window.speechSynthesis
   const selectedGender = gender ?? getCoachVoiceGender()
   const cancel = options.cancel ?? true
+  const locale = getAppLocale()
 
   withVoices((voices) => {
     if (cancel) synth.cancel()
 
-    const resolution = resolveCoachVoiceDetailed(voices, selectedGender)
+    const resolution = resolveCoachVoiceDetailed(voices, selectedGender, locale)
     const voice = resolution.voice
     const utterance = new SpeechSynthesisUtterance(text.trim())
-    utterance.lang = voice?.lang.toLowerCase().startsWith('nl') ? 'nl-NL' : 'nl-NL'
+    utterance.lang = voice?.lang || speechTagForLocale(locale)
     utterance.rate = options.rate ?? (resolution.mode === 'fallback' ? 0.92 : 0.95)
     utterance.pitch = voicePitch(selectedGender, resolution)
     utterance.volume = 0.9
@@ -261,7 +276,8 @@ export function speakCoachTick(text: string, key: string, gender?: CoachVoiceGen
 
 export function previewCoachVoice(gender: CoachVoiceGender): void {
   stopCoachVoice()
-  speakCoachLine(PREVIEW_LINE, `preview-${gender}-${Date.now()}`, gender)
+  const line = i18n.t('session:coachPreview')
+  speakCoachLine(line, `preview-${gender}-${Date.now()}`, gender)
 }
 
 export function stopCoachVoice(): void {

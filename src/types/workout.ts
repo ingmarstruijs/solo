@@ -1,3 +1,4 @@
+import type { LocalizedText } from '@/i18n/types'
 import type { EquipmentCategory } from './locker'
 
 export type PlateItemUsed = {
@@ -46,8 +47,16 @@ export type WorkoutExercise = {
   /** Optioneel eigen icoon; anders afgeleid van materiaal of type. */
   icon?: EquipmentCategory
   media?: ExerciseMedia
-  /** Volledige uitleg/instructies (bijv. uit Wger), platte tekst met regeleindes. */
+  /** Legacy / last-resolved description for the active locale. */
   description?: string
+  /** Per-locale descriptions when known (Wger native or MT). */
+  descriptionByLocale?: LocalizedText
+  /** Original Wger (or author) markdown before machine translation. */
+  sourceDescription?: string
+  /** ISO 639-1 of sourceDescription. */
+  sourceLang?: string
+  /** Per-locale display names when resolved from Wger. */
+  nameByLocale?: LocalizedText
   notes?: string
 }
 

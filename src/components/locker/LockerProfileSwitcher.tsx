@@ -2,11 +2,13 @@ import { MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocker } from '@/hooks/useLocker'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type MenuState = { id: string; name: string; x: number; y: number }
 
 export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean }) {
+  const { t } = useTranslation(['locker', 'common'])
   const {
     profiles,
     activeProfileId,
@@ -18,7 +20,7 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
   const [menu, setMenu] = useState<MenuState | null>(null)
 
   function handleAdd() {
-    const name = prompt('Naam voor nieuwe locker', 'Sportschool')
+    const name = prompt(t('locker:newProfilePrompt'), t('locker:newProfileDefault'))
     if (!name?.trim()) return
     addProfile(name.trim())
   }
@@ -34,7 +36,7 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
     if (!menu) return
     const { id, name: currentName } = menu
     setMenu(null)
-    const name = prompt('Locker hernoemen', currentName)
+    const name = prompt(t('locker:renamePrompt'), currentName)
     if (!name?.trim()) return
     renameProfile(id, name.trim())
   }
@@ -43,7 +45,7 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
     if (!menu) return
     const { id, name } = menu
     setMenu(null)
-    if (!confirm(`Locker "${name}" verwijderen?`)) return
+    if (!confirm(t('locker:deleteProfileConfirm', { name }))) return
     removeProfile(id)
   }
 
@@ -71,7 +73,7 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
                 type="button"
                 onClick={(e) => openMenu(e, profile.id, profile.name)}
                 className="absolute right-1 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-lg text-faint active:bg-surface-2"
-                aria-label={`Opties voor ${profile.name}`}
+                aria-label={t('locker:optionsFor', { name: profile.name })}
               >
                 <MoreHorizontal className="size-4" />
               </button>
@@ -82,16 +84,12 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
           type="button"
           onClick={handleAdd}
           className="grid size-10 shrink-0 place-items-center rounded-xl border border-dashed border-line text-muted active:bg-surface-2"
-          aria-label="Nieuwe locker"
+          aria-label={t('locker:newLocker')}
         >
           <Plus className="size-4" />
         </button>
       </div>
-      {showHint && (
-        <p className="text-[11px] text-muted">
-          Wissel tussen locaties. Workout prep gebruikt de actieve locker.
-        </p>
-      )}
+      {showHint && <p className="text-[11px] text-muted">{t('locker:profileHint')}</p>}
 
       {menu &&
         createPortal(
@@ -100,7 +98,7 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
               type="button"
               className="fixed inset-0 z-40 cursor-default"
               onClick={() => setMenu(null)}
-              aria-label="Sluit menu"
+              aria-label={t('common:closeMenu')}
             />
             <div
               className="fixed z-50 min-w-[9rem] -translate-x-full rounded-xl border border-line bg-surface p-1 shadow-lg"
@@ -112,7 +110,7 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm active:bg-surface-2"
               >
                 <Pencil className="size-3.5" />
-                Hernoemen
+                {t('locker:rename')}
               </button>
               {profiles.length > 1 && (
                 <button
@@ -121,7 +119,7 @@ export function LockerProfileSwitcher({ showHint = true }: { showHint?: boolean 
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-danger active:bg-surface-2"
                 >
                   <Trash2 className="size-3.5" />
-                  Verwijderen
+                  {t('common:delete')}
                 </button>
               )}
             </div>

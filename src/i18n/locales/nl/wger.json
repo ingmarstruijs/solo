@@ -1,0 +1,15 @@
+{
+  "title": "Wger",
+  "searchPlaceholder": "Zoek oefeningen…",
+  "importing": "Vertalen & importeren…",
+  "import": "Importeren",
+  "addSelected": "Selectie toevoegen",
+  "selected": "{{count}} geselecteerd",
+  "translationOnImport": "Vertaling bij import",
+  "translationHint": "Tekst wordt naar je app-taal gezet bij import of wanneer je van taal wisselt.",
+  "noResults": "Geen oefeningen gevonden",
+  "loadMore": "Meer laden",
+  "preview": "Voorbeeld",
+  "error": "Oefeningen laden mislukt",
+  "close": "Sluiten"
+}

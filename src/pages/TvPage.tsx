@@ -12,6 +12,7 @@ import { useElapsedTimer } from '@/hooks/useElapsedTimer'
 import { formatDuration, normalizeSummary } from '@/lib/workout/sessionSummary'
 import { resolveExerciseVisual } from '@/lib/tv/exerciseMedia'
 import { applyTheme } from '@/lib/theme/themes'
+import { useTranslation } from '@/i18n/hooks'
 import {
   announceTvReceiver,
   subscribeTv,
@@ -65,6 +66,7 @@ export function TvPage() {
 }
 
 function WaitingScreen() {
+  const { t } = useTranslation('tv')
   return (
     <div className="grid flex-1 place-items-center">
       <div className="flex w-full max-w-[70vw] flex-col items-center gap-[3vh] text-center">
@@ -72,14 +74,11 @@ function WaitingScreen() {
         <h1 className="text-[5vh] font-bold leading-none tracking-tight">
           SOLO<span className="text-solo-400">.</span>
         </h1>
-        <p className="label-mono text-[1.4vh] text-faint">TV receiver</p>
-        <p className="text-[1.8vh] text-muted">
-          Open Workout Prep op je telefoon en tik <strong>Test TV</strong>, of open deze pagina op
-          je TV-scherm.
-        </p>
+        <p className="label-mono text-[1.4vh] text-faint">{t('receiver')}</p>
+        <p className="text-[1.8vh] text-muted">{t('waitingHint')}</p>
         <div className="mt-[2vh] flex items-center gap-[1.5vh] rounded-full border border-line bg-surface px-[3vh] py-[1.5vh]">
           <span className="size-[1.4vh] animate-pulse rounded-full bg-solo-400" />
-          <p className="text-[1.6vh] text-muted">Wacht op verbinding…</p>
+          <p className="text-[1.6vh] text-muted">{t('waitingStatus')}</p>
         </div>
       </div>
     </div>
@@ -87,15 +86,16 @@ function WaitingScreen() {
 }
 
 function PrepDashboard({ state }: { state: Extract<TvMessage, { mode: 'prep' }> }) {
+  const { t } = useTranslation('tv')
   return (
     <div className="mx-auto flex w-full max-w-[80vw] flex-1 flex-col justify-center gap-[3vh]">
       <header className="flex items-center justify-between">
         <div>
-          <p className="label-mono text-[1.4vh] text-success">VERBONDEN · PREP</p>
-          <h1 className="text-[4vh] font-bold">Workout Prep</h1>
+          <p className="label-mono text-[1.4vh] text-success">{t('connectedPrep')}</p>
+          <h1 className="text-[4vh] font-bold">{t('workoutPrep')}</h1>
         </div>
         {state.garminConnected && state.recoveryScore != null && (
-          <p className="text-[2vh] text-muted">Recovery {state.recoveryScore}%</p>
+          <p className="text-[2vh] text-muted">{t('recoveryPct', { score: state.recoveryScore })}</p>
         )}
       </header>
       <ul className="grid gap-[1.5vh]">
@@ -105,7 +105,7 @@ function PrepDashboard({ state }: { state: Extract<TvMessage, { mode: 'prep' }> 
             className="rounded-[1.5vh] border border-line bg-surface px-[2.5vh] py-[2vh] text-[2.2vh]"
           >
             <span className="font-semibold">{w.name}</span>
-            <span className="ml-[1vh] text-muted">· {w.exerciseCount} oefeningen</span>
+            <span className="ml-[1vh] text-muted">· {t('exercisesCount', { count: w.exerciseCount })}</span>
           </li>
         ))}
       </ul>
@@ -114,33 +114,32 @@ function PrepDashboard({ state }: { state: Extract<TvMessage, { mode: 'prep' }> 
 }
 
 function SetupDashboard({ state }: { state: TvSetupState }) {
+  const { t } = useTranslation('tv')
   return (
     <div className="mx-auto flex h-full w-full max-w-[90vw] flex-col gap-[3vh] py-[1vh]">
       <header className="flex shrink-0 items-end justify-between gap-[2vh]">
         <div>
-          <p className="label-mono text-[1.4vh] text-solo-300">VERBONDEN · VOORBEREIDEN</p>
-          <h1 className="text-[4.5vh] font-bold leading-tight">Voorbereiden</h1>
+          <p className="label-mono text-[1.4vh] text-solo-300">{t('connectedSetup')}</p>
+          <h1 className="text-[4.5vh] font-bold leading-tight">{t('prepare')}</h1>
           <p className="mt-[0.8vh] text-[2.4vh] text-muted">
             {state.workoutName}
-            <span className="text-faint"> · {state.exerciseCount} oefeningen</span>
+            <span className="text-faint"> · {t('exercisesCount', { count: state.exerciseCount })}</span>
           </p>
         </div>
         {state.garminConnected && state.recoveryScore != null && (
-          <p className="shrink-0 text-[2vh] text-muted">Recovery {state.recoveryScore}%</p>
+          <p className="shrink-0 text-[2vh] text-muted">{t('recoveryPct', { score: state.recoveryScore })}</p>
         )}
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-[2vh]">
         <div className="rounded-[1.5vh] border border-solo-400/35 bg-solo-400/10 px-[3vh] py-[2vh]">
-          <p className="text-[2.4vh] font-semibold text-solo-200">Materiaal klaarleggen</p>
-          <p className="mt-[0.6vh] text-[1.8vh] text-muted">
-            Leg alles klaar op je telefoon en start de workout wanneer je er bent.
-          </p>
+          <p className="text-[2.4vh] font-semibold text-solo-200">{t('setupMaterials')}</p>
+          <p className="mt-[0.6vh] text-[1.8vh] text-muted">{t('setupHint')}</p>
         </div>
 
         {state.materials.length === 0 ? (
           <div className="flex flex-1 items-center justify-center rounded-[1.5vh] border border-line bg-surface px-[3vh] py-[4vh] text-center">
-            <p className="text-[2.4vh] text-muted">Geen materiaal nodig — bodyweight workout.</p>
+            <p className="text-[2.4vh] text-muted">{t('materialsEmpty')}</p>
           </div>
         ) : (
           <ul className="grid min-h-0 flex-1 content-start gap-[1.2vh] overflow-y-auto sm:grid-cols-2">
@@ -161,6 +160,7 @@ function SetupDashboard({ state }: { state: TvSetupState }) {
 }
 
 function IdleDashboard() {
+  const { t } = useTranslation('tv')
   return (
     <div className="grid flex-1 place-items-center">
       <div className="flex w-full max-w-[70vw] flex-col items-center gap-[3vh] text-center">
@@ -168,13 +168,11 @@ function IdleDashboard() {
         <h1 className="text-[5vh] font-bold leading-none tracking-tight">
           SOLO<span className="text-solo-400">.</span>
         </h1>
-        <p className="label-mono text-[1.4vh] text-success">KLAAR</p>
-        <p className="text-[2.2vh] text-muted">
-          Wacht op de volgende workout vanaf je telefoon.
-        </p>
+        <p className="label-mono text-[1.4vh] text-success">{t('ready')}</p>
+        <p className="text-[2.2vh] text-muted">{t('idleHint')}</p>
         <div className="mt-[2vh] flex items-center gap-[1.5vh] rounded-full border border-success/30 bg-success/10 px-[3vh] py-[1.5vh]">
           <span className="size-[1.4vh] rounded-full bg-success" />
-          <p className="text-[1.6vh] text-success">Klaar voor volgende workout</p>
+          <p className="text-[1.6vh] text-success">{t('readyNext')}</p>
         </div>
       </div>
     </div>
@@ -182,16 +180,17 @@ function IdleDashboard() {
 }
 
 function SummaryDashboard({ state }: { state: Extract<TvMessage, { mode: 'summary' }> }) {
+  const { t } = useTranslation('tv')
   const { mode: _mode, theme: _theme, updatedAt: _updatedAt, ...raw } = state
   const summary = normalizeSummary(raw)
 
   return (
     <div className="mx-auto flex h-full w-full max-w-[90vw] flex-col gap-[3vh] py-[2vh]">
       <header>
-        <p className="label-mono text-[1.4vh] text-success">WORKOUT AFGEROND</p>
+        <p className="label-mono text-[1.4vh] text-success">{t('workoutDone')}</p>
         <h1 className="text-[4vh] font-bold">{summary.workoutName}</h1>
         <p className="mt-[1vh] text-[2.4vh] text-muted">
-          Totale tijd{' '}
+          {t('totalTime')}{' '}
           <span className="font-mono font-bold text-fg">
             {formatDuration(summary.totalDurationSeconds)}
           </span>
@@ -205,6 +204,7 @@ function SummaryDashboard({ state }: { state: Extract<TvMessage, { mode: 'summar
 }
 
 function SessionDashboard({ state }: { state: TvSessionState }) {
+  const { t } = useTranslation('tv')
   const visual = resolveExerciseVisual({
     name: state.exerciseName,
     kind: state.exerciseKind,
@@ -227,12 +227,12 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
     <div className="mx-auto flex h-full w-full max-w-[120rem] flex-col gap-[2vh]">
       <header className="flex shrink-0 items-center justify-between gap-[2vh]">
         <div>
-          <p className="label-mono text-[1.4vh] text-success">LIVE SESSIE</p>
+          <p className="label-mono text-[1.4vh] text-success">{t('liveSession')}</p>
           <h1 className="text-[3vh] font-bold leading-tight">{state.workoutName}</h1>
         </div>
         <div className="text-right">
           {state.sensor.garminConnected && state.recoveryScore != null && (
-            <p className="text-[1.6vh] text-muted">Recovery {state.recoveryScore}%</p>
+            <p className="text-[1.6vh] text-muted">{t('recoveryPct', { score: state.recoveryScore })}</p>
           )}
           <p className="text-[1.4vh] text-faint">
             {state.completedSlots}/{state.totalSlots} · {state.phaseLabel}{' '}
@@ -248,7 +248,7 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
           </div>
           {state.exerciseDescription && (
             <div className="flex min-h-0 flex-[2] flex-col rounded-[1.5vh] border border-line bg-surface p-[1.5vh]">
-              <p className="label-mono shrink-0 text-[1.2vh] text-faint">Uitleg</p>
+              <p className="label-mono shrink-0 text-[1.2vh] text-faint">{t('instructions')}</p>
               <MarkdownText
                 content={state.exerciseDescription}
                 variant="tv"
@@ -260,7 +260,7 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
 
         <div className="flex min-h-0 flex-col gap-[1.5vh]">
           <div className="shrink-0 rounded-[1.5vh] border border-line bg-surface p-[2vh]">
-            <p className="label-mono text-[1.2vh] text-faint">Nu bezig</p>
+            <p className="label-mono text-[1.2vh] text-faint">{t('nowActive')}</p>
             <p className="mt-[0.5vh] text-[3.6vh] font-bold leading-tight text-solo-300">
               {state.exerciseName}
             </p>
@@ -275,18 +275,18 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
             </div>
             {state.nextExerciseName && !restActive && (
               <p className="mt-[1.5vh] text-[1.6vh] text-muted">
-                Volgende: <span className="text-fg">{state.nextExerciseName}</span>
+                {t('nextColon')} <span className="text-fg">{state.nextExerciseName}</span>
               </p>
             )}
           </div>
 
           {showExerciseTimer && (
             <div className="flex shrink-0 flex-col items-center justify-center rounded-[1.5vh] border border-solo-400/35 bg-solo-400/10 px-[2vh] py-[2.5vh]">
-              <p className="label-mono text-[1.4vh] text-solo-300">TIJD</p>
+              <p className="label-mono text-[1.4vh] text-solo-300">{t('time')}</p>
               <p className="mt-[0.5vh] font-mono text-[14vh] font-bold leading-none tabular-nums tracking-tight text-solo-300">
                 {exerciseTimer.formatted}
               </p>
-              <p className="mt-[1.5vh] text-[2vh] text-muted">doel {state.targetLabel}</p>
+              <p className="mt-[1.5vh] text-[2vh] text-muted">{t('target', { label: state.targetLabel })}</p>
             </div>
           )}
 
@@ -297,7 +297,7 @@ function SessionDashboard({ state }: { state: TvSessionState }) {
           <div className="shrink-0 rounded-[1.5vh] border border-line bg-surface p-[1.5vh]">
             <div className="mb-[1vh] flex items-center justify-between text-[1.4vh] text-muted">
               <span>
-                Voortgang · {state.completedSlots}/{state.totalSlots}
+                {t('progressSlots', { done: state.completedSlots, total: state.totalSlots })}
               </span>
               <span>{progress}%</span>
             </div>

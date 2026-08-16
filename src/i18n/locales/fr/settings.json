@@ -1,0 +1,53 @@
+{
+  "title": "Réglages",
+  "subtitle": "Thème et préférences",
+  "language": {
+    "title": "Langue",
+    "subtitle": "Langue de l’app pour l’interface, la voix coach et les textes Wger."
+  },
+  "theme": {
+    "title": "Thème",
+    "autoActive": "Automatique — actuellement {{theme}}",
+    "manual": "Thème manuel sélectionné.",
+    "auto": "Automatique",
+    "autoHint": "S’adapte à l’heure — maintenant {{theme}}"
+  },
+  "coach": {
+    "title": "Voix coach",
+    "subtitle": "Choisissez une voix masculine ou féminine pour les annonces pendant une séance.",
+    "unsupported": "La synthèse vocale n’est pas prise en charge dans ce navigateur.",
+    "male": "Homme",
+    "female": "Femme",
+    "voice": "Voix : {{name}}",
+    "preview": "Écouter un aperçu",
+    "noLocaleFemale": "Pas de voix féminine {{locale}} — voix système féminine utilisée",
+    "noLocaleMale": "Pas de voix masculine {{locale}} — voix système masculine utilisée",
+    "pitchAdjusted": "Hauteur ajustée (aucune voix adaptée trouvée)",
+    "installHint": "Seule une voix masculine est disponible — installez une voix féminine système si besoin"
+  },
+  "garmin": {
+    "title": "Garmin & récupération",
+    "subtitle": "Afficher récupération et fréquence cardiaque pendant la préparation et la séance. Réglez la récupération manuellement ; connectez éventuellement une ceinture BLE pour le HR live sur téléphone et TV.",
+    "wearable": "Fonctions wearable",
+    "wearableOn": "Récupération et HR visibles sur Accueil, prep et TV",
+    "wearableOff": "Désactivé — pas de données de récupération ou HR",
+    "hrBand": "Ceinture cardio (BLE)",
+    "hrConnecting": "Connexion… choisissez votre ceinture dans le navigateur",
+    "hrLive": "{{device}} · {{bpm}} bpm",
+    "hrIdle": "Connecter une ceinture HR standard (0x180D)",
+    "hrPair": "Associer",
+    "hrHint": "Chrome ou Edge sur Android/ordinateur. Safari/iOS ne prend pas en charge Web Bluetooth. Reps et velocity via Connect IQ plus tard."
+  },
+  "wger": {
+    "title": "Traduction Wger",
+    "subtitle": "Si le texte Wger n’existe pas dans la langue de l’app, le traduire et le mettre en cache localement.",
+    "auto": "Traduction automatique",
+    "autoOn": "Activé — traductions mises en cache localement",
+    "autoOff": "Désactivé — conserver la langue d’origine",
+    "privacy": "Internet requis à l’import ou au changement de langue. Le texte passe par un service de traduction gratuit, puis est stocké localement."
+  },
+  "privacy": {
+    "title": "Confidentialité",
+    "body": "Séances, casier et sessions restent sur l’appareil. Seuls les textes Wger peuvent optionnellement être traduits en ligne."
+  }
+}

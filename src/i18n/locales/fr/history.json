@@ -1,0 +1,15 @@
+{
+  "title": "Journal",
+  "subtitle": "Vos séances terminées",
+  "clearAll": "Tout effacer",
+  "clearConfirm": "Supprimer toutes les séances du journal ?",
+  "deleteConfirm": "Retirer \"{{name}}\" du journal ?",
+  "deleteAria": "Supprimer {{name}}",
+  "empty": "Pas encore de séances terminées. Terminez une séance pour garder le résumé ici.",
+  "thisWeek": "Cette semaine",
+  "sessions": "Séances",
+  "minutes": "Minutes",
+  "exercises": "{{count}} exercices",
+  "sets": "{{count}} séries",
+  "todayAt": "Aujourd’hui · {{time}}"
+}

@@ -1,5 +1,6 @@
 import { MoreHorizontal, Plus, Search } from 'lucide-react'
 import { useRef, useState, type ChangeEvent, type ReactNode } from 'react'
+import { useTranslation } from '@/i18n/hooks'
 
 type WorkoutCompactToolbarProps = {
   onNew: () => void
@@ -16,6 +17,7 @@ export function WorkoutCompactToolbar({
   onImportFit,
   onBrowseWger,
 }: WorkoutCompactToolbarProps) {
+  const { t } = useTranslation(['workouts', 'common'])
   const [menuOpen, setMenuOpen] = useState(false)
   const jsonRef = useRef<HTMLInputElement>(null)
   const fitRef = useRef<HTMLInputElement>(null)
@@ -26,7 +28,7 @@ export function WorkoutCompactToolbar({
     const reader = new FileReader()
     reader.onload = () => {
       const count = onImportJson(reader.result as string)
-      alert(`${count} workout(s) geïmporteerd.`)
+      alert(t('workouts:importedAlert', { count }))
     }
     reader.readAsText(file)
     e.target.value = ''
@@ -51,7 +53,7 @@ export function WorkoutCompactToolbar({
         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-solo-400 px-3 py-2.5 text-sm font-semibold text-ink active:bg-solo-500"
       >
         <Plus className="size-4" />
-        Nieuw
+        {t('workouts:newShort')}
       </button>
 
       <button
@@ -60,7 +62,7 @@ export function WorkoutCompactToolbar({
         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-solo-400/50 bg-solo-400/10 px-3 py-2.5 text-sm font-semibold text-solo-300 active:bg-solo-400/20"
       >
         <Search className="size-4" />
-        Zoeken
+        {t('workouts:searchShort')}
       </button>
 
       <div className="relative">
@@ -68,7 +70,7 @@ export function WorkoutCompactToolbar({
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
           className="grid size-10 place-items-center rounded-xl border border-line text-muted active:bg-surface-2"
-          aria-label="Meer opties"
+          aria-label={t('common:moreOptions')}
         >
           <MoreHorizontal className="size-4" />
         </button>
@@ -79,12 +81,14 @@ export function WorkoutCompactToolbar({
               type="button"
               className="fixed inset-0 z-40"
               onClick={() => setMenuOpen(false)}
-              aria-label="Sluit menu"
+              aria-label={t('common:closeMenu')}
             />
             <div className="absolute right-0 top-11 z-50 min-w-[10rem] rounded-xl border border-line bg-surface p-1 shadow-lg">
-              <MenuItem onClick={() => { onExport(); setMenuOpen(false) }}>Export workouts</MenuItem>
-              <MenuItem onClick={() => jsonRef.current?.click()}>Import workouts</MenuItem>
-              <MenuItem onClick={() => fitRef.current?.click()}>Garmin FIT</MenuItem>
+              <MenuItem onClick={() => { onExport(); setMenuOpen(false) }}>
+                {t('workouts:exportWorkouts')}
+              </MenuItem>
+              <MenuItem onClick={() => jsonRef.current?.click()}>{t('workouts:importWorkouts')}</MenuItem>
+              <MenuItem onClick={() => fitRef.current?.click()}>{t('workouts:garminFit')}</MenuItem>
             </div>
           </>
         )}

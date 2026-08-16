@@ -1,0 +1,18 @@
+{
+  "home": "Accueil",
+  "workouts": "Séances",
+  "locker": "Casier",
+  "history": "Journal",
+  "labs": "Labs",
+  "integrations": "Intégrations",
+  "settings": "Réglages",
+  "about": "À propos de SOLO.",
+  "center": {
+    "prepare": "Préparer",
+    "stop": "Stop",
+    "live": "Live",
+    "workouts": "Séances",
+    "choose": "Choisir",
+    "prepCount": "Prep {{count}}"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "home": "Home",
+  "workouts": "Workouts",
+  "locker": "Locker",
+  "history": "Logbook",
+  "labs": "Labs",
+  "integrations": "Integrations",
+  "settings": "Settings",
+  "about": "About SOLO.",
+  "center": {
+    "prepare": "Prepare",
+    "stop": "Stop",
+    "live": "Live",
+    "workouts": "Workouts",
+    "choose": "Choose",
+    "prepCount": "Prep {{count}}"
+  }
+}

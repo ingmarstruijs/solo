@@ -12,6 +12,8 @@ import { mapWgerEquipment } from '@/lib/wger/mapEquipment'
 import { LabActionButton } from '@/components/lab/LabPrimitives'
 import { WgerExercisePreview } from '@/components/workout/WgerExercisePreview'
 import { WgerFilterBar } from '@/components/workout/WgerFilterBar'
+import { useLocale, useTranslation } from '@/i18n/hooks'
+import { wgerIdForLocale } from '@/i18n/registry'
 import { cn } from '@/lib/cn'
 
 type WgerBrowserProps = {
@@ -24,6 +26,8 @@ type WgerBrowserProps = {
 }
 
 export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: WgerBrowserProps) {
+  const { t } = useTranslation(['wger', 'common'])
+  const { locale } = useLocale()
   const addMode = Boolean(onAddExercises)
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<WgerSearchFilters>({})
@@ -43,25 +47,25 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
     setLoading(true)
     setError(null)
     try {
-      const page = await searchExercises(q, undefined, 50, 0, activeFilters)
+      const page = await searchExercises(q, locale, 50, 0, activeFilters)
       setResults(page.results)
       setCount(page.count)
       setNextOffset(page.nextOffset)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Wger API niet bereikbaar')
+      setError(e instanceof Error ? e.message : t('wger:error'))
       setResults([])
       setCount(0)
       setNextOffset(null)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [locale, t])
 
   const loadMore = useCallback(async () => {
     if (nextOffset == null || loadingMore) return
     setLoadingMore(true)
     try {
-      const page = await searchExercises(query, undefined, 50, nextOffset, filters)
+      const page = await searchExercises(query, locale, 50, nextOffset, filters)
       setResults((prev) => {
         const seen = new Set(prev.map((r) => r.id))
         return [...prev, ...page.results.filter((r) => !seen.has(r.id))]
@@ -69,11 +73,11 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
       setCount(page.count)
       setNextOffset(page.nextOffset)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Wger API niet bereikbaar')
+      setError(e instanceof Error ? e.message : t('wger:error'))
     } finally {
       setLoadingMore(false)
     }
-  }, [nextOffset, loadingMore, query, filters])
+  }, [nextOffset, loadingMore, query, filters, locale, t])
 
   useEffect(() => {
     if (!open || loading || loadingMore || nextOffset == null) return
@@ -130,7 +134,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
     setError(null)
     try {
       const exercises = await Promise.all(
-        selectedResults.map((r) => wgerExerciseToWorkoutExercise(r)),
+        selectedResults.map((r) => wgerExerciseToWorkoutExercise(r, wgerIdForLocale(locale), locale)),
       )
 
       const name = suggestWgerWorkoutName(selectedResults)
@@ -144,7 +148,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
       setPreview(null)
       onClose()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Import mislukt')
+      setError(e instanceof Error ? e.message : t('common:error'))
     } finally {
       setImporting(false)
     }
@@ -154,7 +158,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/80 sm:items-center">
-      <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Sluiten" />
+      <button type="button" className="absolute inset-0" onClick={onClose} aria-label={t('common:close')} />
       <div className="relative z-10 flex max-h-[90dvh] w-full max-w-screen-sm flex-col rounded-t-card border border-line bg-surface sm:rounded-card">
         {preview ? (
           <WgerExercisePreview
@@ -168,7 +172,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
             <header className="flex items-center justify-between border-b border-line p-4">
               <div>
                 <p className="label-mono text-faint">Open-source</p>
-                <h2 className="text-lg font-bold">Zoeken</h2>
+                <h2 className="text-lg font-bold">{t('common:search')}</h2>
               </div>
               <button type="button" onClick={onClose} className="grid size-9 place-items-center rounded-lg text-muted active:bg-surface-2">
                 <X className="size-5" />
@@ -181,15 +185,15 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Zoek oefeningen…"
+                  placeholder={t('wger:searchPlaceholder')}
                   className="w-full rounded-xl border border-line bg-surface-2 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-solo-400/50"
                   autoFocus
                 />
               </div>
               {!loading && !error && count > 0 && (
                 <p className="mt-2 text-xs text-muted">
-                  {results.length} van {count} oefeningen
-                  {selected.size > 0 && ` · ${selected.size} geselecteerd`}
+                  {results.length}/{count}
+                  {selected.size > 0 && ` · ${t('wger:selected', { count: selected.size })}`}
                 </p>
               )}
             </div>
@@ -200,17 +204,17 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
               {loading && (
                 <li className="flex items-center justify-center gap-2 py-8 text-sm text-muted">
                   <Loader2 className="size-4 animate-spin" />
-                  Laden…
+                  {t('common:loading')}
                 </li>
               )}
               {error && (
                 <li className="p-4 text-center text-sm text-danger">{error}</li>
               )}
               {!loading && !error && results.length === 0 && (
-                <li className="p-4 text-center text-sm text-muted">Geen oefeningen gevonden.</li>
+                <li className="p-4 text-center text-sm text-muted">{t('wger:noResults')}</li>
               )}
               {results.map((info) => {
-                const name = exerciseDisplayName(info)
+                const name = exerciseDisplayName(info, wgerIdForLocale(locale))
                 const desc = stripHtml(info.translations[0]?.description ?? '').slice(0, 100)
                 const equipment = mapWgerEquipment(info.equipment)
                 const isSelected = selected.has(info.id)
@@ -230,7 +234,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
                         type="button"
                         onClick={() => toggleSelect(info)}
                         className="mt-1 shrink-0"
-                        aria-label={isSelected ? `${name} deselecteren` : `${name} selecteren`}
+                        aria-label={name}
                       >
                         <span
                           className={cn(
@@ -279,7 +283,7 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
               {!loading && !error && nextOffset != null && (
                 <li ref={sentinelRef} className="flex items-center justify-center gap-2 py-4 text-sm text-muted">
                   {loadingMore && <Loader2 className="size-4 animate-spin" />}
-                  {loadingMore ? 'Meer laden…' : null}
+                  {loadingMore ? t('wger:loadMore') : null}
                 </li>
               )}
             </ul>
@@ -296,12 +300,12 @@ export function WgerBrowser({ open, onClose, onImportWorkout, onAddExercises }: 
             {importing ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="size-4 animate-spin" />
-                Vertalen & importeren…
+                {t('wger:importing')}
               </span>
             ) : addMode ? (
-              <>Voeg {selected.size > 0 ? `${selected.size} oefening(en)` : 'selectie'} toe</>
+              t('wger:addSelected')
             ) : (
-              <>Importeer {selected.size > 0 ? `${selected.size} oefening(en)` : 'selectie'} als workout</>
+              t('wger:import')
             )}
           </LabActionButton>
         </footer>

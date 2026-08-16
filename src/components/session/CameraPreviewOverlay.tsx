@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type CameraPreviewOverlayProps = {
@@ -9,6 +10,7 @@ type CameraPreviewOverlayProps = {
 }
 
 export function CameraPreviewOverlay({ stream, onClose, onDisable }: CameraPreviewOverlayProps) {
+  const { t } = useTranslation(['session', 'common'])
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -24,13 +26,13 @@ export function CameraPreviewOverlay({ stream, onClose, onDisable }: CameraPrevi
     <div className="fixed inset-0 z-50 flex flex-col bg-ink">
       <header className="flex shrink-0 items-center justify-between gap-3 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
         <div>
-          <p className="label-mono text-success">Camera live</p>
-          <p className="text-sm text-muted">Geen TV verbonden — preview op telefoon</p>
+          <p className="label-mono text-success">{t('session:cameraLive')}</p>
+          <p className="text-sm text-muted">{t('session:cameraPreviewHint')}</p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Preview sluiten"
+          aria-label={t('session:closePreview')}
           className="grid size-10 place-items-center rounded-xl border border-line bg-surface text-fg active:bg-surface-2"
         >
           <X className="size-5" />
@@ -47,7 +49,7 @@ export function CameraPreviewOverlay({ stream, onClose, onDisable }: CameraPrevi
         />
         {!stream && (
           <div className="absolute inset-0 grid place-items-center text-sm text-muted">
-            Camera starten…
+            {t('session:cameraStarting')}
           </div>
         )}
       </div>
@@ -63,14 +65,14 @@ export function CameraPreviewOverlay({ stream, onClose, onDisable }: CameraPrevi
           onClick={onClose}
           className="flex-1 rounded-xl border border-line py-3 text-sm font-semibold text-fg active:bg-surface-2"
         >
-          Sluiten
+          {t('common:close')}
         </button>
         <button
           type="button"
           onClick={onDisable}
           className="flex-1 rounded-xl bg-danger/15 py-3 text-sm font-semibold text-danger active:bg-danger/25"
         >
-          Camera uit
+          {t('session:cameraOff')}
         </button>
       </div>
     </div>

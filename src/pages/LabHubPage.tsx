@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { labs, labHubIcon as LabHubIcon } from '@/config/labs'
 
+/** Labs stay English regardless of app language. */
 export function LabHubPage() {
   return (
     <section className="flex flex-col gap-5 py-2">
@@ -9,10 +10,10 @@ export function LabHubPage() {
           <LabHubIcon className="size-6" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="label-mono text-faint">Feasibility</p>
+          <p className="label-mono text-faint">Feasibility experiments</p>
           <h1 className="text-xl font-bold tracking-tight">SOLO. Labs</h1>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            Test losse functies uit de architectuur voordat ze in de actieve trainingssessie landen.
+            Architecture experiments — not part of the main session flow until promoted.
           </p>
         </div>
       </header>
