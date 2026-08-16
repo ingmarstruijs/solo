@@ -18,7 +18,7 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Weight Assistant / plate configurator | **Shipped** | Barbell, dumbbell, kettlebell diagrams |
 | Prep insights (all exercises, multi-workout) | **Shipped** | `[PrepInsightsPanel](src/components/workout/PrepInsightsPanel.tsx)` |
 | Multi-workout queue | **Shipped** | Select N templates → prep → sequential sessions |
-| TUT progression at home weight ceiling | **Next** | Time-under-tension when max home weight is reached |
+| TUT progression at home weight ceiling | **Shipped** | When locker max is reached, overload planner adds TUT (+5–12s) in prep/session |
 
 ---
 

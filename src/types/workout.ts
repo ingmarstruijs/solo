@@ -101,6 +101,12 @@ export type OverloadTarget = {
   adjustmentPercent: number
   reason?: string
   plateConfig?: PlateConfig
+  /** Locker cannot go heavier than the adjusted weight. */
+  atWeightCeiling?: boolean
+  /** Extra seconds of time-under-tension when at the home weight ceiling. */
+  tutBonusSeconds?: number
+  /** For time-metric work, target seconds including TUT bonus. */
+  adjustedTarget?: number
 }
 
 export type SessionExerciseNote = {

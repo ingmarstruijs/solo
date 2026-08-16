@@ -59,3 +59,15 @@ export function findClosestWeight(
     Math.abs(w - targetKg) < Math.abs(best - targetKg) ? w : best,
   )
 }
+
+/** Heaviest available weight in locker for a category. */
+export function findMaxWeight(
+  items: LockerItem[],
+  category: EquipmentCategory,
+): number | null {
+  const weights = items
+    .filter((i) => i.category === category && i.weightKg != null)
+    .map((i) => i.weightKg!)
+  if (weights.length === 0) return null
+  return Math.max(...weights)
+}

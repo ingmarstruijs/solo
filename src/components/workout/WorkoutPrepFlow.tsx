@@ -94,6 +94,9 @@ export function WorkoutPrepFlow({
                         {t.adjustedWeightKg !== t.originalWeightKg && (
                           <span className="ml-1 text-solo-300">→ {t.adjustedWeightKg} kg</span>
                         )}
+                        {t.tutBonusSeconds != null && t.tutBonusSeconds > 0 && (
+                          <span className="ml-1 text-warn">+{t.tutBonusSeconds}s TUT</span>
+                        )}
                       </>
                     ) : (
                       'Lichaamsgewicht'

@@ -175,6 +175,8 @@ function PrepExerciseRow({
   const target = targets.find((t) => t.exerciseId === ex.id)
   const weight = target?.adjustedWeightKg ?? ex.weightKg
   const gear = equipmentSummary(ex.equipment)
+  const displayTarget = target?.adjustedTarget ?? ex.target
+  const tutSeconds = target?.tutBonusSeconds ?? 0
 
   return (
     <li>
@@ -192,11 +194,15 @@ function PrepExerciseRow({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">{ex.name}</p>
           <p className="text-xs text-muted">
-            {metricLabel(ex.metric, ex.target)}
+            {metricLabel(ex.metric, displayTarget)}
             {weight > 0 && ` · ${weight} kg`}
+            {tutSeconds > 0 && ex.metric === 'reps' && ` · ${t('session:tutBadge', { seconds: tutSeconds })}`}
             {gear && ` · ${gear}`}
             {ex.restSeconds > 0 && ` · ${t('session:restInline', { seconds: ex.restSeconds })}`}
           </p>
+          {target?.reason && (
+            <p className="mt-1 text-[11px] text-warn">{target.reason}</p>
+          )}
           <p className="mt-1 text-xs font-medium text-solo-400">{t('session:viewInstructions')}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">

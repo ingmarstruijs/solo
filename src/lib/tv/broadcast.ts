@@ -332,8 +332,13 @@ export function buildSessionTvState(
 
   let targetLabel = ''
   if (ex) {
-    if (ex.metric === 'reps') targetLabel = `${ex.target} reps`
-    else if (ex.metric === 'time') targetLabel = `${ex.target}s`
+    const displayTarget = target?.adjustedTarget ?? ex.target
+    if (ex.metric === 'reps') {
+      targetLabel =
+        target?.tutBonusSeconds && target.tutBonusSeconds > 0
+          ? `${ex.target} reps · +${target.tutBonusSeconds}s TUT`
+          : `${ex.target} reps`
+    } else if (ex.metric === 'time') targetLabel = `${displayTarget}s`
     else targetLabel = `${ex.target}m`
   }
 
