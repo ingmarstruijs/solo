@@ -150,6 +150,14 @@ export function WorkoutSummary({
             value={formatDuration(stats.avgExercisePerSetSeconds)}
           />
         )}
+        {stats.avgRpe != null && (
+          <StatCard
+            variant={variant}
+            label={t('summaryAvgRpe')}
+            value={String(stats.avgRpe)}
+            sub={t('summaryRpeScale')}
+          />
+        )}
       </section>
 
       {multiSet && (
@@ -163,8 +171,39 @@ export function WorkoutSummary({
             phaseLabel={stats.phaseLabel}
             variant={variant}
           />
+          {summary.sets.some((set) => set.rpe != null) && (
+            <ul className={cn('mt-2 flex flex-wrap gap-x-3 gap-y-1', isTv ? 'text-[1.6vh]' : 'text-[11px]')}>
+              {summary.sets.map((set) =>
+                set.rpe != null ? (
+                  <li key={set.setNumber} className="text-muted">
+                    <span className="font-medium text-fg">{set.label}</span>
+                    {' · '}
+                    {t('summaryRpeValue', { value: set.rpe })}
+                  </li>
+                ) : null,
+              )}
+            </ul>
+          )}
         </div>
       )}
+
+      {!multiSet &&
+        summary.sets.some((set) => set.rpe != null) && (
+          <div className={cn('rounded-xl border border-line bg-surface', isTv ? 'p-[2vh]' : 'p-3')}>
+            <p className={cn('font-semibold', isTv ? 'text-[2vh]' : 'text-sm')}>{t('summaryRpe')}</p>
+            <ul className={cn('mt-1.5 flex flex-col', isTv ? 'gap-[0.8vh] text-[1.8vh]' : 'gap-1 text-xs')}>
+              {summary.sets.map((set) =>
+                set.rpe != null ? (
+                  <li key={set.setNumber} className="text-muted">
+                    <span className="font-medium text-fg">{set.label}</span>
+                    {' · '}
+                    {t('summaryRpeValue', { value: set.rpe })}
+                  </li>
+                ) : null,
+              )}
+            </ul>
+          </div>
+        )}
 
       <section>
         <h3 className={cn('mb-2 font-semibold', isTv ? 'text-[2.2vh]' : 'text-sm')}>

@@ -111,6 +111,9 @@ export function HistoryPage() {
                     {record.summary.stats.totalSets > 0 && (
                       <span>{t('sets', { count: record.summary.stats.totalSets })}</span>
                     )}
+                    {record.summary.stats.avgRpe != null && (
+                      <span>{t('avgRpe', { value: record.summary.stats.avgRpe })}</span>
+                    )}
                   </div>
                 </div>
                 <ChevronRight className="size-5 shrink-0 text-faint" />

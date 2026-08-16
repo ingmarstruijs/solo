@@ -11,5 +11,6 @@
   "minutes": "Minuten",
   "exercises": "{{count}} Übungen",
   "sets": "{{count}} Sätze",
+  "avgRpe": "RPE {{value}}",
   "todayAt": "Heute · {{time}}"
 }

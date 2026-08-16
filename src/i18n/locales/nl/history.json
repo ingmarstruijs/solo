@@ -11,5 +11,6 @@
   "minutes": "Minuten",
   "exercises": "{{count}} oefeningen",
   "sets": "{{count}} sets",
+  "avgRpe": "RPE {{value}}",
   "todayAt": "Vandaag · {{time}}"
 }
