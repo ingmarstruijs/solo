@@ -42,22 +42,23 @@ function formatWhen(iso: string, locale: string, todayAt: (time: string) => stri
 }
 
 function SetSparkline({ values }: { values: number[] }) {
-  if (values.length < 2) return null
-  const max = Math.max(...values, 1)
+  const bars = values.filter((value) => value >= 0)
+  if (bars.length === 0) return null
+  const max = Math.max(...bars, 1)
 
   return (
-    <div className="mt-2 flex h-7 items-end gap-0.5" aria-hidden>
-      {values.map((value, index) => (
-        <div
-          key={index}
-          className={cn(
-            'min-w-[6px] flex-1 rounded-sm',
-            value > 0 ? 'bg-solo-400/80' : 'bg-line',
-          )}
-          style={{ height: `${value > 0 ? Math.max(18, Math.round((value / max) * 100)) : 12}%` }}
-          title={`${index + 1}: ${formatDuration(value)}`}
-        />
-      ))}
+    <div className="mt-2 flex h-8 items-end gap-1 rounded-md bg-surface-2/80 px-1.5 py-1" aria-hidden>
+      {bars.map((value, index) => {
+        const px = value > 0 ? Math.max(6, Math.round((value / max) * 24)) : 3
+        return (
+          <div
+            key={index}
+            className={cn('min-w-[8px] flex-1 rounded-sm', value > 0 ? 'bg-solo-400' : 'bg-line')}
+            style={{ height: `${px}px` }}
+            title={`${index + 1}: ${formatDuration(value)}`}
+          />
+        )
+      })}
     </div>
   )
 }
@@ -141,6 +142,11 @@ function SessionCard({
               <span className="rounded-md border border-solo-400/30 bg-solo-400/10 px-1.5 py-0.5 text-[10px] font-medium text-solo-300">
                 {t('proofReady')}
               </span>
+              {facts.momentCount > 0 && (
+                <span className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted">
+                  {t('momentsBadge', { count: facts.momentCount })}
+                </span>
+              )}
               {facts.hasAiReport && (
                 <span className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted">
                   <Sparkles className="size-3" />

@@ -86,7 +86,7 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Home weekly stats + recent sessions | **Shipped** | Resume active session card when live |
 | Google Gemma 3 via WebLLM (WebGPU) | **Shipped** | Optional on-device report on summary/logbook via `gemma3-1b-it` (`[sessionReport.ts](src/lib/ai/sessionReport.ts)`); degrades without WebGPU |
 | RPE slider after each set | **Shipped** | Optional 1–10 prompt after set/round; stored in session + summary/logbook |
-| FFmpeg Wasm — 15 s proof reel | **Shipped** | Summary/logbook panel builds vertical MP4 from stats slides; logbook cards show proof facts + film CTA to `?focus=proof` |
+| FFmpeg Wasm — 15 s proof reel | **Shipped** | Stats slides + selected on-device camera moments (Done snaps in IndexedDB); logbook film CTA |
 | AI form deviation aggregation in report | **Next** | Depends on pose pipeline |
 
 ### Planned flow — post-workout TinyLLM analytics & export

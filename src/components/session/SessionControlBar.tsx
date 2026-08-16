@@ -5,6 +5,7 @@ import type { TvConnectionStatus } from '@/lib/tv/transport'
 import { CameraPreviewOverlay } from '@/components/session/CameraPreviewOverlay'
 import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
+import { setLiveSessionCameraStream } from '@/lib/session/sessionCamera'
 
 type SessionControlBarProps = {
   cameraEnabled: boolean
@@ -53,6 +54,7 @@ export function SessionControlBar({
     if (!cameraEnabled) {
       streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
+      setLiveSessionCameraStream(null)
       setLive(false)
       setPreviewOpen(false)
       return
@@ -67,6 +69,7 @@ export function SessionControlBar({
           return
         }
         streamRef.current = stream
+        setLiveSessionCameraStream(stream)
         setLive(true)
       })
       .catch(() => {
@@ -77,6 +80,7 @@ export function SessionControlBar({
       cancelled = true
       streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
+      setLiveSessionCameraStream(null)
     }
   }, [cameraEnabled, onCameraChange])
 

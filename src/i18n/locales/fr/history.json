@@ -19,6 +19,7 @@
   "factSets": "Séries",
   "factRpe": "RPE moy.",
   "proofReady": "Proof prêt",
+  "momentsBadge": "{{count}} moments",
   "aiReportBadge": "Rapport IA",
   "createProof": "Créer un proof reel",
   "proofAria": "Créer un proof reel pour {{name}}",

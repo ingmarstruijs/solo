@@ -54,6 +54,7 @@ export function ProofReelPanel({ summary, className, autoFocus }: ProofReelPanel
           setsLabel: t('proofSets'),
           proofLabel: t('proofLabel'),
           peakRpeLabel: t('proofPeakRpe'),
+          momentLabel: t('proofMoment'),
         },
         (p) => {
           setProgress(p.progress)
@@ -111,6 +112,13 @@ export function ProofReelPanel({ summary, className, autoFocus }: ProofReelPanel
       </div>
 
       <p className="mt-2 text-xs text-muted">{t('proofHint')}</p>
+      {facts.momentCount > 0 ? (
+        <p className="mt-1 text-[11px] text-solo-300">
+          {t('proofMomentsReady', { count: facts.momentCount })}
+        </p>
+      ) : (
+        <p className="mt-1 text-[11px] text-faint">{t('proofMomentsHint')}</p>
+      )}
 
       <dl className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] sm:grid-cols-4">
         <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
