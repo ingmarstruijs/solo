@@ -20,6 +20,8 @@ export type SessionSummarySet = {
   label: string
   durationSeconds: number
   exercises: { name: string; durationSeconds: number }[]
+  /** Optional RPE (1–10) logged after this set/round. */
+  rpe?: number
 }
 
 export type SessionSummaryStats = {
@@ -34,6 +36,8 @@ export type SessionSummaryStats = {
   slowestExercise: { name: string; avgSeconds: number } | null
   paceChangePercent: number
   paceLabel: string
+  /** Average of logged RPE values, or null when none were logged. */
+  avgRpe: number | null
 }
 
 export type SessionSummary = {
@@ -41,6 +45,8 @@ export type SessionSummary = {
   exercises: SessionSummaryExercise[]
   sets: SessionSummarySet[]
   stats: SessionSummaryStats
+  /** Set/round number → RPE (1–10). */
+  rpeBySet: Record<number, number>
   totalDurationSeconds: number
   startedAt: string
   completedAt: string
@@ -62,6 +68,14 @@ function computeTrend(first: number, last: number): { trend: ExerciseTrend; tren
   if (pct >= 10) return { trend: 'slower', trendPercent: pct }
   if (pct <= -10) return { trend: 'faster', trendPercent: pct }
   return { trend: 'stable', trendPercent: pct }
+}
+
+/** Average of logged 1–10 RPE values, or null when empty. */
+export function averageRpe(rpeBySet: Record<number, number> | undefined): number | null {
+  if (!rpeBySet) return null
+  const values = Object.values(rpeBySet).filter((value) => value >= 1 && value <= 10)
+  if (values.length === 0) return null
+  return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10
 }
 
 function finalizeSetWallDurations(session: ActiveSession): Record<number, number> {
@@ -97,11 +111,13 @@ export function buildSessionSummary(session: ActiveSession): SessionSummary {
       durationSeconds: bySet[num]?.[ex.id] ?? 0,
     }))
     const exerciseSum = exerciseRows.reduce((sum, row) => sum + row.durationSeconds, 0)
+    const rpe = session.rpeBySet?.[num]
     return {
       setNumber: num,
       label: `${phase.label} ${num}`,
       durationSeconds: setWallDurations[num] ?? exerciseSum,
       exercises: exerciseRows,
+      ...(rpe != null ? { rpe } : {}),
     }
   })
 
@@ -208,6 +224,9 @@ export function buildSessionSummary(session: ActiveSession): SessionSummary {
       ? Math.round(allExerciseTimes.reduce((sum, value) => sum + value, 0) / allExerciseTimes.length)
       : 0
 
+  const rpeBySet = { ...(session.rpeBySet ?? {}) }
+  const avgRpe = averageRpe(rpeBySet)
+
   return {
     workoutName: session.workout.name,
     exercises,
@@ -224,7 +243,9 @@ export function buildSessionSummary(session: ActiveSession): SessionSummary {
       slowestExercise,
       paceChangePercent,
       paceLabel,
+      avgRpe,
     },
+    rpeBySet,
     totalDurationSeconds,
     startedAt: session.startedAt,
     completedAt: new Date().toISOString(),
@@ -239,8 +260,24 @@ export function saveLastSummary(summary: SessionSummary, hasNextWorkout: boolean
 }
 
 export function normalizeSummary(raw: Partial<SessionSummary> & { workoutName: string }): SessionSummary {
+  const rpeBySet = raw.rpeBySet ?? {}
+  const avgRpe = raw.stats?.avgRpe ?? averageRpe(rpeBySet)
+
   if (raw.stats && raw.sets && raw.exercises?.every((ex) => 'durationsBySet' in ex)) {
-    return raw as SessionSummary
+    return {
+      ...(raw as SessionSummary),
+      rpeBySet,
+      stats: {
+        ...raw.stats,
+        avgRpe,
+      },
+      sets: raw.sets.map((set) => ({
+        ...set,
+        ...(set.rpe == null && rpeBySet[set.setNumber] != null
+          ? { rpe: rpeBySet[set.setNumber] }
+          : {}),
+      })),
+    }
   }
 
   const exercises: SessionSummaryExercise[] = (raw.exercises ?? []).map((ex) => {
@@ -259,25 +296,33 @@ export function normalizeSummary(raw: Partial<SessionSummary> & { workoutName: s
   return {
     workoutName: raw.workoutName,
     exercises,
-    sets: raw.sets ?? [],
-    stats: raw.stats ?? {
-      phaseLabel: i18n.t('common:set'),
-      totalSets: raw.sets?.length ?? 0,
-      totalExercisesCompleted: exercises.length,
-      avgSetDurationSeconds: 0,
+    sets: (raw.sets ?? []).map((set) => ({
+      ...set,
+      ...(set.rpe == null && rpeBySet[set.setNumber] != null
+        ? { rpe: rpeBySet[set.setNumber] }
+        : {}),
+    })),
+    stats: {
+      phaseLabel: raw.stats?.phaseLabel ?? i18n.t('common:set'),
+      totalSets: raw.stats?.totalSets ?? raw.sets?.length ?? 0,
+      totalExercisesCompleted: raw.stats?.totalExercisesCompleted ?? exercises.length,
+      avgSetDurationSeconds: raw.stats?.avgSetDurationSeconds ?? 0,
       avgExercisePerSetSeconds:
-        exercises.length > 0
+        raw.stats?.avgExercisePerSetSeconds ??
+        (exercises.length > 0
           ? Math.round(
               exercises.reduce((sum, ex) => sum + ex.durationSeconds, 0) / exercises.length,
             )
-          : 0,
-      fastestSet: null,
-      slowestSet: null,
-      fastestExercise: null,
-      slowestExercise: null,
-      paceChangePercent: 0,
-      paceLabel: i18n.t('session:paceStable'),
+          : 0),
+      fastestSet: raw.stats?.fastestSet ?? null,
+      slowestSet: raw.stats?.slowestSet ?? null,
+      fastestExercise: raw.stats?.fastestExercise ?? null,
+      slowestExercise: raw.stats?.slowestExercise ?? null,
+      paceChangePercent: raw.stats?.paceChangePercent ?? 0,
+      paceLabel: raw.stats?.paceLabel ?? i18n.t('session:paceStable'),
+      avgRpe,
     },
+    rpeBySet,
     totalDurationSeconds: raw.totalDurationSeconds ?? 0,
     startedAt: raw.startedAt ?? new Date().toISOString(),
     completedAt: raw.completedAt ?? new Date().toISOString(),

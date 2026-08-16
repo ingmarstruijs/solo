@@ -1,4 +1,5 @@
 import type { SessionSummary } from '@/lib/workout/sessionSummary'
+import { normalizeSummary } from '@/lib/workout/sessionSummary'
 import { createId, readStore, subscribeStore, writeStore } from './localStore'
 
 const KEY = 'solo-history'
@@ -16,7 +17,12 @@ export type SessionRecord = {
 type LegacySessionRecord = Omit<SessionRecord, 'summary'> & { summary?: SessionSummary }
 
 function normalizeRecord(raw: LegacySessionRecord): SessionRecord {
-  if (raw.summary) return raw as SessionRecord
+  if (raw.summary) {
+    return {
+      ...(raw as SessionRecord),
+      summary: normalizeSummary(raw.summary),
+    }
+  }
 
   return {
     id: raw.id,
@@ -25,7 +31,7 @@ function normalizeRecord(raw: LegacySessionRecord): SessionRecord {
     exerciseCount: raw.exerciseCount ?? 0,
     durationMinutes: raw.durationMinutes ?? 0,
     completedAt: raw.completedAt,
-    summary: {
+    summary: normalizeSummary({
       workoutName: raw.workoutName,
       exercises: [],
       sets: [],
@@ -41,11 +47,13 @@ function normalizeRecord(raw: LegacySessionRecord): SessionRecord {
         slowestExercise: null,
         paceChangePercent: 0,
         paceLabel: 'Stabiel tempo',
+        avgRpe: null,
       },
+      rpeBySet: {},
       totalDurationSeconds: Math.max(60, (raw.durationMinutes ?? 1) * 60),
       startedAt: raw.completedAt,
       completedAt: raw.completedAt,
-    },
+    }),
   }
 }
 

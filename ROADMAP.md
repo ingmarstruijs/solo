@@ -85,7 +85,7 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Logboek with full summary replay | **Shipped** | `[/history](src/pages/HistoryPage.tsx)` — nav label **Logboek** |
 | Home weekly stats + recent sessions | **Shipped** | Resume active session card when live |
 | Google Gemma 3 via WebLLM (WebGPU) | **Next** | Offline coaching report generation |
-| RPE slider after each set | **Next** | Rate of perceived exertion logging |
+| RPE slider after each set | **Shipped** | Optional 1–10 prompt after set/round; stored in session + summary/logbook |
 | FFmpeg Wasm — 15 s proof reel | **Next** | Overlay analytics; Web Share API |
 | AI form deviation aggregation in report | **Next** | Depends on pose pipeline |
 
@@ -168,7 +168,7 @@ Current integrated lab slice: **Active Set Loop** (`/lab/active-set`) — end-to
 ### Phase D — Intelligence & share (Pillar 5)
 
 - WebLLM post-workout analysis
-- RPE logging
+- [x] RPE logging
 - Proof reel export
 
 ### Phase E — Multi-language

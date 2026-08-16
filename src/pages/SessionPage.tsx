@@ -28,7 +28,7 @@ import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { buildSessionTvState, buildSetupTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
 import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
-import { advanceToNextSet, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
+import { advanceToNextSet, getActiveSession, setSessionRpe, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
 import {
   buildCompletionAnnouncement,
   buildNextSetReadyAnnouncement,
@@ -46,6 +46,7 @@ import { useRestCoach } from '@/hooks/useRestCoach'
 import { useElapsedTimer } from '@/hooks/useElapsedTimer'
 import type { ActiveSession } from '@/types/workout'
 import { cn } from '@/lib/cn'
+import { RpePrompt } from '@/components/session/RpePrompt'
 
 function buildPrepBackUrl(workoutId: string): string {
   const queue = loadWorkoutQueue()
@@ -81,6 +82,7 @@ export function SessionPage() {
     key: string
   } | null>(null)
   const [restTimer, setRestTimer] = useState<RestTimer | null>(null)
+  const [rpePromptSet, setRpePromptSet] = useState<number | null>(null)
   const restCountdown = useRestCountdown(restTimer)
   useRestCoach(restCountdown, restTimer && restCountdown.active ? restTimer : null, coachEnabled)
 
@@ -349,6 +351,10 @@ export function SessionPage() {
     const awaitingNextSet = willBeAllDone && !isLastPhase
     const nextExercise = workout.exercises.find((e) => !projected.completedExerciseIds.includes(e.id))
 
+    if (willBeAllDone) {
+      setRpePromptSet(currentSet)
+    }
+
     if (startsPhaseRest) {
       startPhaseRest()
       queueCoachAfterRest(
@@ -413,14 +419,30 @@ export function SessionPage() {
 
   function handleUndo(exerciseId: string) {
     if (!completedExerciseIds.includes(exerciseId)) return
+    const wasSetComplete = completedExerciseIds.length === workout.exercises.length
     toggleComplete(exerciseId)
     pendingCoachAfterRestRef.current = null
     setRestTimer(null)
+    if (wasSetComplete) {
+      setRpePromptSet(null)
+      setSessionRpe(currentSet, null)
+    }
+  }
+
+  function handleRpeSelect(rpe: number) {
+    if (rpePromptSet == null) return
+    setSessionRpe(rpePromptSet, rpe)
+    setRpePromptSet(null)
+  }
+
+  function handleRpeSkip() {
+    setRpePromptSet(null)
   }
 
   function handleNextSet() {
     if (!allDone) return
     setRestTimer(null)
+    setRpePromptSet(null)
     pendingCoachAfterRestRef.current = null
     const nextSet = currentSet + 1
     advanceToNextSet()
@@ -437,7 +459,9 @@ export function SessionPage() {
   }
 
   function handleFinish() {
-    const summary = buildSessionSummary(activeSession)
+    setRpePromptSet(null)
+    const latest = getActiveSession() ?? activeSession
+    const summary = buildSessionSummary(latest)
     saveLastSummary(summary, false)
     publishToTvTransport(buildSummaryTvState(summary, theme), { theme })
     completeSession(summary)
@@ -445,7 +469,9 @@ export function SessionPage() {
   }
 
   function handleNextWorkout() {
-    const summary = buildSessionSummary(activeSession)
+    setRpePromptSet(null)
+    const latest = getActiveSession() ?? activeSession
+    const summary = buildSessionSummary(latest)
     completeSession(summary)
     const next = popNextQueuedWorkout()
     if (!next) {
@@ -636,6 +662,14 @@ export function SessionPage() {
       </ol>
 
       <RestTimerBar countdown={restCountdown} onSkip={handleSkipRest} />
+      {rpePromptSet != null && (
+        <RpePrompt
+          setNumber={rpePromptSet}
+          phaseLabel={phase.label}
+          onSelect={handleRpeSelect}
+          onSkip={handleRpeSkip}
+        />
+      )}
     </section>
   )
 }

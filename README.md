@@ -29,7 +29,7 @@ Five ideas guide the product. **Now** is what you can use today; **Next** is on 
 | 2 | **Garmin as live sensor** | Manual recovery slider; BLE HR band in session/TV (Chrome/Edge) | Connect IQ reps/velocity; Health API recovery |
 | 3 | **See your form and the workout** | Camera preview on phone; exercise icons and live session board on TV (`/tv` via BroadcastChannel) | Pose form cues, licensed exercise loops, canvas compositor, cast stream |
 | 4 | **Coach in your ear** | Spoken exercise cues, set-rust vs exercise-rest announcements, pause/resume, male/female voice | Strain-triggered coaching, style options, on-screen strain feedback |
-| 5 | **Proof on your device** | Session summary, logbook, trends, and sparklines — all stored locally | WebLLM workout report, RPE logging, shareable proof reels |
+| 5 | **Proof on your device** | Session summary, logbook, trends, sparklines, and optional RPE after each set — all stored locally | WebLLM workout report, shareable proof reels |
 
 Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 
@@ -43,9 +43,10 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 - **Rest overlay** — Full-screen rust / set rust on phone and TV with countdown and the upcoming exercise (name + target)
 - **TV receiver** — passive `/tv` surface synced via `BroadcastChannel`; shows session HUD (with large timer for timed exercises), voorbereiden/setup materials, prep, summary, or idle; connect/disconnect from session with receiver handshake (reuses an already-open TV tab)
 - **Exercise visuals** — lightweight icon-based visuals today; curated licensed demo loops are planned once asset licenses and attribution are verified
-- **History** — completed sessions stored with full summary (set times, trends, sparklines); browse in the logbook, open, delete per entry or clear all; cancelled sessions are not recorded
+- **History** — completed sessions stored with full summary (set times, optional RPE, trends, sparklines); browse in the logbook, open, delete per entry or clear all; cancelled sessions are not recorded
 - **Home** — optional recovery card with manual slider (settings toggle), weekly stats; **Sessie bezig** banner only during a live (started) session
 - **Live HR** — optional BLE heart-rate band (Chrome/Edge) from Settings or session controls; BPM on phone control bar and TV sensor strip
+- **RPE** — optional 1–10 rate of perceived exertion after each set/round; shown on summary and in the logbook
 - **Themes** — automatic time-of-day themes or manual override in Settings
 - **Labs** — isolated feasibility pages for Garmin BLE, pose/camera, canvas compositor, and cast stream (not part of the main session flow yet)
 
