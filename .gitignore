@@ -37,5 +37,8 @@ Thumbs.db
 # MediaPipe runtime assets (synced by scripts/fetch-mediapipe-assets.mjs)
 public/mediapipe/
 
+# FFmpeg wasm core (synced by scripts/fetch-ffmpeg-assets.mjs)
+public/ffmpeg/
+
 # TS build info
 *.tsbuildinfo

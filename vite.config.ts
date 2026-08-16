@@ -20,7 +20,7 @@ export default defineConfig({
       includeAssets: ['icon.svg', 'icon-maskable.svg'],
       workbox: {
         // Large on-demand assets (MediaPipe, WebLLM) stay out of the SW precache.
-        globIgnores: ['**/mediapipe/**', '**/webllm-*.js', '**/lib-*.js'],
+        globIgnores: ['**/mediapipe/**', '**/ffmpeg/**', '**/webllm-*.js', '**/lib-*.js'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       manifest: {
@@ -58,8 +58,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('@mlc-ai/web-llm') || id.includes('@mlc-ai/web-runtime')) {
-            return 'webllm'
+          if (
+            id.includes('@mlc-ai/web-llm') ||
+            id.includes('@mlc-ai/web-runtime') ||
+            id.includes('@ffmpeg/ffmpeg') ||
+            id.includes('@ffmpeg/util')
+          ) {
+            return id.includes('@ffmpeg') ? 'ffmpeg' : 'webllm'
           }
         },
       },

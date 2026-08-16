@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { PageBackButton } from '@/components/layout/PageBackButton'
 import { AiSessionReport } from '@/components/session/AiSessionReport'
+import { ProofReelPanel } from '@/components/session/ProofReelPanel'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { useHistory } from '@/hooks/useHistory'
 import { useSessionActions } from '@/hooks/useSessionActions'
@@ -171,6 +172,7 @@ export function SessionSummaryPage() {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-2">
         <WorkoutSummary summary={summary} showHeader={false} />
         <AiSessionReport summary={summary} locale={locale} onReport={handleAiReport} />
+        <ProofReelPanel summary={summary} />
       </div>
 
       <div className="flex shrink-0 flex-col gap-2">
