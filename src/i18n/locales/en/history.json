@@ -1,6 +1,6 @@
 {
   "title": "Logbook",
-  "subtitle": "Your completed workouts",
+  "subtitle": "Sessions ready for proof reels",
   "clearAll": "Clear all",
   "clearConfirm": "Delete all sessions from your logbook?",
   "deleteConfirm": "Remove \"{{name}}\" from your logbook?",
@@ -9,8 +9,19 @@
   "thisWeek": "This week",
   "sessions": "Sessions",
   "minutes": "Minutes",
+  "weekRpe": "Week RPE",
+  "weekSets": "Week sets",
   "exercises": "{{count}} exercises",
   "sets": "{{count}} sets",
   "avgRpe": "RPE {{value}}",
+  "peakRpe": "Peak {{value}}",
+  "factDuration": "Time",
+  "factSets": "Sets",
+  "factRpe": "Avg RPE",
+  "proofReady": "Proof ready",
+  "aiReportBadge": "AI report",
+  "createProof": "Create proof reel",
+  "proofAria": "Create proof reel for {{name}}",
+  "proofHint": "Tap the film icon to jump straight into a ~15s proof reel from that session.",
   "todayAt": "Today · {{time}}"
 }

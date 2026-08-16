@@ -1,6 +1,6 @@
 {
   "title": "Logboek",
-  "subtitle": "Je afgeronde trainingen",
+  "subtitle": "Sessies klaar voor proof reels",
   "clearAll": "Alles wissen",
   "clearConfirm": "Alle sessies uit je logboek verwijderen?",
   "deleteConfirm": "\"{{name}}\" uit je logboek verwijderen?",
@@ -9,8 +9,19 @@
   "thisWeek": "Deze week",
   "sessions": "Sessies",
   "minutes": "Minuten",
+  "weekRpe": "Week RPE",
+  "weekSets": "Week sets",
   "exercises": "{{count}} oefeningen",
   "sets": "{{count}} sets",
   "avgRpe": "RPE {{value}}",
+  "peakRpe": "Piek {{value}}",
+  "factDuration": "Tijd",
+  "factSets": "Sets",
+  "factRpe": "Gem. RPE",
+  "proofReady": "Proof klaar",
+  "aiReportBadge": "AI-rapport",
+  "createProof": "Proof reel maken",
+  "proofAria": "Proof reel maken voor {{name}}",
+  "proofHint": "Tik op het filmicoon om direct een ~15s proof reel van die sessie te maken.",
   "todayAt": "Vandaag · {{time}}"
 }

@@ -1,9 +1,22 @@
-import { BarChart3, ChevronRight, Clock, Dumbbell, Flame, Trash2, TrendingUp } from 'lucide-react'
+import {
+  BarChart3,
+  ChevronRight,
+  Clock,
+  Dumbbell,
+  Film,
+  Flame,
+  Sparkles,
+  Trash2,
+  TrendingUp,
+} from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { useHistory } from '@/hooks/useHistory'
 import { getAppLocale } from '@/i18n'
 import { useTranslation } from '@/i18n/hooks'
+import { getProofReelFacts } from '@/lib/proof/proofReel'
+import type { SessionRecord } from '@/lib/storage/historyStore'
 import { formatDuration } from '@/lib/workout/sessionSummary'
+import { cn } from '@/lib/cn'
 
 function formatWhen(iso: string, locale: string, todayAt: (time: string) => string): string {
   const date = new Date(iso)
@@ -26,6 +39,164 @@ function formatWhen(iso: string, locale: string, todayAt: (time: string) => stri
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function SetSparkline({ values }: { values: number[] }) {
+  if (values.length < 2) return null
+  const max = Math.max(...values, 1)
+
+  return (
+    <div className="mt-2 flex h-7 items-end gap-0.5" aria-hidden>
+      {values.map((value, index) => (
+        <div
+          key={index}
+          className={cn(
+            'min-w-[6px] flex-1 rounded-sm',
+            value > 0 ? 'bg-solo-400/80' : 'bg-line',
+          )}
+          style={{ height: `${value > 0 ? Math.max(18, Math.round((value / max) * 100)) : 12}%` }}
+          title={`${index + 1}: ${formatDuration(value)}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+function SessionCard({
+  record,
+  locale,
+  onOpen,
+  onProof,
+  onDelete,
+}: {
+  record: SessionRecord
+  locale: string
+  onOpen: () => void
+  onProof: () => void
+  onDelete: () => void
+}) {
+  const { t } = useTranslation('history')
+  const facts = getProofReelFacts(record.summary)
+  const exercisePreview = facts.exerciseNames.slice(0, 3)
+  const moreExercises = Math.max(0, facts.exerciseNames.length - exercisePreview.length)
+
+  return (
+    <article className="rounded-card border border-line bg-surface p-2">
+      <div className="flex items-start gap-2">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex min-w-0 flex-1 items-start gap-3 p-1 text-left active:bg-surface-2"
+        >
+          <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-surface-2 text-solo-400">
+            <BarChart3 className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{record.workoutName}</p>
+                <p className="mt-0.5 text-[11px] text-muted">
+                  {formatWhen(record.completedAt, locale, (time) => t('todayAt', { time }))}
+                </p>
+              </div>
+              <ChevronRight className="mt-1 size-5 shrink-0 text-faint" />
+            </div>
+
+            <div className="mt-2 grid grid-cols-3 gap-1.5">
+              <FactChip label={t('factDuration')} value={facts.durationLabel} />
+              <FactChip
+                label={t('factSets')}
+                value={facts.totalSets > 0 ? String(facts.totalSets) : '—'}
+              />
+              <FactChip
+                label={t('factRpe')}
+                value={facts.avgRpe != null ? String(facts.avgRpe) : '—'}
+                accent={facts.avgRpe != null}
+              />
+            </div>
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-faint">
+              <span className="flex items-center gap-1">
+                <Dumbbell className="size-3" />
+                {t('exercises', { count: record.exerciseCount })}
+              </span>
+              {facts.paceLabel && (
+                <span className="truncate text-muted">{facts.paceLabel}</span>
+              )}
+              {facts.peakRpe != null && facts.avgRpe != null && facts.peakRpe !== facts.avgRpe && (
+                <span>{t('peakRpe', { value: facts.peakRpe })}</span>
+              )}
+            </div>
+
+            {exercisePreview.length > 0 && (
+              <p className="mt-1.5 truncate text-[11px] text-muted">
+                {exercisePreview.join(' · ')}
+                {moreExercises > 0 ? ` · +${moreExercises}` : ''}
+              </p>
+            )}
+
+            <SetSparkline values={facts.setDurations} />
+
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="rounded-md border border-solo-400/30 bg-solo-400/10 px-1.5 py-0.5 text-[10px] font-medium text-solo-300">
+                {t('proofReady')}
+              </span>
+              {facts.hasAiReport && (
+                <span className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted">
+                  <Sparkles className="size-3" />
+                  {t('aiReportBadge')}
+                </span>
+              )}
+            </div>
+          </div>
+        </button>
+
+        <div className="flex shrink-0 flex-col gap-1">
+          <button
+            type="button"
+            onClick={onProof}
+            className="grid size-10 place-items-center rounded-lg border border-solo-400/40 bg-solo-400/10 text-solo-300 active:bg-solo-400/20"
+            aria-label={t('proofAria', { name: record.workoutName })}
+            title={t('createProof')}
+          >
+            <Film className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="grid size-10 place-items-center rounded-lg text-faint active:bg-danger/10 active:text-danger"
+            aria-label={t('deleteAria', { name: record.workoutName })}
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function FactChip({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: string
+  accent?: boolean
+}) {
+  return (
+    <div className="rounded-lg border border-line bg-surface-2/80 px-1.5 py-1.5 text-center">
+      <p
+        className={cn(
+          'text-sm font-bold tabular-nums leading-none',
+          accent ? 'text-warn' : 'text-fg',
+        )}
+      >
+        {value}
+      </p>
+      <p className="mt-1 label-mono text-[8px] text-faint">{label}</p>
+    </div>
+  )
 }
 
 export function HistoryPage() {
@@ -68,11 +239,24 @@ export function HistoryPage() {
           )}
         </header>
 
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-4 gap-1.5">
           <StatPill icon={Flame} label={t('thisWeek')} value={String(stats.sessionsThisWeek)} />
           <StatPill icon={TrendingUp} label={t('sessions')} value={String(stats.totalSessions)} />
           <StatPill icon={Clock} label={t('minutes')} value={String(stats.totalMinutes)} />
+          <StatPill
+            icon={Dumbbell}
+            label={stats.avgRpeThisWeek != null ? t('weekRpe') : t('weekSets')}
+            value={
+              stats.avgRpeThisWeek != null
+                ? String(stats.avgRpeThisWeek)
+                : String(stats.setsThisWeek)
+            }
+          />
         </div>
+
+        {history.length > 0 && (
+          <p className="mt-2 text-[11px] text-muted">{t('proofHint')}</p>
+        )}
       </div>
 
       {history.length === 0 ? (
@@ -82,51 +266,14 @@ export function HistoryPage() {
       ) : (
         <div className="flex flex-col gap-2 pb-20">
           {history.map((record) => (
-            <article
+            <SessionCard
               key={record.id}
-              className="flex items-center gap-2 rounded-card border border-line bg-surface p-2"
-            >
-              <button
-                type="button"
-                onClick={() => navigate(`/history/${record.id}`)}
-                className="flex min-w-0 flex-1 items-center gap-3 p-1 text-left active:bg-surface-2"
-              >
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-surface-2 text-solo-400">
-                  <BarChart3 className="size-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{record.workoutName}</p>
-                  <p className="mt-0.5 text-[11px] text-muted">
-                    {formatWhen(record.completedAt, locale, (time) => t('todayAt', { time }))}
-                  </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-faint">
-                    <span className="flex items-center gap-1">
-                      <Clock className="size-3" />
-                      {formatDuration(record.summary.totalDurationSeconds)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Dumbbell className="size-3" />
-                      {t('exercises', { count: record.exerciseCount })}
-                    </span>
-                    {record.summary.stats.totalSets > 0 && (
-                      <span>{t('sets', { count: record.summary.stats.totalSets })}</span>
-                    )}
-                    {record.summary.stats.avgRpe != null && (
-                      <span>{t('avgRpe', { value: record.summary.stats.avgRpe })}</span>
-                    )}
-                  </div>
-                </div>
-                <ChevronRight className="size-5 shrink-0 text-faint" />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(record.id, record.workoutName)}
-                className="grid size-10 shrink-0 place-items-center rounded-lg text-faint active:bg-danger/10 active:text-danger"
-                aria-label={t('deleteAria', { name: record.workoutName })}
-              >
-                <Trash2 className="size-5" />
-              </button>
-            </article>
+              record={record}
+              locale={locale}
+              onOpen={() => navigate(`/history/${record.id}`)}
+              onProof={() => navigate(`/history/${record.id}?focus=proof`)}
+              onDelete={() => handleDelete(record.id, record.workoutName)}
+            />
           ))}
         </div>
       )}
@@ -144,10 +291,10 @@ function StatPill({
   value: string
 }) {
   return (
-    <div className="rounded-xl border border-line bg-surface px-2 py-2 text-center">
+    <div className="rounded-xl border border-line bg-surface px-1.5 py-2 text-center">
       <Icon className="mx-auto mb-0.5 size-3.5 text-solo-400" />
-      <p className="text-base font-bold tabular-nums">{value}</p>
-      <p className="label-mono text-[8px] text-faint">{label}</p>
+      <p className="text-sm font-bold tabular-nums sm:text-base">{value}</p>
+      <p className="label-mono text-[7px] text-faint sm:text-[8px]">{label}</p>
     </div>
   )
 }
