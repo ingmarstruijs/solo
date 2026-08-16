@@ -1,5 +1,6 @@
 import type { PlateConfig, PlateItemUsed } from '@/types/workout'
 import type { EquipmentCategory, LockerItem } from '@/types/locker'
+import { i18n } from '@/i18n'
 
 const DEFAULT_BAR_KG = 20
 
@@ -91,7 +92,7 @@ export function configurePlates(
       itemsUsed: match
         ? [{ label: match.name, weightKg: actual, count: 2, category: 'dumbbell' }]
         : [],
-      note: match ? 'Per hand' : `Geen ${targetKg} kg dumbbell in locker`,
+      note: match ? i18n.t('workouts:platePerHand') : i18n.t('workouts:plateNoDumbbell', { kg: targetKg }),
     }
   }
 
@@ -108,12 +109,12 @@ export function configurePlates(
       itemsUsed: match
         ? [{ label: match.name, weightKg: actual, count: 1, category: 'kettlebell' }]
         : [],
-      note: match ? undefined : `Geen ${targetKg} kg kettlebell in locker`,
+      note: match ? undefined : i18n.t('workouts:plateNoKettlebell', { kg: targetKg }),
     }
   }
 
   if (primary !== 'barbell' && primary !== 'weight_plate') {
-    return { ...empty, totalKg: targetKg, note: 'Geen gewicht nodig' }
+    return { ...empty, totalKg: targetKg, note: i18n.t('workouts:plateNoWeightNeeded') }
   }
 
   const barItem = items.find((i) => i.category === 'barbell')
@@ -131,7 +132,7 @@ export function configurePlates(
       itemsUsed: barItem
         ? [{ label: barItem.name, weightKg: barWeight, count: 1, category: 'barbell' }]
         : [],
-      note: 'Geen schijven in locker',
+      note: i18n.t('workouts:plateNoPlatesInLocker'),
     }
   }
 
@@ -139,7 +140,7 @@ export function configurePlates(
   const { perSide, itemsUsed: plateItems } = greedyPlatesFromLocker(perSideTarget, plates)
   const barUsed: PlateItemUsed[] = barItem
     ? [{ label: barItem.name, weightKg: barWeight, count: 1, category: 'barbell' }]
-    : [{ label: 'Olympic bar', weightKg: barWeight, count: 1, category: 'barbell' }]
+    : [{ label: i18n.t('workouts:olympicBar'), weightKg: barWeight, count: 1, category: 'barbell' }]
 
   const totalKg = barWeight + perSide.reduce((s, p) => s + p, 0) * 2
 
@@ -151,6 +152,6 @@ export function configurePlates(
     totalKg,
     achievable: totalKg >= targetKg - 0.5,
     itemsUsed: [...barUsed, ...plateItems],
-    note: totalKg < targetKg ? `Max ${totalKg} kg met locker schijven` : undefined,
+    note: totalKg < targetKg ? i18n.t('workouts:plateMaxWithLocker', { kg: totalKg }) : undefined,
   }
 }

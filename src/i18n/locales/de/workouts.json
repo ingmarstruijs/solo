@@ -115,5 +115,12 @@
   "sharedWorkout": "Geteiltes Workout",
   "addAndStart": "Hinzufügen & starten",
   "addOnly": "Nur hinzufügen",
-  "shareLocalNote": "Wird lokal auf diesem Gerät gespeichert."
+  "shareLocalNote": "Wird lokal auf diesem Gerät gespeichert.",
+  "platePerHand": "Pro Hand",
+  "plateNoDumbbell": "Keine {{kg}} kg Kurzhantel im Locker",
+  "plateNoKettlebell": "Keine {{kg}} kg Kettlebell im Locker",
+  "plateNoWeightNeeded": "Kein Gewicht nötig",
+  "plateNoPlatesInLocker": "Keine Scheiben im Locker",
+  "plateMaxWithLocker": "Max. {{kg}} kg mit Locker-Scheiben",
+  "olympicBar": "Olympische Stange"
 }

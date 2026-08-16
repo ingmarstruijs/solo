@@ -115,5 +115,12 @@
   "sharedWorkout": "Shared workout",
   "addAndStart": "Add & start",
   "addOnly": "Add only",
-  "shareLocalNote": "Stored locally on this device."
+  "shareLocalNote": "Stored locally on this device.",
+  "platePerHand": "Per hand",
+  "plateNoDumbbell": "No {{kg}} kg dumbbell in locker",
+  "plateNoKettlebell": "No {{kg}} kg kettlebell in locker",
+  "plateNoWeightNeeded": "No weight needed",
+  "plateNoPlatesInLocker": "No plates in locker",
+  "plateMaxWithLocker": "Max {{kg}} kg with locker plates",
+  "olympicBar": "Olympic bar"
 }

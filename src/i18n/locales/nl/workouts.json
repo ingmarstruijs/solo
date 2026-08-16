@@ -115,5 +115,12 @@
   "sharedWorkout": "Gedeelde workout",
   "addAndStart": "Toevoegen & starten",
   "addOnly": "Alleen toevoegen",
-  "shareLocalNote": "Wordt lokaal op dit apparaat opgeslagen."
+  "shareLocalNote": "Wordt lokaal op dit apparaat opgeslagen.",
+  "platePerHand": "Per hand",
+  "plateNoDumbbell": "Geen {{kg}} kg dumbbell in locker",
+  "plateNoKettlebell": "Geen {{kg}} kg kettlebell in locker",
+  "plateNoWeightNeeded": "Geen gewicht nodig",
+  "plateNoPlatesInLocker": "Geen schijven in locker",
+  "plateMaxWithLocker": "Max {{kg}} kg met locker schijven",
+  "olympicBar": "Olympische stang"
 }

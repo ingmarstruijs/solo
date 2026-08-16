@@ -14,26 +14,26 @@ export type ThemeDefinition = {
 export const THEMES: ThemeDefinition[] = [
   {
     id: 'ochtend',
-    label: 'Ochtend',
-    description: 'Zacht licht, warme dageraad',
+    label: 'Morning',
+    description: 'Soft light, warm dawn',
     timeRange: '06:00 – 11:59',
   },
   {
     id: 'middag',
-    label: 'Middag',
-    description: 'Helder en fris daglicht',
+    label: 'Afternoon',
+    description: 'Bright, crisp daylight',
     timeRange: '12:00 – 17:59',
   },
   {
     id: 'avond',
-    label: 'Avond',
-    description: 'Frisse schemering, koel indigo',
+    label: 'Evening',
+    description: 'Cool dusk, indigo tones',
     timeRange: '18:00 – 21:59',
   },
   {
     id: 'nacht',
-    label: 'Nacht',
-    description: 'Diep zwart, minimaal SOLO-blauw',
+    label: 'Night',
+    description: 'Deep black, minimal SOLO blue',
     timeRange: '22:00 – 05:59',
   },
 ]

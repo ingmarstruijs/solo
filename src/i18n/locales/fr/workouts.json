@@ -115,5 +115,12 @@
   "sharedWorkout": "Séance partagée",
   "addAndStart": "Ajouter et démarrer",
   "addOnly": "Ajouter seulement",
-  "shareLocalNote": "Stocké localement sur cet appareil."
+  "shareLocalNote": "Stocké localement sur cet appareil.",
+  "platePerHand": "Par main",
+  "plateNoDumbbell": "Pas d’haltère {{kg}} kg dans le casier",
+  "plateNoKettlebell": "Pas de kettlebell {{kg}} kg dans le casier",
+  "plateNoWeightNeeded": "Pas de poids nécessaire",
+  "plateNoPlatesInLocker": "Pas de disques dans le casier",
+  "plateMaxWithLocker": "Max {{kg}} kg avec les disques du casier",
+  "olympicBar": "Barre olympique"
 }
