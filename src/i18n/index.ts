@@ -21,7 +21,6 @@ import enHome from './locales/en/home.json'
 import enHistory from './locales/en/history.json'
 import enThemes from './locales/en/themes.json'
 import enAbout from './locales/en/about.json'
-import enLabs from './locales/en/labs.json'
 import enTv from './locales/en/tv.json'
 
 import nlCommon from './locales/nl/common.json'
@@ -36,7 +35,6 @@ import nlHome from './locales/nl/home.json'
 import nlHistory from './locales/nl/history.json'
 import nlThemes from './locales/nl/themes.json'
 import nlAbout from './locales/nl/about.json'
-import nlLabs from './locales/nl/labs.json'
 import nlTv from './locales/nl/tv.json'
 
 import deCommon from './locales/de/common.json'
@@ -51,7 +49,6 @@ import deHome from './locales/de/home.json'
 import deHistory from './locales/de/history.json'
 import deThemes from './locales/de/themes.json'
 import deAbout from './locales/de/about.json'
-import deLabs from './locales/de/labs.json'
 import deTv from './locales/de/tv.json'
 
 import frCommon from './locales/fr/common.json'
@@ -66,7 +63,6 @@ import frHome from './locales/fr/home.json'
 import frHistory from './locales/fr/history.json'
 import frThemes from './locales/fr/themes.json'
 import frAbout from './locales/fr/about.json'
-import frLabs from './locales/fr/labs.json'
 import frTv from './locales/fr/tv.json'
 
 export const I18N_NAMESPACES = [
@@ -82,7 +78,6 @@ export const I18N_NAMESPACES = [
   'history',
   'themes',
   'about',
-  'labs',
   'tv',
 ] as const
 
@@ -102,7 +97,6 @@ const resources = {
     history: enHistory,
     themes: enThemes,
     about: enAbout,
-    labs: enLabs,
     tv: enTv,
   },
   nl: {
@@ -118,7 +112,6 @@ const resources = {
     history: nlHistory,
     themes: nlThemes,
     about: nlAbout,
-    labs: nlLabs,
     tv: nlTv,
   },
   de: {
@@ -134,7 +127,6 @@ const resources = {
     history: deHistory,
     themes: deThemes,
     about: deAbout,
-    labs: deLabs,
     tv: deTv,
   },
   fr: {
@@ -150,7 +142,6 @@ const resources = {
     history: frHistory,
     themes: frThemes,
     about: frAbout,
-    labs: frLabs,
     tv: frTv,
   },
 } as const

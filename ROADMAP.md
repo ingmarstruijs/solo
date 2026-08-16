@@ -179,4 +179,4 @@ See **[docs/i18n.md](docs/i18n.md)** and **[docs/i18n-plan.md](docs/i18n-plan.md
 - [x] Exercise translation service: target app locale; `descriptionByLocale` + re-resolve on switch
 - [x] UI string extraction (nav, session/prep, settings, Wger, coach/TTS, locker, home, history, themes, TV, labs hub, workout editor)
 - [x] Contribution path for future locales (`registry.ts` + JSON catalogs)
-- [ ] Individual lab page copy (Active Set / Pose / Cast / Garmin feasibility internals)
+- [x] Labs stay English-only (hub + lab pages; not localized)
