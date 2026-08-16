@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from '@/i18n/hooks'
 import {
   buildProofReel,
+  getProofReelFacts,
   PROOF_REEL_SECONDS,
   shareProofReel,
 } from '@/lib/proof/proofReel'
@@ -12,6 +13,8 @@ import { cn } from '@/lib/cn'
 type ProofReelPanelProps = {
   summary: SessionSummary
   className?: string
+  /** Auto-expand emphasis when opened from logbook proof CTA. */
+  autoFocus?: boolean
 }
 
 type Phase = 'idle' | 'building' | 'ready' | 'error'
@@ -19,7 +22,7 @@ type Phase = 'idle' | 'building' | 'ready' | 'error'
 /**
  * Generate a ~15s on-device proof reel (FFmpeg Wasm) and share/download it.
  */
-export function ProofReelPanel({ summary, className }: ProofReelPanelProps) {
+export function ProofReelPanel({ summary, className, autoFocus }: ProofReelPanelProps) {
   const { t } = useTranslation('session')
   const [phase, setPhase] = useState<Phase>('idle')
   const [progress, setProgress] = useState(0)
@@ -28,6 +31,7 @@ export function ProofReelPanel({ summary, className }: ProofReelPanelProps) {
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [shareNote, setShareNote] = useState<string | null>(null)
+  const facts = getProofReelFacts(summary)
 
   async function handleBuild() {
     setPhase('building')
@@ -49,6 +53,7 @@ export function ProofReelPanel({ summary, className }: ProofReelPanelProps) {
           rpeLabel: t('summaryAvgRpe'),
           setsLabel: t('proofSets'),
           proofLabel: t('proofLabel'),
+          peakRpeLabel: t('proofPeakRpe'),
         },
         (p) => {
           setProgress(p.progress)
@@ -85,7 +90,14 @@ export function ProofReelPanel({ summary, className }: ProofReelPanelProps) {
   }
 
   return (
-    <section className={cn('rounded-card border border-line bg-surface p-3', className)}>
+    <section
+      id="proof-reel"
+      className={cn(
+        'scroll-mt-24 rounded-card border border-line bg-surface p-3',
+        autoFocus && 'border-solo-400/50 ring-1 ring-solo-400/30',
+        className,
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-sm font-semibold">
@@ -99,6 +111,36 @@ export function ProofReelPanel({ summary, className }: ProofReelPanelProps) {
       </div>
 
       <p className="mt-2 text-xs text-muted">{t('proofHint')}</p>
+
+      <dl className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] sm:grid-cols-4">
+        <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
+          <dt className="text-faint">{t('summaryTotalTime')}</dt>
+          <dd className="mt-0.5 font-semibold tabular-nums">{facts.durationLabel}</dd>
+        </div>
+        <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
+          <dt className="text-faint">{t('proofSets')}</dt>
+          <dd className="mt-0.5 font-semibold tabular-nums">{facts.totalSets}</dd>
+        </div>
+        <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
+          <dt className="text-faint">{t('summaryPace')}</dt>
+          <dd className="mt-0.5 truncate font-semibold">{facts.paceLabel || '—'}</dd>
+        </div>
+        <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
+          <dt className="text-faint">{t('summaryAvgRpe')}</dt>
+          <dd className="mt-0.5 font-semibold tabular-nums text-warn">
+            {facts.avgRpe != null ? facts.avgRpe : '—'}
+            {facts.peakRpe != null && facts.avgRpe != null && facts.peakRpe !== facts.avgRpe
+              ? ` · ${t('proofPeakRpe')} ${facts.peakRpe}`
+              : ''}
+          </dd>
+        </div>
+      </dl>
+
+      {facts.exerciseNames.length > 0 && (
+        <p className="mt-2 truncate text-[11px] text-muted">
+          {t('proofExercises')}: {facts.exerciseNames.join(' · ')}
+        </p>
+      )}
 
       {previewUrl && (
         <video

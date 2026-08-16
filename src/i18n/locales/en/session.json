@@ -168,6 +168,7 @@
   "proofBuildingSlides": "Rendering slides…",
   "proofLoadingFfmpeg": "Loading FFmpeg…",
   "proofEncoding": "Encoding MP4…",
+  "proofPeakRpe": "Peak",
   "prepBody": "Target weights based on locker <strong>{{name}}</strong>{{recoveryPart}}.",
   "prepBodyRecovery": " and recovery",
   "prepBodyHint": ". With low recovery, heavy targets are reduced slightly.",

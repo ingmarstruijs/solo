@@ -1,6 +1,6 @@
 {
   "title": "Logbuch",
-  "subtitle": "Deine abgeschlossenen Workouts",
+  "subtitle": "Sessions bereit für Proof Reels",
   "clearAll": "Alles löschen",
   "clearConfirm": "Alle Sessions aus dem Logbuch löschen?",
   "deleteConfirm": "\"{{name}}\" aus dem Logbuch entfernen?",
@@ -9,8 +9,19 @@
   "thisWeek": "Diese Woche",
   "sessions": "Sessions",
   "minutes": "Minuten",
+  "weekRpe": "Woche RPE",
+  "weekSets": "Woche Sätze",
   "exercises": "{{count}} Übungen",
   "sets": "{{count}} Sätze",
   "avgRpe": "RPE {{value}}",
+  "peakRpe": "Peak {{value}}",
+  "factDuration": "Zeit",
+  "factSets": "Sätze",
+  "factRpe": "Ø RPE",
+  "proofReady": "Proof bereit",
+  "aiReportBadge": "KI-Bericht",
+  "createProof": "Proof Reel erstellen",
+  "proofAria": "Proof Reel für {{name}} erstellen",
+  "proofHint": "Tippe auf das Film-Icon, um direkt ein ~15s Proof Reel aus der Session zu starten.",
   "todayAt": "Heute · {{time}}"
 }

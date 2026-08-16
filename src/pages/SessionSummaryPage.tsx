@@ -1,6 +1,6 @@
-import { ChevronRight, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router'
+import { ChevronRight, Film, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { PageBackButton } from '@/components/layout/PageBackButton'
 import { AiSessionReport } from '@/components/session/AiSessionReport'
 import { ProofReelPanel } from '@/components/session/ProofReelPanel'
@@ -36,12 +36,17 @@ export function SessionSummaryPage() {
   const { t, i18n } = useTranslation(['session', 'common', 'history'])
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { sessionId } = useParams<{ sessionId?: string }>()
   const { theme } = useTheme()
   const { startNextWorkout } = useSessionActions()
   const { remove: removeHistory } = useHistory()
   const isHistoryView = Boolean(sessionId)
   const locale = i18n.language || getAppLocale()
+  const focusProof = useMemo(
+    () => searchParams.get('focus') === 'proof' || location.hash === '#proof-reel',
+    [searchParams, location.hash],
+  )
 
   const state = location.state as SummaryLocationState | null
   const stored = loadLastSummary()
@@ -69,6 +74,14 @@ export function SessionSummaryPage() {
     if (!summary || isHistoryView) return
     publishToTvTransport(buildSummaryTvState(summary, theme), { theme })
   }, [summary, theme, isHistoryView])
+
+  useEffect(() => {
+    if (!summary || !focusProof) return
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('proof-reel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [summary, focusProof, sessionId])
 
   function leaveSummary() {
     clearLastSummary()
@@ -170,9 +183,44 @@ export function SessionSummaryPage() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-2">
-        <WorkoutSummary summary={summary} showHeader={false} />
-        <AiSessionReport summary={summary} locale={locale} onReport={handleAiReport} />
-        <ProofReelPanel summary={summary} />
+        {isHistoryView && !focusProof && (
+          <button
+            type="button"
+            onClick={() =>
+              document.getElementById('proof-reel')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              })
+            }
+            className="flex w-full items-center justify-between gap-3 rounded-xl border border-solo-400/40 bg-solo-400/10 px-3 py-2.5 text-left active:bg-solo-400/20"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <Film className="size-4 shrink-0 text-solo-300" />
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-solo-200">
+                  {t('session:proofTitle')}
+                </span>
+                <span className="block truncate text-[11px] text-muted">
+                  {t('history:createProof')}
+                </span>
+              </span>
+            </span>
+            <ChevronRight className="size-4 shrink-0 text-solo-300" />
+          </button>
+        )}
+        {focusProof ? (
+          <>
+            <ProofReelPanel summary={summary} autoFocus />
+            <WorkoutSummary summary={summary} showHeader={false} />
+            <AiSessionReport summary={summary} locale={locale} onReport={handleAiReport} />
+          </>
+        ) : (
+          <>
+            <WorkoutSummary summary={summary} showHeader={false} />
+            <AiSessionReport summary={summary} locale={locale} onReport={handleAiReport} />
+            <ProofReelPanel summary={summary} />
+          </>
+        )}
       </div>
 
       <div className="flex shrink-0 flex-col gap-2">

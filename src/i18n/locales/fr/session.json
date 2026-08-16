@@ -168,6 +168,7 @@
   "proofBuildingSlides": "Rendu des diapositives…",
   "proofLoadingFfmpeg": "Chargement de FFmpeg…",
   "proofEncoding": "Encodage MP4…",
+  "proofPeakRpe": "Pic",
   "prepBody": "Poids cibles selon le casier <strong>{{name}}</strong>{{recoveryPart}}.",
   "prepBodyRecovery": " et la récupération",
   "prepBodyHint": ". En cas de faible récupération, les cibles lourdes sont légèrement réduites.",

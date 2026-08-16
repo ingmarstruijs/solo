@@ -16,6 +16,44 @@ type SlideCopy = {
   rpeLabel: string
   setsLabel: string
   proofLabel: string
+  peakRpeLabel?: string
+}
+
+/** Snapshot of proof-reel facts for logbook previews and share copy. */
+export type ProofReelFacts = {
+  workoutName: string
+  durationLabel: string
+  totalSets: number
+  paceLabel: string
+  paceChangePercent: number
+  avgRpe: number | null
+  peakRpe: number | null
+  exerciseNames: string[]
+  exerciseLines: string[]
+  hasAiReport: boolean
+  setDurations: number[]
+}
+
+export function getProofReelFacts(summary: SessionSummary): ProofReelFacts {
+  const rpeValues = Object.values(summary.rpeBySet ?? {}).filter((v) => v >= 1 && v <= 10)
+  const peakRpe = rpeValues.length > 0 ? Math.max(...rpeValues) : null
+  const top = summary.exercises.slice(0, 4)
+
+  return {
+    workoutName: summary.workoutName,
+    durationLabel: formatDuration(summary.totalDurationSeconds),
+    totalSets: summary.stats.totalSets,
+    paceLabel: summary.stats.paceLabel,
+    paceChangePercent: summary.stats.paceChangePercent,
+    avgRpe: summary.stats.avgRpe,
+    peakRpe,
+    exerciseNames: top.map((ex) => ex.name),
+    exerciseLines: top.map((ex) =>
+      ex.durationSeconds > 0 ? `${ex.name} · ${formatDuration(ex.durationSeconds)}` : ex.name,
+    ),
+    hasAiReport: Boolean(summary.aiReport?.trim()),
+    setDurations: summary.sets.map((set) => set.durationSeconds),
+  }
 }
 
 function fillBackground(ctx: CanvasRenderingContext2D) {
@@ -67,15 +105,19 @@ export async function renderProofSlide(
   fillBackground(ctx)
   drawBrand(ctx, copy.brand)
 
-  const duration = formatDuration(summary.totalDurationSeconds)
-  const avgRpe = summary.stats.avgRpe != null ? String(summary.stats.avgRpe) : '—'
-  const sets = String(summary.stats.totalSets)
+  const facts = getProofReelFacts(summary)
+  const avgRpe = facts.avgRpe != null ? String(facts.avgRpe) : '—'
+  const sets = String(facts.totalSets)
+  const paceDelta =
+    facts.paceChangePercent !== 0
+      ? `${facts.paceChangePercent > 0 ? '+' : ''}${facts.paceChangePercent}%`
+      : null
 
   if (index === 0) {
     drawCenteredBlock(ctx, [
       { text: copy.proofLabel, size: 36, color: '#8a97a6', weight: '500' },
-      { text: summary.workoutName, size: 72, color: '#e8edf2', weight: '800' },
-      { text: duration, size: 96, color: '#7cb3f0', weight: '800' },
+      { text: facts.workoutName, size: 72, color: '#e8edf2', weight: '800' },
+      { text: facts.durationLabel, size: 96, color: '#7cb3f0', weight: '800' },
       { text: copy.durationLabel, size: 32, color: '#8a97a6' },
     ], 520)
   } else if (index === 1) {
@@ -83,21 +125,28 @@ export async function renderProofSlide(
       { text: copy.setsLabel, size: 36, color: '#8a97a6' },
       { text: sets, size: 140, color: '#e8edf2', weight: '800' },
       { text: copy.paceLabel, size: 36, color: '#8a97a6' },
-      { text: summary.stats.paceLabel, size: 48, color: '#a9cbf5', weight: '700' },
-    ], 560)
+      { text: facts.paceLabel, size: 48, color: '#a9cbf5', weight: '700' },
+      ...(paceDelta
+        ? [{ text: paceDelta, size: 40, color: '#8a97a6', weight: '600' as const }]
+        : []),
+    ], 520)
   } else if (index === 2) {
+    const peakLine =
+      facts.peakRpe != null && facts.avgRpe != null && facts.peakRpe !== facts.avgRpe
+        ? `${copy.peakRpeLabel ?? 'Peak'} ${facts.peakRpe}`
+        : null
     drawCenteredBlock(ctx, [
       { text: copy.rpeLabel, size: 36, color: '#8a97a6' },
       { text: avgRpe, size: 160, color: '#ff8a3d', weight: '800' },
       { text: '1–10', size: 36, color: '#5a6573' },
-    ], 620)
+      ...(peakLine ? [{ text: peakLine, size: 36, color: '#a9cbf5', weight: '600' as const }] : []),
+    ], 560)
   } else if (index === 3) {
-    const top = summary.exercises.slice(0, 4)
     drawCenteredBlock(ctx, [
       { text: copy.titleHint, size: 36, color: '#8a97a6' },
-      ...top.map((ex) => ({
-        text: ex.name,
-        size: 44,
+      ...facts.exerciseLines.map((line) => ({
+        text: line,
+        size: 40,
         color: '#e8edf2',
         weight: '700',
       })),
@@ -105,10 +154,15 @@ export async function renderProofSlide(
   } else {
     drawCenteredBlock(ctx, [
       { text: copy.brand, size: 64, color: '#7cb3f0', weight: '800' },
-      { text: summary.workoutName, size: 56, color: '#e8edf2', weight: '700' },
-      { text: duration, size: 72, color: '#a9cbf5', weight: '800' },
+      { text: facts.workoutName, size: 56, color: '#e8edf2', weight: '700' },
+      { text: facts.durationLabel, size: 72, color: '#a9cbf5', weight: '800' },
+      {
+        text: `${sets} · ${facts.avgRpe != null ? `RPE ${facts.avgRpe}` : facts.paceLabel}`,
+        size: 36,
+        color: '#8a97a6',
+      },
       { text: copy.proofLabel, size: 32, color: '#8a97a6' },
-    ], 640)
+    ], 560)
   }
 
   const blob = await new Promise<Blob | null>((resolve) =>
