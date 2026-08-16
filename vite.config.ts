@@ -19,8 +19,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'icon-maskable.svg'],
       workbox: {
-        // MediaPipe wasm/model are large; load on demand instead of precaching.
-        globIgnores: ['**/mediapipe/**'],
+        // Large on-demand assets (MediaPipe, WebLLM) stay out of the SW precache.
+        globIgnores: ['**/mediapipe/**', '**/webllm-*.js', '**/lib-*.js'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       manifest: {
@@ -53,6 +53,17 @@ export default defineConfig({
   ],
   resolve: {
     alias: { '@': srcDir },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('@mlc-ai/web-llm') || id.includes('@mlc-ai/web-runtime')) {
+            return 'webllm'
+          }
+        },
+      },
+    },
   },
   server: { host: true },
 })

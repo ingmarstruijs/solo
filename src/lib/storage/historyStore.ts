@@ -88,6 +88,28 @@ export function removeSessionRecord(id: string): void {
   )
 }
 
+/** Replace the summary blob for a history entry (e.g. after AI report generation). */
+export function updateSessionRecordSummary(id: string, summary: SessionSummary): void {
+  const raw = readStore<LegacySessionRecord[]>(KEY, [])
+  const next = raw.map((record) =>
+    record.id === id ? { ...record, summary, workoutName: summary.workoutName } : record,
+  )
+  writeStore(KEY, next)
+}
+
+/** Patch the most recent history row matching a completedAt timestamp. */
+export function updateLatestMatchingSummary(
+  completedAt: string,
+  summary: SessionSummary,
+): void {
+  const raw = readStore<LegacySessionRecord[]>(KEY, [])
+  const index = raw.findIndex((record) => record.completedAt === completedAt)
+  if (index < 0) return
+  const next = [...raw]
+  next[index] = { ...next[index], summary, workoutName: summary.workoutName }
+  writeStore(KEY, next)
+}
+
 export function clearHistory(): void {
   writeStore(KEY, [])
 }

@@ -84,7 +84,7 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Session summary (times, trends, sparklines) | **Shipped** | `[sessionSummary.ts](src/lib/workout/sessionSummary.ts)` |
 | Logboek with full summary replay | **Shipped** | `[/history](src/pages/HistoryPage.tsx)` — nav label **Logboek** |
 | Home weekly stats + recent sessions | **Shipped** | Resume active session card when live |
-| Google Gemma 3 via WebLLM (WebGPU) | **Next** | Offline coaching report generation |
+| Google Gemma 3 via WebLLM (WebGPU) | **Shipped** | Optional on-device report on summary/logbook via `gemma3-1b-it` (`[sessionReport.ts](src/lib/ai/sessionReport.ts)`); degrades without WebGPU |
 | RPE slider after each set | **Shipped** | Optional 1–10 prompt after set/round; stored in session + summary/logbook |
 | FFmpeg Wasm — 15 s proof reel | **Next** | Overlay analytics; Web Share API |
 | AI form deviation aggregation in report | **Next** | Depends on pose pipeline |
@@ -171,7 +171,7 @@ Current integrated lab slices:
 
 ### Phase D — Intelligence & share (Pillar 5)
 
-- WebLLM post-workout analysis
+- [x] WebLLM post-workout analysis (Gemma 3 1B, on-demand)
 - [x] RPE logging
 - Proof reel export
 

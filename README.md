@@ -29,7 +29,7 @@ Five ideas guide the product. **Now** is what you can use today; **Next** is on 
 | 2 | **Garmin as live sensor** | Manual recovery slider; BLE HR band in session/TV (Chrome/Edge) | Connect IQ reps/velocity; Health API recovery |
 | 3 | **See your form and the workout** | Camera preview on phone with optional MediaPipe form cues; exercise icons and live session board on TV (`/tv` via BroadcastChannel) | Licensed exercise loops, canvas compositor, cast stream |
 | 4 | **Coach in your ear** | Spoken exercise cues, set-rust vs exercise-rest announcements, pause/resume, male/female voice; HR strain edge pulse + calm coach cue | Velocity-triggered coaching, style options |
-| 5 | **Proof on your device** | Session summary, logbook, trends, sparklines, and optional RPE after each set — all stored locally | WebLLM workout report, shareable proof reels |
+| 5 | **Proof on your device** | Session summary, logbook, trends, sparklines, optional RPE, and optional on-device Gemma 3 report | Shareable proof reels |
 
 Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 
@@ -47,6 +47,7 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 - **Home** — optional recovery card with manual slider (settings toggle), weekly stats; **Sessie bezig** banner only during a live (started) session
 - **Live HR** — optional BLE heart-rate band (Chrome/Edge) from Settings or session controls; BPM on phone control bar and TV sensor strip
 - **RPE** — optional 1–10 rate of perceived exertion after each set/round; shown on summary and in the logbook
+- **On-device AI** — optional WebLLM (Gemma 3 1B) coaching report on the session summary; WebGPU required; no account
 - **Themes** — automatic time-of-day themes or manual override in Settings
 - **Labs** — isolated feasibility pages for Garmin BLE, pose/camera, canvas compositor, and cast stream (not part of the main session flow yet)
 
@@ -74,6 +75,7 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 | FIT import | `@garmin/fitsdk` |
 | BLE HR | Web Bluetooth API — product HR band + Garmin lab probe |
 | Pose / form cues | `@mediapipe/tasks-vision` Pose Landmarker (lite), local wasm + model via `postinstall` |
+| On-device LLM | `@mlc-ai/web-llm` (Gemma 3 1B) for optional post-workout reports |
 
 ## Getting Started
 

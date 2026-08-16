@@ -50,6 +50,10 @@ export type SessionSummary = {
   totalDurationSeconds: number
   startedAt: string
   completedAt: string
+  /** Optional on-device TinyLLM coaching report. */
+  aiReport?: string
+  aiReportModel?: string
+  aiReportAt?: string
 }
 
 const SUMMARY_KEY = 'solo-last-summary'
@@ -326,6 +330,9 @@ export function normalizeSummary(raw: Partial<SessionSummary> & { workoutName: s
     totalDurationSeconds: raw.totalDurationSeconds ?? 0,
     startedAt: raw.startedAt ?? new Date().toISOString(),
     completedAt: raw.completedAt ?? new Date().toISOString(),
+    ...(raw.aiReport ? { aiReport: raw.aiReport } : {}),
+    ...(raw.aiReportModel ? { aiReportModel: raw.aiReportModel } : {}),
+    ...(raw.aiReportAt ? { aiReportAt: raw.aiReportAt } : {}),
   }
 }
 
