@@ -54,6 +54,18 @@ function buildPrepBackUrl(workoutId: string): string {
   return `/workouts/prep?ids=${ids.join(',')}`
 }
 
+function targetLineForExercise(
+  ex: import('@/types/workout').WorkoutExercise,
+  targets: import('@/types/workout').OverloadTarget[],
+): string {
+  const target = targets.find((t) => t.exerciseId === ex.id)
+  const weight = getExerciseWeight(ex, targets)
+  return formatExerciseTargetLine(ex, weight, {
+    targetOverride: target?.adjustedTarget,
+    tutBonusSeconds: target?.tutBonusSeconds,
+  })
+}
+
 export function SessionPage() {
   const { t } = useTranslation(['session', 'common'])
   const navigate = useNavigate()
@@ -296,7 +308,6 @@ export function SessionPage() {
     next: (typeof workout.exercises)[number] | undefined,
   ) {
     if (exercise.restSeconds <= 0 || restCountdown.active) return
-    const nextWeight = next ? getExerciseWeight(next, targets) : 0
     setRestTimer({
       id: `${exercise.id}-${Date.now()}`,
       endsAt: Date.now() + exercise.restSeconds * 1000,
@@ -304,14 +315,13 @@ export function SessionPage() {
       afterExerciseName: exercise.name,
       kind: 'exercise',
       nextExerciseName: next?.name,
-      nextExerciseTarget: next ? formatExerciseTargetLine(next, nextWeight) : undefined,
+      nextExerciseTarget: next ? targetLineForExercise(next, targets) : undefined,
     })
   }
 
   function startPhaseRest() {
     if (phaseRestSeconds <= 0 || restCountdown.active) return
     const next = workout.exercises[0]
-    const nextWeight = next ? getExerciseWeight(next, targets) : 0
     setRestTimer({
       id: `phase-${currentSet}-${Date.now()}`,
       endsAt: Date.now() + phaseRestSeconds * 1000,
@@ -321,7 +331,7 @@ export function SessionPage() {
       phaseLabel: phase.label,
       completedPhase: currentSet,
       nextExerciseName: next?.name,
-      nextExerciseTarget: next ? formatExerciseTargetLine(next, nextWeight) : undefined,
+      nextExerciseTarget: next ? targetLineForExercise(next, targets) : undefined,
     })
   }
 
@@ -565,6 +575,8 @@ export function SessionPage() {
             exercisesStarted
             reason={targets.find((t) => t.exerciseId === activeExercise.id)?.reason}
             plateConfig={targets.find((t) => t.exerciseId === activeExercise.id)?.plateConfig}
+            tutBonusSeconds={targets.find((t) => t.exerciseId === activeExercise.id)?.tutBonusSeconds}
+            adjustedTarget={targets.find((t) => t.exerciseId === activeExercise.id)?.adjustedTarget}
             exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
             restBlocked={exerciseRestActive}
             onMarkDone={() => handleMarkDone(activeExercise.id)}
@@ -649,6 +661,8 @@ export function SessionPage() {
                 exercisesStarted={exercisesStarted}
                 reason={target?.reason}
                 plateConfig={target?.plateConfig}
+                tutBonusSeconds={target?.tutBonusSeconds}
+                adjustedTarget={target?.adjustedTarget}
                 exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
                 restBlocked={exerciseRestActive && isCurrent}
                 onMarkDone={() => handleMarkDone(ex.id)}
@@ -684,6 +698,8 @@ type SessionExerciseRowProps = {
   exercisesStarted: boolean
   reason?: string
   plateConfig?: import('@/types/workout').PlateConfig
+  tutBonusSeconds?: number
+  adjustedTarget?: number
   exerciseStartedAt: string
   restBlocked?: boolean
   onMarkDone: () => void
@@ -703,6 +719,8 @@ function SessionExerciseRow({
   exercisesStarted,
   reason,
   plateConfig,
+  tutBonusSeconds,
+  adjustedTarget,
   exerciseStartedAt,
   restBlocked = false,
   onMarkDone,
@@ -773,7 +791,12 @@ function SessionExerciseRow({
               <span className={cn('label-mono text-faint', isCurrent && 'text-solo-400')}>#{index + 1}</span>
             </div>
           </div>
-          <p className="mt-0.5 text-xs text-muted">{formatExerciseTargetLine(ex, weight)}</p>
+          <p className="mt-0.5 text-xs text-muted">
+            {formatExerciseTargetLine(ex, weight, {
+              targetOverride: adjustedTarget,
+              tutBonusSeconds,
+            })}
+          </p>
           {reason && <p className="mt-1 text-xs text-warn">{reason}</p>}
         </div>
       </button>

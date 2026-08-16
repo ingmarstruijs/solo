@@ -158,11 +158,19 @@ export function restCountdownWord(seconds: number): string {
   return translated
 }
 
-export function formatExerciseTargetLine(ex: WorkoutExercise, weightKg: number): string {
-  const parts = [metricLabel(ex.metric, ex.target)]
+export function formatExerciseTargetLine(
+  ex: WorkoutExercise,
+  weightKg: number,
+  options?: { targetOverride?: number; tutBonusSeconds?: number },
+): string {
+  const target = options?.targetOverride ?? ex.target
+  const parts = [metricLabel(ex.metric, target)]
   if (weightKg > 0) parts.push(`${weightKg} ${i18n.t('common:kg')}`)
   const equipment = equipmentSummary(ex.equipment)
   if (equipment) parts.push(equipment)
+  if (options?.tutBonusSeconds && options.tutBonusSeconds > 0 && ex.metric === 'reps') {
+    parts.push(i18n.t('session:tutTempo', { seconds: options.tutBonusSeconds }))
+  }
   if (ex.restSeconds > 0) {
     parts.push(i18n.t('session:completion.detailsRestShort', { seconds: ex.restSeconds }))
   }

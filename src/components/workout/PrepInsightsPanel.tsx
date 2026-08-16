@@ -35,12 +35,14 @@ export function PrepInsightsPanel({
 
   const allTargets = workouts.flatMap((w) => w.targets)
   const adjustedCount = allTargets.filter((tgt) => tgt.adjustedWeightKg !== tgt.originalWeightKg).length
+  const tutCount = allTargets.filter((tgt) => (tgt.tutBonusSeconds ?? 0) > 0).length
   const critical = garminConnected && isRecoveryCritical(recoveryScore)
   const title = garminConnected ? t('prepWeightsRecovery') : t('prepWeights')
 
   const summaryParts: string[] = []
   if (garminConnected) summaryParts.push(t('prepRecoverySummary', { score: recoveryScore }))
   if (adjustedCount > 0) summaryParts.push(t('prepAdjusted', { count: adjustedCount }))
+  if (tutCount > 0) summaryParts.push(t('prepTutSummary', { count: tutCount }))
   if (summaryParts.length === 0) summaryParts.push(t('prepNoAdjustments'))
 
   const weightWorkout = weightFor ? workouts.find((w) => w.workout.id === weightFor.workoutId) : null
@@ -110,6 +112,9 @@ export function PrepInsightsPanel({
                     const target = targets.find((tgt) => tgt.exerciseId === ex.id)
                     if (!target) return null
                     const changed = target.adjustedWeightKg !== target.originalWeightKg
+                    const tutSeconds = target.tutBonusSeconds ?? 0
+                    const displayTarget =
+                      target.adjustedTarget != null ? target.adjustedTarget : ex.target
                     return (
                       <li
                         key={ex.id}
@@ -121,7 +126,11 @@ export function PrepInsightsPanel({
                             {target.adjustedWeightKg > 0
                               ? `${target.adjustedWeightKg} kg`
                               : t('bodyweight')}
-                            {changed && target.reason && ` · ${target.reason}`}
+                            {ex.metric === 'time' &&
+                              target.adjustedTarget != null &&
+                              ` · ${displayTarget}s`}
+                            {tutSeconds > 0 && ex.metric === 'reps' && ` · ${t('tutBadge', { seconds: tutSeconds })}`}
+                            {(changed || tutSeconds > 0) && target.reason && ` · ${target.reason}`}
                           </p>
                         </div>
                         {target.plateConfig && target.adjustedWeightKg > 0 && (
