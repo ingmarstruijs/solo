@@ -37,15 +37,15 @@ export const labs: LabDefinition[] = [
       'HR band via standard BLE (0x180D) or broad scan for a future Connect IQ bridge with reps/velocity.',
     icon: Bluetooth,
   },
-  {
-    id: 'pose',
-    path: '/lab/pose',
-    label: 'Camera & Pose',
-    pillar: 'Pillar 3',
-    description:
-      'Front-camera access and GPU/Wasm readiness for MediaPipe Pose Landmarker.',
-    icon: Camera,
-  },
+    {
+      id: 'pose',
+      path: '/lab/pose',
+      label: 'Camera & Pose',
+      pillar: 'Pillar 3',
+      description:
+        'Front-camera + MediaPipe Pose Landmarker with advisory form cues (shared with session preview).',
+      icon: Camera,
+    },
   {
     id: 'canvas-composite',
     path: '/lab/canvas-composite',

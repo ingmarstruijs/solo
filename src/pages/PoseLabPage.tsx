@@ -3,40 +3,40 @@ import { Camera, CameraOff, Cpu, Play, RotateCcw } from 'lucide-react'
 import { LabActionButton, LabInfoCard, LabLogPanel, LabStatusPanel, LabTelemetryCard } from '@/components/lab/LabPrimitives'
 import { LabShell } from '@/components/lab/LabShell'
 import { useLabLog } from '@/components/lab/useLabLog'
+import { usePoseLandmarker } from '@/hooks/usePoseLandmarker'
+import { loadPoseEngine } from '@/lib/pose/poseEngine'
 
 export function PoseLabPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const [cameraActive, setCameraActive] = useState(false)
-  const [frames, setFrames] = useState(0)
-  const [fps, setFps] = useState(0)
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null)
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null)
+  const [engineReady, setEngineReady] = useState(false)
+  const [engineError, setEngineError] = useState<string | null>(null)
   const { logs, appendLog } = useLabLog()
 
   const webGpuAvailable = typeof navigator !== 'undefined' && 'gpu' in navigator
   const mediaDevicesAvailable = typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia)
 
+  const pose = usePoseLandmarker({
+    video: videoEl,
+    canvas: canvasEl,
+    enabled: cameraActive && engineReady,
+  })
+
   useEffect(() => {
-    if (!cameraActive) return
-
-    let animationFrame = 0
-    let frameCount = 0
-    let lastSample = performance.now()
-
-    const tick = () => {
-      frameCount += 1
-      setFrames((current) => current + 1)
-      const now = performance.now()
-      if (now - lastSample >= 1000) {
-        setFps(frameCount)
-        frameCount = 0
-        lastSample = now
+    void loadPoseEngine().then((engine) => {
+      if (engine.status === 'ready') {
+        setEngineReady(true)
+        appendLog('success', 'Pose Landmarker ready (lite model).')
+      } else {
+        setEngineError(engine.error)
+        appendLog('error', engine.error ?? 'Pose engine unavailable.')
       }
-      animationFrame = requestAnimationFrame(tick)
-    }
-
-    animationFrame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(animationFrame)
-  }, [cameraActive])
+    })
+  }, [appendLog])
 
   useEffect(() => {
     return () => stopCamera()
@@ -44,7 +44,7 @@ export function PoseLabPage() {
 
   async function startCamera() {
     if (!mediaDevicesAvailable) {
-      appendLog('error', 'Camera API is niet beschikbaar in deze browser.')
+      appendLog('error', 'Camera API is not available in this browser.')
       return
     }
 
@@ -54,9 +54,13 @@ export function PoseLabPage() {
         audio: false,
       })
       streamRef.current = stream
-      if (videoRef.current) videoRef.current.srcObject = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        setVideoEl(videoRef.current)
+      }
+      setCanvasEl(canvasRef.current)
       setCameraActive(true)
-      appendLog('success', 'Front-camera stream actief.')
+      appendLog('success', 'Front camera stream active.')
     } catch (err) {
       appendLog('error', err instanceof Error ? err.message : String(err))
     }
@@ -67,41 +71,67 @@ export function PoseLabPage() {
     streamRef.current = null
     if (videoRef.current) videoRef.current.srcObject = null
     setCameraActive(false)
-    setFps(0)
+    setVideoEl(null)
   }
 
   function resetCounters() {
-    setFrames(0)
-    setFps(0)
-    appendLog('info', 'Frame counters gereset.')
+    appendLog('info', 'Lab counters reset.')
   }
 
   return (
     <LabShell
       pillar="Pillar 3 · Visual Support"
       title="Camera & Pose"
-      description="Valideer front-camera toegang en runtime readiness voor een latere MediaPipe Pose Landmarker worker."
+      description="Front-camera access plus MediaPipe Pose Landmarker with advisory form cues (same stack as session preview)."
       icon={Camera}
     >
       <LabStatusPanel
-        title={mediaDevicesAvailable ? 'Camera pipeline beschikbaar' : 'Camera pipeline niet beschikbaar'}
+        title={mediaDevicesAvailable ? 'Camera pipeline available' : 'Camera pipeline unavailable'}
         ok={mediaDevicesAvailable}
         checks={[
-          { label: 'getUserMedia', ok: mediaDevicesAvailable, hint: mediaDevicesAvailable ? 'OK' : 'Niet ondersteund' },
-          { label: 'WebGPU hint', ok: webGpuAvailable, hint: webGpuAvailable ? 'Beschikbaar' : 'Fallback nodig' },
+          { label: 'getUserMedia', ok: mediaDevicesAvailable, hint: mediaDevicesAvailable ? 'OK' : 'Unsupported' },
+          { label: 'WebGPU hint', ok: webGpuAvailable, hint: webGpuAvailable ? 'Available' : 'Wasm fallback' },
+          {
+            label: 'Pose Landmarker',
+            ok: engineReady,
+            hint: engineReady ? 'Ready' : engineError ? 'Failed' : 'Loading…',
+          },
         ]}
       />
 
       <div className="grid grid-cols-2 gap-3">
         <LabTelemetryCard icon={Camera} label="Camera" value={cameraActive ? 'ON' : 'OFF'} unit="stream" live={cameraActive} />
-        <LabTelemetryCard icon={Cpu} label="Frame loop" value={`${fps}`} unit="fps" live={cameraActive} warn={cameraActive && fps < 24} />
+        <LabTelemetryCard
+          icon={Cpu}
+          label="Pose"
+          value={pose.status === 'ready' ? (pose.hasPose ? 'TRACK' : 'SCAN') : pose.status.toUpperCase()}
+          unit="state"
+          live={pose.status === 'ready'}
+          warn={pose.cues.length > 0}
+        />
       </div>
 
-      <div className="aspect-video overflow-hidden rounded-card border border-line bg-surface">
-        <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+      <div className="relative aspect-video overflow-hidden rounded-card border border-line bg-surface">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute inset-0 size-full scale-x-[-1] object-contain"
+        />
+        <canvas
+          ref={canvasRef}
+          className="pointer-events-none absolute inset-0 size-full scale-x-[-1] object-contain"
+          aria-hidden
+        />
         {!cameraActive && (
-          <div className="-mt-[56.25%] grid aspect-video place-items-center text-sm text-muted">
-            Camera-preview verschijnt hier.
+          <div className="absolute inset-0 grid place-items-center text-sm text-muted">
+            Camera preview appears here.
+          </div>
+        )}
+        {pose.cues[0] && (
+          <div className="absolute inset-x-0 bottom-0 bg-ink/80 px-3 py-2 text-sm text-warn">
+            Cue: {pose.cues[0].id.replace('_', ' ')}
           </div>
         )}
       </div>
@@ -124,16 +154,15 @@ export function PoseLabPage() {
         </LabActionButton>
       </div>
 
-      <LabInfoCard title="Pose-feasibility">
+      <LabInfoCard title="Pose product path">
         <ul className="list-disc space-y-2 pl-4 text-sm leading-relaxed text-muted">
-          <li>Deze test valideert camera-permissies en frame budget, nog niet de MediaPipe dependency.</li>
-          <li>Onder 24 FPS is de latere skeleton-overlay waarschijnlijk te zwaar voor live TV-compositie.</li>
-          <li>WebGPU is een hint voor lokale AI-capaciteit; MediaPipe kan ook via Wasm/GPU delegates draaien.</li>
+          <li>Session camera preview uses the same engine with a form-cues toggle.</li>
+          <li>Cues are advisory guidance only (knee valgus / forward collapse heuristics).</li>
+          <li>If the model or Wasm fails to load, the camera preview still works without cues.</li>
         </ul>
       </LabInfoCard>
 
-      <LabLogPanel logs={logs} emptyMessage="Start de camera om runtime events te zien." />
-      <p className="label-mono text-faint">{frames} frames verwerkt in deze test.</p>
+      <LabLogPanel logs={logs} emptyMessage="Start the camera to see runtime events." />
     </LabShell>
   )
 }
