@@ -139,4 +139,6 @@ export type ActiveSession = {
   exercisesStarted?: boolean
   /** Exercise ids with an active pause (timer frozen). */
   pausedExerciseIds?: string[]
+  /** IndexedDB ids for on-device camera moments captured during this session. */
+  momentIds?: string[]
 }

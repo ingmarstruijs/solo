@@ -54,6 +54,8 @@ export type SessionSummary = {
   aiReport?: string
   aiReportModel?: string
   aiReportAt?: string
+  /** IndexedDB ids for camera moments used by the proof reel. */
+  momentIds?: string[]
 }
 
 const SUMMARY_KEY = 'solo-last-summary'
@@ -253,6 +255,7 @@ export function buildSessionSummary(session: ActiveSession): SessionSummary {
     totalDurationSeconds,
     startedAt: session.startedAt,
     completedAt: new Date().toISOString(),
+    ...(session.momentIds?.length ? { momentIds: [...session.momentIds] } : {}),
   }
 }
 
@@ -333,6 +336,7 @@ export function normalizeSummary(raw: Partial<SessionSummary> & { workoutName: s
     ...(raw.aiReport ? { aiReport: raw.aiReport } : {}),
     ...(raw.aiReportModel ? { aiReportModel: raw.aiReportModel } : {}),
     ...(raw.aiReportAt ? { aiReportAt: raw.aiReportAt } : {}),
+    ...(raw.momentIds?.length ? { momentIds: raw.momentIds } : {}),
   }
 }
 

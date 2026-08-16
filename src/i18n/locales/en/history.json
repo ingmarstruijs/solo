@@ -19,6 +19,7 @@
   "factSets": "Sets",
   "factRpe": "Avg RPE",
   "proofReady": "Proof ready",
+  "momentsBadge": "{{count}} moments",
   "aiReportBadge": "AI report",
   "createProof": "Create proof reel",
   "proofAria": "Create proof reel for {{name}}",

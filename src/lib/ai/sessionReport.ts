@@ -53,14 +53,23 @@ export async function loadSessionReportEngine(
 
   enginePromise = (async () => {
     const { CreateMLCEngine } = await import('@mlc-ai/web-llm')
-    const engine = await CreateMLCEngine(SESSION_REPORT_MODEL_ID, {
-      initProgressCallback: (report) => {
-        onProgress?.({
-          progress: report.progress,
-          text: report.text,
-        })
+    // Gemma 3 HF config ships sliding_window_size=512; prebuilt only overrides
+    // context_window_size, which trips WindowSizeConfigurationError. Force one off.
+    const engine = await CreateMLCEngine(
+      SESSION_REPORT_MODEL_ID,
+      {
+        initProgressCallback: (report) => {
+          onProgress?.({
+            progress: report.progress,
+            text: report.text,
+          })
+        },
       },
-    })
+      {
+        context_window_size: 4096,
+        sliding_window_size: -1,
+      },
+    )
     loadedModelId = SESSION_REPORT_MODEL_ID
     return engine as unknown as EngineHandle
   })()

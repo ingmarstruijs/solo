@@ -19,6 +19,7 @@
   "factSets": "Sätze",
   "factRpe": "Ø RPE",
   "proofReady": "Proof bereit",
+  "momentsBadge": "{{count}} Momente",
   "aiReportBadge": "KI-Bericht",
   "createProof": "Proof Reel erstellen",
   "proofAria": "Proof Reel für {{name}} erstellen",

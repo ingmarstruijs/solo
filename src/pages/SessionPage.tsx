@@ -30,7 +30,9 @@ import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { buildSessionTvState, buildSetupTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
 import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
-import { advanceToNextSet, getActiveSession, setSessionRpe, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
+import { advanceToNextSet, getActiveSession, saveActiveSession, setSessionRpe, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
+import { captureLiveCameraJpeg } from '@/lib/session/sessionCamera'
+import { saveSessionMoment } from '@/lib/storage/sessionMomentsStore'
 import {
   buildCompletionAnnouncement,
   buildNextSetReadyAnnouncement,
@@ -101,6 +103,9 @@ export function SessionPage() {
   } | null>(null)
   const [restTimer, setRestTimer] = useState<RestTimer | null>(null)
   const [rpePromptSet, setRpePromptSet] = useState<number | null>(null)
+  /** Prevents accidental double-tap when the next exercise's Done replaces the previous. */
+  const [doneArmed, setDoneArmed] = useState(true)
+  const doneGuardUntilRef = useRef(0)
   const restCountdown = useRestCountdown(restTimer)
   useRestCoach(restCountdown, restTimer && restCountdown.active ? restTimer : null, coachEnabled)
 
@@ -274,6 +279,16 @@ export function SessionPage() {
     }
   }, [restTimer, restCountdown.active, drainPendingCoachAnnouncement])
 
+  const activeExerciseIdForGuard = session?.workout.exercises[activeIndex]?.id
+  const exerciseRestActiveForGuard =
+    restCountdown.active && restCountdown.kind === 'exercise'
+
+  useEffect(() => {
+    setDoneArmed(false)
+    const timer = window.setTimeout(() => setDoneArmed(true), 750)
+    return () => window.clearTimeout(timer)
+  }, [activeExerciseIdForGuard, exerciseRestActiveForGuard])
+
   if (!session) {
     return (
       <section className="flex flex-col gap-5 py-2">
@@ -360,7 +375,13 @@ export function SessionPage() {
   }
 
   function handleMarkDone(exerciseId: string) {
+    const now = Date.now()
+    if (now < doneGuardUntilRef.current) return
     if (!exercisesStarted || completedExerciseIds.includes(exerciseId)) return
+    if (!doneArmed) return
+
+    doneGuardUntilRef.current = now + 900
+    setDoneArmed(false)
 
     const ex = workout.exercises.find((e) => e.id === exerciseId)
     const projectedDoneCount = completedExerciseIds.length + 1
@@ -373,6 +394,13 @@ export function SessionPage() {
     toggleComplete(exerciseId, {
       deferNextExerciseStart,
       skipDuration: ex?.metric === 'reps',
+    })
+
+    void captureProofMoment({
+      sessionKey: activeSession.startedAt,
+      setNumber: currentSet,
+      exerciseId,
+      exerciseName: ex?.name,
     })
 
     const projected: ActiveSession = {
@@ -422,6 +450,32 @@ export function SessionPage() {
         ? buildNextSetReadyAnnouncement(currentSet + 1, phase.label)
         : buildCompletionAnnouncement(projected)
       queueCoachAfterRest(text, `after-rest-${exerciseId}-${projected.completedExerciseIds.length}`)
+    }
+  }
+
+  async function captureProofMoment(input: {
+    sessionKey: string
+    setNumber: number
+    exerciseId: string
+    exerciseName?: string
+  }) {
+    try {
+      const blob = await captureLiveCameraJpeg()
+      if (!blob) return
+      const meta = await saveSessionMoment({
+        sessionKey: input.sessionKey,
+        blob,
+        setNumber: input.setNumber,
+        exerciseId: input.exerciseId,
+        exerciseName: input.exerciseName,
+        kind: 'done',
+      })
+      const latest = getActiveSession()
+      if (!latest) return
+      const momentIds = [...(latest.momentIds ?? []), meta.id].slice(-24)
+      saveActiveSession({ ...latest, momentIds })
+    } catch {
+      // Camera moments are best-effort; never block completing an exercise.
     }
   }
 
@@ -603,6 +657,7 @@ export function SessionPage() {
             adjustedTarget={targets.find((t) => t.exerciseId === activeExercise.id)?.adjustedTarget}
             exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
             restBlocked={exerciseRestActive}
+            doneArmed={doneArmed}
             onMarkDone={() => handleMarkDone(activeExercise.id)}
             onUndo={() => handleUndo(activeExercise.id)}
             onTogglePause={() => handleTogglePause(activeExercise.id)}
@@ -689,6 +744,7 @@ export function SessionPage() {
                 adjustedTarget={target?.adjustedTarget}
                 exerciseStartedAt={activeSession.currentExerciseStartedAt ?? activeSession.startedAt}
                 restBlocked={exerciseRestActive && isCurrent}
+                doneArmed={doneArmed}
                 onMarkDone={() => handleMarkDone(ex.id)}
                 onUndo={() => handleUndo(ex.id)}
                 onTogglePause={() => handleTogglePause(ex.id)}
@@ -727,6 +783,7 @@ type SessionExerciseRowProps = {
   adjustedTarget?: number
   exerciseStartedAt: string
   restBlocked?: boolean
+  doneArmed?: boolean
   onMarkDone: () => void
   onUndo: () => void
   onTogglePause: () => void
@@ -748,6 +805,7 @@ function SessionExerciseRow({
   adjustedTarget,
   exerciseStartedAt,
   restBlocked = false,
+  doneArmed = true,
   onMarkDone,
   onUndo,
   onTogglePause,
@@ -861,10 +919,10 @@ function SessionExerciseRow({
           <button
             type="button"
             onClick={onMarkDone}
-            disabled={isPaused || restBlocked}
+            disabled={isPaused || restBlocked || !doneArmed}
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl bg-success py-2.5 text-sm font-bold text-ink',
-              (isPaused || restBlocked) && 'opacity-50',
+              (isPaused || restBlocked || !doneArmed) && 'opacity-50',
             )}
           >
             <Check className="size-4" strokeWidth={3} />

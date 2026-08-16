@@ -19,6 +19,7 @@
   "factSets": "Sets",
   "factRpe": "Gem. RPE",
   "proofReady": "Proof klaar",
+  "momentsBadge": "{{count}} momenten",
   "aiReportBadge": "AI-rapport",
   "createProof": "Proof reel maken",
   "proofAria": "Proof reel maken voor {{name}}",
