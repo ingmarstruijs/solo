@@ -2,8 +2,18 @@ import type { ActiveSession } from '@/types/workout'
 
 export type CenterNavVariant = 'primary' | 'success' | 'danger' | 'wait' | 'muted' | 'prep'
 
+export type CenterNavLabelKey =
+  | 'center.prepare'
+  | 'center.stop'
+  | 'center.live'
+  | 'center.workouts'
+  | 'center.choose'
+  | 'center.prepCount'
+  | null
+
 export type CenterNavConfig = {
-  label: string
+  labelKey: CenterNavLabelKey
+  labelCount?: number
   disabled: boolean
   variant: CenterNavVariant
   showCount: number | null
@@ -33,7 +43,7 @@ function isIdleBottomTab(pathname: string): boolean {
 /** SOLO icon, muted look — disabled idle state. */
 function mutedDisabled(icon: CenterNavConfig['icon'] = 'solo'): CenterNavConfig {
   return {
-    label: '',
+    labelKey: null,
     disabled: true,
     variant: 'muted',
     showCount: null,
@@ -57,7 +67,7 @@ export function resolveCenterNav({
 
   if (onSummary) {
     return {
-      label: 'Workouts',
+      labelKey: 'center.workouts',
       disabled: false,
       variant: 'primary',
       showCount: null,
@@ -69,7 +79,7 @@ export function resolveCenterNav({
     if (!started) {
       if (onSession) {
         return {
-          label: 'Voorbereiden',
+          labelKey: 'center.prepare',
           disabled: true,
           variant: 'wait',
           showCount: null,
@@ -81,7 +91,7 @@ export function resolveCenterNav({
 
     if (onSession) {
       return {
-        label: 'Stop',
+        labelKey: 'center.stop',
         disabled: false,
         variant: 'danger',
         showCount: null,
@@ -90,7 +100,7 @@ export function resolveCenterNav({
     }
 
     return {
-      label: 'Live',
+      labelKey: 'center.live',
       disabled: false,
       variant: 'success',
       showCount: null,
@@ -100,7 +110,7 @@ export function resolveCenterNav({
 
   if (onPrep) {
     return {
-      label: prepReady ? 'Voorbereiden' : '',
+      labelKey: prepReady ? 'center.prepare' : null,
       disabled: !prepReady,
       variant: prepReady ? 'prep' : 'muted',
       showCount: null,
@@ -110,7 +120,8 @@ export function resolveCenterNav({
 
   if (selectionMode && selectedCount > 0) {
     return {
-      label: `Prep ${selectedCount}`,
+      labelKey: 'center.prepCount',
+      labelCount: selectedCount,
       disabled: false,
       variant: 'prep',
       showCount: selectedCount,
@@ -120,7 +131,7 @@ export function resolveCenterNav({
 
   if (selectionMode && selectedCount === 0) {
     return {
-      label: 'Kies',
+      labelKey: 'center.choose',
       disabled: true,
       variant: 'muted',
       showCount: null,

@@ -1,29 +1,21 @@
 import type { WgerExerciseInfo } from '@/types/wger'
+import { i18n } from '@/i18n'
+import { getAppLocale } from '@/i18n'
+import { wgerIdForLocale } from '@/i18n/registry'
 import { exerciseDisplayName } from './client'
 import { mapWgerEquipment } from './mapEquipment'
 
-const CATEGORY_NL: Record<string, string> = {
-  abs: 'Buik',
-  arms: 'Armen',
-  back: 'Rug',
-  calves: 'Kuiten',
-  cardio: 'Cardio',
-  chest: 'Borst',
-  legs: 'Benen',
-  shoulders: 'Schouders',
+function categoryLabel(name: string): string {
+  const key = name.toLowerCase()
+  const translated = i18n.t(`workouts:categories.${key}`)
+  if (translated === `workouts:categories.${key}`) return name
+  return translated
 }
 
-const EQUIPMENT_NL: Partial<Record<string, string>> = {
-  barbell: 'Staaf',
-  dumbbell: 'Halters',
-  kettlebell: 'Kettlebells',
-  bodyweight: 'Eigen gewicht',
-  pull_up_bar: 'Optrekstang',
-  resistance_band: 'Weerstandsband',
-}
-
-function categoryNl(name: string): string {
-  return CATEGORY_NL[name.toLowerCase()] ?? name
+function equipmentThemeLabel(category: string): string | undefined {
+  const translated = i18n.t(`workouts:equipmentThemes.${category}`)
+  if (translated === `workouts:equipmentThemes.${category}`) return undefined
+  return translated
 }
 
 function mostCommon<T>(items: T[]): T | undefined {
@@ -48,16 +40,17 @@ function dominantEquipmentTheme(infos: WgerExerciseInfo[]): string | undefined {
   if (!dominant) return undefined
   const share = all.filter((e) => e === dominant).length / all.length
   if (share < 0.6) return undefined
-  return EQUIPMENT_NL[dominant]
+  return equipmentThemeLabel(dominant)
 }
 
-/** Suggest a short Dutch workout title from a Wger import selection. */
+/** Suggest a short workout title from a Wger import selection (active app locale). */
 export function suggestWgerWorkoutName(infos: WgerExerciseInfo[]): string {
-  if (infos.length === 0) return 'Nieuwe workout'
-  if (infos.length === 1) return exerciseDisplayName(infos[0])
+  const langId = wgerIdForLocale(getAppLocale())
+  if (infos.length === 0) return i18n.t('workouts:suggestNew')
+  if (infos.length === 1) return exerciseDisplayName(infos[0], langId)
 
   if (infos.length === 2) {
-    return `${exerciseDisplayName(infos[0])} & ${exerciseDisplayName(infos[1])}`
+    return `${exerciseDisplayName(infos[0], langId)} & ${exerciseDisplayName(infos[1], langId)}`
   }
 
   const categories = infos.map((i) => i.category.name.toLowerCase())
@@ -69,20 +62,20 @@ export function suggestWgerWorkoutName(infos: WgerExerciseInfo[]): string {
       : 0
 
   if (uniqueCategories.length === 1) {
-    return categoryNl(uniqueCategories[0])
+    return categoryLabel(uniqueCategories[0])
   }
 
   if (dominantShare >= 0.6 && dominantCategory) {
-    return categoryNl(dominantCategory)
+    return categoryLabel(dominantCategory)
   }
 
   const equipmentTheme = dominantEquipmentTheme(infos)
   if (equipmentTheme) return equipmentTheme
 
   if (uniqueCategories.length >= 3) {
-    return 'Full body'
+    return i18n.t('workouts:fullBody')
   }
 
-  const [a, b] = uniqueCategories.map(categoryNl)
+  const [a, b] = uniqueCategories.map(categoryLabel)
   return `${a} & ${b}`
 }

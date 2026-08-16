@@ -1,6 +1,7 @@
 import type { ActiveSession, OverloadTarget, WorkoutExercise } from '@/types/workout'
 import { equipmentSummary, metricLabel } from '@/components/workout/ExerciseIcon'
 import { bpmToPercentMax } from '@/lib/ble/heartRateMath'
+import { i18n } from '@/i18n'
 
 export type TvSensorState = {
   cameraEnabled: boolean
@@ -79,10 +80,12 @@ export const computeMockSensor = computeSessionSensor
 function formatExerciseDetails(ex: WorkoutExercise, weightKg: number): string {
   const parts: string[] = []
   parts.push(metricLabel(ex.metric, ex.target))
-  if (weightKg > 0) parts.push(`${weightKg} kilo`)
+  if (weightKg > 0) parts.push(i18n.t('session:completion.detailsWeight', { kg: weightKg }))
   const equipment = equipmentSummary(ex.equipment)
   if (equipment) parts.push(equipment)
-  if (ex.restSeconds > 0) parts.push(`rust ${ex.restSeconds} seconden`)
+  if (ex.restSeconds > 0) {
+    parts.push(i18n.t('session:completion.detailsRest', { seconds: ex.restSeconds }))
+  }
   return parts.join('. ')
 }
 
@@ -101,7 +104,9 @@ export function buildCompletionAnnouncement(
   const weight = target?.adjustedWeightKg ?? next.weightKg
   const details = formatExerciseDetails(next, weight)
 
-  return details ? `Volgende: ${next.name}. ${details}.` : `Volgende: ${next.name}.`
+  return details
+    ? i18n.t('session:completion.next', { name: next.name, details })
+    : i18n.t('session:completion.nextShort', { name: next.name })
 }
 
 export function getExerciseWeight(
@@ -113,19 +118,22 @@ export function getExerciseWeight(
 }
 
 export function buildPauseAnnouncement(): string {
-  return 'Oefening gepauzeerd.'
+  return i18n.t('session:completion.paused')
 }
 
 export function buildResumeAnnouncement(exerciseName: string): string {
-  return `Hervat: ${exerciseName}.`
+  return i18n.t('session:completion.resumed', { name: exerciseName })
 }
 
 export function buildNextSetReadyAnnouncement(
   nextSetNumber: number,
   phaseLabel: string,
 ): string {
-  const unit = phaseLabel === 'Ronde' ? 'ronde' : 'set'
-  return `Maak je klaar voor ${unit} ${nextSetNumber}.`
+  const isRound =
+    phaseLabel === 'Ronde' || phaseLabel === 'Round' || phaseLabel === i18n.t('common:round')
+  return isRound
+    ? i18n.t('session:completion.readyRound', { number: nextSetNumber })
+    : i18n.t('session:completion.readySet', { number: nextSetNumber })
 }
 
 export function buildRestStartAnnouncement(
@@ -134,29 +142,29 @@ export function buildRestStartAnnouncement(
   phaseLabel?: string,
 ): string {
   if (kind === 'phase') {
-    const label = phaseLabel === 'Ronde' ? 'Ronde rust' : 'Set rust'
-    return `${label}. ${seconds} seconden.`
+    const isRound =
+      phaseLabel === 'Ronde' || phaseLabel === 'Round' || phaseLabel === i18n.t('common:round')
+    return isRound
+      ? i18n.t('session:completion.roundRest', { seconds })
+      : i18n.t('session:completion.setRest', { seconds })
   }
-  return `Rust. ${seconds} seconden.`
-}
-
-const COUNTDOWN_WORDS: Record<number, string> = {
-  5: 'vijf',
-  4: 'vier',
-  3: 'drie',
-  2: 'twee',
-  1: 'één',
+  return i18n.t('session:completion.rest', { seconds })
 }
 
 export function restCountdownWord(seconds: number): string {
-  return COUNTDOWN_WORDS[seconds] ?? String(seconds)
+  const key = `session:countdown.${seconds}`
+  const translated = i18n.t(key)
+  if (translated === key) return String(seconds)
+  return translated
 }
 
 export function formatExerciseTargetLine(ex: WorkoutExercise, weightKg: number): string {
   const parts = [metricLabel(ex.metric, ex.target)]
-  if (weightKg > 0) parts.push(`${weightKg} kg`)
+  if (weightKg > 0) parts.push(`${weightKg} ${i18n.t('common:kg')}`)
   const equipment = equipmentSummary(ex.equipment)
   if (equipment) parts.push(equipment)
-  if (ex.restSeconds > 0) parts.push(`rust ${ex.restSeconds}s`)
+  if (ex.restSeconds > 0) {
+    parts.push(i18n.t('session:completion.detailsRestShort', { seconds: ex.restSeconds }))
+  }
   return parts.join(' · ')
 }

@@ -1,0 +1,53 @@
+{
+  "title": "Instellingen",
+  "subtitle": "Thema en voorkeuren",
+  "language": {
+    "title": "Taal",
+    "subtitle": "App-taal voor interface, coachstem en Wger-oefentekst."
+  },
+  "theme": {
+    "title": "Thema",
+    "autoActive": "Automatisch actief — nu {{theme}}",
+    "manual": "Handmatig thema gekozen.",
+    "auto": "Automatisch",
+    "autoHint": "Past zich aan op basis van tijd — nu {{theme}}"
+  },
+  "coach": {
+    "title": "Coachstem",
+    "subtitle": "Kies een mannen- of vrouwenstem voor coach-aankondigingen tijdens een sessie.",
+    "unsupported": "Spraak wordt niet ondersteund in deze browser.",
+    "male": "Man",
+    "female": "Vrouw",
+    "voice": "Stem: {{name}}",
+    "preview": "Voorbeeld beluisteren",
+    "noLocaleFemale": "Geen {{locale}} vrouwenstem — gebruikt vrouwelijke systeemstem",
+    "noLocaleMale": "Geen {{locale}} mannenstem — gebruikt mannelijke systeemstem",
+    "pitchAdjusted": "Pitch aangepast (geen passende stem gevonden)",
+    "installHint": "Alleen mannenstem beschikbaar — installeer een vrouwelijke systeemstem"
+  },
+  "garmin": {
+    "title": "Garmin & herstel",
+    "subtitle": "Toon herstel en hartslag tijdens prep en sessie. Stel herstel handmatig in; koppel optioneel een BLE-hartslagband voor live HR op telefoon en TV.",
+    "wearable": "Wearable-functies",
+    "wearableOn": "Herstel en HR zichtbaar op Home, prep en TV",
+    "wearableOff": "Uit — geen herstel- of HR-data",
+    "hrBand": "Hartslagband (BLE)",
+    "hrConnecting": "Verbinden… kies je band in de browser",
+    "hrLive": "{{device}} · {{bpm}} bpm",
+    "hrIdle": "Koppel een standaard HR-band (0x180D)",
+    "hrPair": "Koppel",
+    "hrHint": "Chrome of Edge op Android/desktop. Safari/iOS ondersteunt Web Bluetooth niet. Reps en velocity volgen later via Connect IQ."
+  },
+  "wger": {
+    "title": "Wger vertaling",
+    "subtitle": "Als Wger-tekst niet beschikbaar is in je app-taal, vertaal die en cache lokaal.",
+    "auto": "Automatisch vertalen",
+    "autoOn": "Aan — vertalingen worden gecachet lokaal",
+    "autoOff": "Uit — originele taal behouden",
+    "privacy": "Vereist internet bij import of taalwissel. Tekst wordt via een gratis vertaaldienst verstuurd en daarna lokaal opgeslagen."
+  },
+  "privacy": {
+    "title": "Privacy",
+    "body": "Workouts, locker en sessies blijven lokaal. Alleen wger-uitleg kan optioneel online vertaald worden."
+  }
+}

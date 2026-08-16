@@ -1,5 +1,6 @@
 import type { EquipmentCategory } from '@/types/locker'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
+import { equipmentLabel } from '@/lib/locker/equipmentLabel'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import { cn } from '@/lib/cn'
 
@@ -37,8 +38,8 @@ export function ExerciseIconPicker({ value, onChange }: ExerciseIconPickerProps)
                 ? 'border-solo-400/50 bg-solo-400/10'
                 : 'border-line active:bg-surface-2',
             )}
-            title={e.labelNl}
-            aria-label={e.labelNl}
+            title={equipmentLabel(e.category)}
+            aria-label={equipmentLabel(e.category)}
           >
             <EquipmentIcon category={e.category} size={22} />
           </button>

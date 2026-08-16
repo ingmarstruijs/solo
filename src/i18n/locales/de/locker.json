@@ -1,0 +1,23 @@
+{
+  "title": "Locker",
+  "subtitle": "Dein Equipment zu Hause",
+  "empty": "Noch kein Equipment",
+  "add": "Item hinzufügen",
+  "profiles": "Profile",
+  "equipment": {
+    "dumbbell": "Kurzhantel",
+    "kettlebell": "Kettlebell",
+    "medicine_ball": "Medizinball",
+    "resistance_band": "Widerstandsband",
+    "barbell": "Langhantel",
+    "weight_plate": "Gewichtsscheibe",
+    "pull_up_bar": "Klimmzugstange",
+    "bench": "Bank",
+    "rower": "Rudergerät",
+    "cable": "Kabelzug",
+    "foam_roller": "Faszienrolle",
+    "jump_rope": "Springseil",
+    "bodyweight": "Körpergewicht",
+    "other": "Sonstiges"
+  }
+}

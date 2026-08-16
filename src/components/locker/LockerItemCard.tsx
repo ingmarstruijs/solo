@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import type { LockerItem } from '@/types/locker'
 import { getEquipmentMeta } from '@/lib/locker/equipmentCatalog'
+import { equipmentLabel } from '@/lib/locker/equipmentLabel'
 import { EquipmentIcon } from './EquipmentIcon'
 
 type LockerItemCardProps = {
@@ -21,7 +22,7 @@ export function LockerItemCard({ item, onEdit, onDelete }: LockerItemCardProps) 
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{item.name}</p>
         <p className="text-xs text-muted">
-          {meta.labelNl}
+          {equipmentLabel(meta.category)}
           {item.weightKg != null && ` · ${item.weightKg} kg`}
           {item.resistance && ` · ${item.resistance}`}
         </p>

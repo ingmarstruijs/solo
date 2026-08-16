@@ -38,6 +38,7 @@ import {
   getExerciseWeight,
 } from '@/lib/tv/coachEngine'
 import { getPhaseInfo, getPhaseRestSeconds } from '@/lib/workout/workoutStructure'
+import { useTranslation } from '@/i18n/hooks'
 import { collectWorkoutMaterials } from '@/lib/workout/sessionMaterials'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { WeightAssistant } from '@/components/workout/WeightAssistant'
@@ -53,6 +54,7 @@ function buildPrepBackUrl(workoutId: string): string {
 }
 
 export function SessionPage() {
+  const { t } = useTranslation(['session', 'common'])
   const navigate = useNavigate()
   const { session } = useActiveSession()
   const {
@@ -478,8 +480,12 @@ export function SessionPage() {
       <PageStickyHeader
         title={
           exercisesStarted
-            ? `Live · ${workout.name} · ${phase.label} ${currentSet}/${phase.total}`
-            : `Voorbereiden · ${workout.name}`
+            ? t('session:liveTitle', {
+                workout: workout.name,
+                current: currentSet,
+                total: phase.total,
+              })
+            : t('session:prepareTitle', { workout: workout.name })
         }
         onBack={exercisesStarted ? undefined : handleBackFromSetup}
         titleClassName={exercisesStarted ? 'text-success' : 'text-solo-400'}

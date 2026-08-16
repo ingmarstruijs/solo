@@ -1,0 +1,40 @@
+{
+  "prepare": "Prepare",
+  "prepareTitle": "Prepare · {{workout}}",
+  "liveTitle": "Live · {{workout}} · Set {{current}}/{{total}}",
+  "materials": "Materials",
+  "readyStart": "Ready — start workout",
+  "stopConfirm": "Stop this workout?",
+  "paused": "Paused",
+  "resume": "Resume",
+  "nextExercise": "Next exercise",
+  "restTimer": "Rest",
+  "camera": "Camera",
+  "info": "Info",
+  "noDescription": "No description available for this exercise.",
+  "instructions": "Instructions",
+  "summary": "Summary",
+  "sessionActive": "Session in progress",
+  "completion": {
+    "next": "Next: {{name}}. {{details}}.",
+    "nextShort": "Next: {{name}}.",
+    "paused": "Exercise paused.",
+    "resumed": "Resuming: {{name}}.",
+    "readySet": "Get ready for set {{number}}.",
+    "readyRound": "Get ready for round {{number}}.",
+    "rest": "Rest. {{seconds}} seconds.",
+    "setRest": "Set rest. {{seconds}} seconds.",
+    "roundRest": "Round rest. {{seconds}} seconds.",
+    "detailsWeight": "{{kg}} kilos",
+    "detailsRest": "rest {{seconds}} seconds",
+    "detailsRestShort": "rest {{seconds}}s"
+  },
+  "countdown": {
+    "5": "five",
+    "4": "four",
+    "3": "three",
+    "2": "two",
+    "1": "one"
+  },
+  "coachPreview": "Bench press done. Next: squat. Ten reps. Sixty kilos. Rest ninety seconds."
+}

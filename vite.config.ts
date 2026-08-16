@@ -21,8 +21,8 @@ export default defineConfig({
       manifest: {
         name: 'SOLO.',
         short_name: 'SOLO.',
-        description: 'Solo training. Zero noise. Privacy-first thuistraining.',
-        lang: 'nl',
+        description: 'Solo training. Zero noise. Privacy-first home training.',
+        lang: 'en',
         start_url: '.',
         scope: '.',
         display: 'standalone',

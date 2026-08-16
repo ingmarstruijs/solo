@@ -1,0 +1,23 @@
+{
+  "title": "Locker",
+  "subtitle": "Jouw materiaal thuis",
+  "empty": "Nog geen materiaal",
+  "add": "Item toevoegen",
+  "profiles": "Profielen",
+  "equipment": {
+    "dumbbell": "Dumbbell",
+    "kettlebell": "Kettlebell",
+    "medicine_ball": "Medicine ball",
+    "resistance_band": "Weerstandband",
+    "barbell": "Barbell",
+    "weight_plate": "Schijf",
+    "pull_up_bar": "Pull-up bar",
+    "bench": "Bank",
+    "rower": "Roeier",
+    "cable": "Kabel",
+    "foam_roller": "Foam roller",
+    "jump_rope": "Springtouw",
+    "bodyweight": "Lichaamsgewicht",
+    "other": "Overig"
+  }
+}

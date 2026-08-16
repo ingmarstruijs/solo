@@ -1,6 +1,8 @@
 import type { EquipmentCategory } from '@/types/locker'
 import type { OverloadTarget, PlateItemUsed, WorkoutTemplate } from '@/types/workout'
+import { equipmentLabel } from '@/lib/locker/equipmentLabel'
 import { getEquipmentMeta } from '@/lib/locker/equipmentCatalog'
+import { getAppLocale } from '@/i18n'
 
 export type SessionMaterialLine = {
   id: string
@@ -14,17 +16,16 @@ function itemKey(item: PlateItemUsed): string {
 }
 
 function formatWeightItem(item: PlateItemUsed): SessionMaterialLine {
-  const meta = getEquipmentMeta(item.category)
   const countPrefix = item.count > 1 ? `${item.count}× ` : ''
   const weightSuffix = item.weightKg > 0 ? ` · ${item.weightKg} kg` : ''
   return {
     id: itemKey(item),
     category: item.category,
-    label: `${countPrefix}${item.label || meta.labelNl}${weightSuffix}`,
+    label: `${countPrefix}${item.label || equipmentLabel(item.category)}${weightSuffix}`,
   }
 }
 
-/** Materiaal dat voor de sessie klaar gelegd moet worden. */
+/** Equipment that should be prepared for the session. */
 export function collectWorkoutMaterials(
   workout: WorkoutTemplate,
   targets: OverloadTarget[],
@@ -59,16 +60,13 @@ export function collectWorkoutMaterials(
 
   const lines: SessionMaterialLine[] = [
     ...[...mergedWeights.values()].map(formatWeightItem),
-    ...[...ancillary].map((cat) => {
-      const meta = getEquipmentMeta(cat)
-      return {
-        id: `ancillary:${cat}`,
-        category: cat,
-        label: meta.labelNl,
-      }
-    }),
+    ...[...ancillary].map((cat) => ({
+      id: `ancillary:${cat}`,
+      category: cat,
+      label: equipmentLabel(cat),
+    })),
   ]
 
-  lines.sort((a, b) => a.label.localeCompare(b.label, 'nl'))
+  lines.sort((a, b) => a.label.localeCompare(b.label, getAppLocale()))
   return lines
 }

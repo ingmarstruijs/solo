@@ -19,9 +19,11 @@ import { PrepInsightsPanel } from '@/components/workout/PrepInsightsPanel'
 import { ExerciseIcon, equipmentSummary, metricLabel } from '@/components/workout/ExerciseIcon'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import type { WorkoutExercise } from '@/types/workout'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 export function WorkoutPrepPage() {
+  const { t } = useTranslation(['session', 'common', 'workouts'])
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { items: lockerItems, activeProfile } = useLocker()
@@ -85,8 +87,10 @@ export function WorkoutPrepPage() {
       <PageStickyHeader
         title={
           isMulti
-            ? `Voorbereiden · ${sessionPrep.workouts.length} workouts`
-            : `Voorbereiden · ${primaryWorkout.workout.name}`
+            ? t('session:prepareTitle', {
+                workout: `${sessionPrep.workouts.length} ${t('common:workouts')}`,
+              })
+            : t('session:prepareTitle', { workout: primaryWorkout.workout.name })
         }
         onBack={() => navigate('/workouts')}
         titleClassName="text-solo-400"
@@ -94,7 +98,7 @@ export function WorkoutPrepPage() {
           !isMulti ? (
             <StickyHeaderIconButton
               icon={Pencil}
-              label="Bewerken"
+              label={t('common:edit')}
               onClick={() => navigate(`/workouts/${primaryWorkout.workout.id}/edit`)}
             />
           ) : undefined
@@ -121,7 +125,7 @@ export function WorkoutPrepPage() {
       )}
 
       <p className="text-[11px] text-faint">
-        Druk op <strong>Voorbereiden</strong> onderin om materiaal klaar te leggen. De workout start pas na bevestiging op de sessiepagina.
+        {t('session:prepare')} — {t('session:readyStart')}
       </p>
 
       <PrepInsightsPanel

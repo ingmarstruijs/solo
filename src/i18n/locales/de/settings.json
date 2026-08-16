@@ -1,0 +1,53 @@
+{
+  "title": "Einstellungen",
+  "subtitle": "Theme und Einstellungen",
+  "language": {
+    "title": "Sprache",
+    "subtitle": "App-Sprache für Oberfläche, Coach-Stimme und Wger-Übungstexte."
+  },
+  "theme": {
+    "title": "Theme",
+    "autoActive": "Automatisch aktiv — jetzt {{theme}}",
+    "manual": "Manuelles Theme gewählt.",
+    "auto": "Automatisch",
+    "autoHint": "Passt sich der Tageszeit an — jetzt {{theme}}"
+  },
+  "coach": {
+    "title": "Coach-Stimme",
+    "subtitle": "Wähle eine männliche oder weibliche Stimme für Coach-Ansagen während einer Session.",
+    "unsupported": "Sprache wird in diesem Browser nicht unterstützt.",
+    "male": "Mann",
+    "female": "Frau",
+    "voice": "Stimme: {{name}}",
+    "preview": "Vorschau anhören",
+    "noLocaleFemale": "Keine {{locale}}-Frauenstimme — System-Frauenstimme wird verwendet",
+    "noLocaleMale": "Keine {{locale}}-Männerstimme — System-Männerstimme wird verwendet",
+    "pitchAdjusted": "Tonhöhe angepasst (keine passende Stimme gefunden)",
+    "installHint": "Nur Männerstimme verfügbar — installiere ggf. eine weibliche Systemstimme"
+  },
+  "garmin": {
+    "title": "Garmin & Erholung",
+    "subtitle": "Erholung und Herzfrequenz in Prep und Session anzeigen. Erholung manuell setzen; optional BLE-Brustgurt für Live-HF auf Telefon und TV.",
+    "wearable": "Wearable-Funktionen",
+    "wearableOn": "Erholung und HF sichtbar auf Home, Prep und TV",
+    "wearableOff": "Aus — keine Erholungs- oder HF-Daten",
+    "hrBand": "Herzfrequenzgurt (BLE)",
+    "hrConnecting": "Verbinden… wähle deinen Gurt im Browser",
+    "hrLive": "{{device}} · {{bpm}} bpm",
+    "hrIdle": "Standard-HF-Gurt koppeln (0x180D)",
+    "hrPair": "Koppeln",
+    "hrHint": "Chrome oder Edge auf Android/Desktop. Safari/iOS unterstützt Web Bluetooth nicht. Reps und Velocity folgen später über Connect IQ."
+  },
+  "wger": {
+    "title": "Wger-Übersetzung",
+    "subtitle": "Wenn Wger-Text in deiner App-Sprache fehlt, übersetzen und lokal cachen.",
+    "auto": "Automatisch übersetzen",
+    "autoOn": "An — Übersetzungen werden lokal gecacht",
+    "autoOff": "Aus — Originalsprache behalten",
+    "privacy": "Internet nötig bei Import oder Sprachwechsel. Text wird über einen kostenlosen Übersetzungsdienst gesendet und dann lokal gespeichert."
+  },
+  "privacy": {
+    "title": "Datenschutz",
+    "body": "Workouts, Locker und Sessions bleiben lokal. Nur Wger-Erklärungen können optional online übersetzt werden."
+  }
+}

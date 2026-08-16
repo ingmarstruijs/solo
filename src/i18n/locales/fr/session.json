@@ -1,0 +1,40 @@
+{
+  "prepare": "Préparer",
+  "prepareTitle": "Préparer · {{workout}}",
+  "liveTitle": "Live · {{workout}} · Série {{current}}/{{total}}",
+  "materials": "Matériel",
+  "readyStart": "Prêt — démarrer la séance",
+  "stopConfirm": "Arrêter cette séance ?",
+  "paused": "En pause",
+  "resume": "Reprendre",
+  "nextExercise": "Exercice suivant",
+  "restTimer": "Repos",
+  "camera": "Caméra",
+  "info": "Info",
+  "noDescription": "Aucune description pour cet exercice.",
+  "instructions": "Instructions",
+  "summary": "Résumé",
+  "sessionActive": "Séance en cours",
+  "completion": {
+    "next": "Suivant : {{name}}. {{details}}.",
+    "nextShort": "Suivant : {{name}}.",
+    "paused": "Exercice en pause.",
+    "resumed": "Reprise : {{name}}.",
+    "readySet": "Préparez-vous pour la série {{number}}.",
+    "readyRound": "Préparez-vous pour le tour {{number}}.",
+    "rest": "Repos. {{seconds}} secondes.",
+    "setRest": "Repos entre séries. {{seconds}} secondes.",
+    "roundRest": "Repos entre tours. {{seconds}} secondes.",
+    "detailsWeight": "{{kg}} kilos",
+    "detailsRest": "repos {{seconds}} secondes",
+    "detailsRestShort": "repos {{seconds}}s"
+  },
+  "countdown": {
+    "5": "cinq",
+    "4": "quatre",
+    "3": "trois",
+    "2": "deux",
+    "1": "un"
+  },
+  "coachPreview": "Développé couché terminé. Suivant : squat. Dix reps. Soixante kilos. Repos quatre-vingt-dix secondes."
+}

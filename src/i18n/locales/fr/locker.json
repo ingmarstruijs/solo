@@ -1,0 +1,23 @@
+{
+  "title": "Casier",
+  "subtitle": "Votre matériel à la maison",
+  "empty": "Pas encore de matériel",
+  "add": "Ajouter un item",
+  "profiles": "Profils",
+  "equipment": {
+    "dumbbell": "Haltère",
+    "kettlebell": "Kettlebell",
+    "medicine_ball": "Médecine ball",
+    "resistance_band": "Bande élastique",
+    "barbell": "Barre",
+    "weight_plate": "Disque",
+    "pull_up_bar": "Barre de traction",
+    "bench": "Banc",
+    "rower": "Rameur",
+    "cable": "Poulie",
+    "foam_roller": "Foam roller",
+    "jump_rope": "Corde à sauter",
+    "bodyweight": "Poids du corps",
+    "other": "Autre"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "title": "Workouts",
+  "new": "New workout",
+  "empty": "No workouts yet",
+  "emptyHint": "Create a workout or import from Wger.",
+  "favorite": "Favorite",
+  "importWger": "Import from Wger",
+  "share": "Share",
+  "duplicate": "Duplicate",
+  "deleteConfirm": "Delete this workout?",
+  "searchPlaceholder": "Search workouts",
+  "filters": "Filters",
+  "prep": "Prep",
+  "edit": "Edit workout",
+  "addExercise": "Add exercise",
+  "fromWger": "From Wger",
+  "sets": "Sets",
+  "restBetweenSets": "Rest between sets",
+  "estimated": "{{minutes}} min",
+  "suggestNew": "New workout",
+  "categories": {
+    "abs": "Abs",
+    "arms": "Arms",
+    "back": "Back",
+    "calves": "Calves",
+    "cardio": "Cardio",
+    "chest": "Chest",
+    "legs": "Legs",
+    "shoulders": "Shoulders"
+  },
+  "equipmentThemes": {
+    "barbell": "Barbell",
+    "dumbbell": "Dumbbells",
+    "kettlebell": "Kettlebells",
+    "bodyweight": "Bodyweight",
+    "pull_up_bar": "Pull-up bar",
+    "resistance_band": "Resistance band"
+  },
+  "fullBody": "Full body"
+}

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, SetMetric } from '@/types/workout'
-import { getEquipmentMeta } from '@/lib/locker/equipmentCatalog'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
+import { equipmentLabel } from '@/lib/locker/equipmentLabel'
 import { cn } from '@/lib/cn'
 
 type ExerciseIconProps = {
@@ -14,11 +14,11 @@ type ExerciseIconProps = {
   size?: number
 }
 
-/** Human-readable equipment list, e.g. "Dumbbell · Bank". */
+/** Human-readable equipment list, e.g. "Dumbbell · Bench". */
 export function equipmentSummary(equipment: EquipmentCategory[] = []): string | null {
   const labels = equipment
     .filter((c) => c !== 'other')
-    .map((c) => getEquipmentMeta(c).labelNl)
+    .map((c) => equipmentLabel(c))
   return labels.length > 0 ? labels.join(' · ') : null
 }
 

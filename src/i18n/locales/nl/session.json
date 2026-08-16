@@ -1,0 +1,40 @@
+{
+  "prepare": "Voorbereiden",
+  "prepareTitle": "Voorbereiden · {{workout}}",
+  "liveTitle": "Live · {{workout}} · Set {{current}}/{{total}}",
+  "materials": "Materiaal",
+  "readyStart": "Klaar — start workout",
+  "stopConfirm": "Deze workout stoppen?",
+  "paused": "Gepauzeerd",
+  "resume": "Hervatten",
+  "nextExercise": "Volgende oefening",
+  "restTimer": "Rust",
+  "camera": "Camera",
+  "info": "Info",
+  "noDescription": "Geen uitleg beschikbaar voor deze oefening.",
+  "instructions": "Uitleg",
+  "summary": "Samenvatting",
+  "sessionActive": "Sessie bezig",
+  "completion": {
+    "next": "Volgende: {{name}}. {{details}}.",
+    "nextShort": "Volgende: {{name}}.",
+    "paused": "Oefening gepauzeerd.",
+    "resumed": "Hervat: {{name}}.",
+    "readySet": "Maak je klaar voor set {{number}}.",
+    "readyRound": "Maak je klaar voor ronde {{number}}.",
+    "rest": "Rust. {{seconds}} seconden.",
+    "setRest": "Set rust. {{seconds}} seconden.",
+    "roundRest": "Ronde rust. {{seconds}} seconden.",
+    "detailsWeight": "{{kg}} kilo",
+    "detailsRest": "rust {{seconds}} seconden",
+    "detailsRestShort": "rust {{seconds}}s"
+  },
+  "countdown": {
+    "5": "vijf",
+    "4": "vier",
+    "3": "drie",
+    "2": "twee",
+    "1": "één"
+  },
+  "coachPreview": "Bench press klaar. Volgende: squat. Tien reps. Zestig kilo. Rust negentig seconden."
+}

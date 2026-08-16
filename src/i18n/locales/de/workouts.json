@@ -1,0 +1,40 @@
+{
+  "title": "Workouts",
+  "new": "Neues Workout",
+  "empty": "Noch keine Workouts",
+  "emptyHint": "Erstelle ein Workout oder importiere aus Wger.",
+  "favorite": "Favorit",
+  "importWger": "Aus Wger importieren",
+  "share": "Teilen",
+  "duplicate": "Duplizieren",
+  "deleteConfirm": "Dieses Workout löschen?",
+  "searchPlaceholder": "Workouts suchen",
+  "filters": "Filter",
+  "prep": "Prep",
+  "edit": "Workout bearbeiten",
+  "addExercise": "Übung hinzufügen",
+  "fromWger": "Aus Wger",
+  "sets": "Sätze",
+  "restBetweenSets": "Pause zwischen Sätzen",
+  "estimated": "{{minutes}} Min.",
+  "suggestNew": "Neues Workout",
+  "categories": {
+    "abs": "Bauch",
+    "arms": "Arme",
+    "back": "Rücken",
+    "calves": "Waden",
+    "cardio": "Cardio",
+    "chest": "Brust",
+    "legs": "Beine",
+    "shoulders": "Schultern"
+  },
+  "equipmentThemes": {
+    "barbell": "Langhantel",
+    "dumbbell": "Kurzhanteln",
+    "kettlebell": "Kettlebells",
+    "bodyweight": "Körpergewicht",
+    "pull_up_bar": "Klimmzugstange",
+    "resistance_band": "Widerstandsband"
+  },
+  "fullBody": "Ganzkörper"
+}

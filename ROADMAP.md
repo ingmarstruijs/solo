@@ -126,7 +126,7 @@ graph TD
 | Global workout multi-select | **Shipped** | `[useWorkoutSelection.ts](src/hooks/useWorkoutSelection.ts)` |
 | Session setup phase (materials checklist) | **Shipped** | Before `exercisesStarted`; center nav stays **Voorbereiden** |
 | PWA install + offline shell | **Shipped** | `vite-plugin-pwa` |
-| Multi-language UI + exercise content (EN default; NL/DE/FR) | **Planned** | Full plan: `[docs/i18n-plan.md](docs/i18n-plan.md)` — catalogs, locale store, locale-aware Wger MT, re-resolve on language switch |
+| Multi-language UI + exercise content (EN default; NL/DE/FR) | **Shipped** | `i18next` catalogs, Settings language picker, locale-aware Wger MT + re-resolve on switch — [docs/i18n.md](docs/i18n.md) |
 | IndexedDB / RxDB local-first layer | **Next** | Mentioned in original architecture |
 | Multi-device sync | Out of scope | Local-only by design |
 
@@ -173,9 +173,10 @@ Current integrated lab slice: **Active Set Loop** (`/lab/active-set`) — end-to
 
 ### Phase E — Multi-language
 
-See **[docs/i18n-plan.md](docs/i18n-plan.md)**.
+See **[docs/i18n.md](docs/i18n.md)** and **[docs/i18n-plan.md](docs/i18n-plan.md)**.
 
-- [ ] Locale foundation (`i18next`, `solo-locale`, Settings switcher; EN default)
-- [ ] Exercise translation service: target app locale; `descriptionByLocale` + re-resolve on switch
-- [ ] UI string extraction (nav, session, prep, settings, Wger, coach/TTS)
-- [ ] Seeds, docs, easy contribution path for future locales
+- [x] Locale foundation (`i18next`, `solo-locale`, Settings switcher; EN default)
+- [x] Exercise translation service: target app locale; `descriptionByLocale` + re-resolve on switch
+- [x] UI string extraction (nav, session/prep titles, settings, Wger, coach/TTS, locker labels)
+- [x] Contribution path for future locales (`registry.ts` + JSON catalogs)
+- [ ] Remaining page copy (Home, history, labs, theme labels) fully catalogued

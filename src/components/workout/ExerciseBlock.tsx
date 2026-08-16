@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, SetMetric, WorkoutExercise } from '@/types/workout'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
+import { equipmentLabel } from '@/lib/locker/equipmentLabel'
 import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import { MarkdownField } from '@/components/MarkdownField'
@@ -247,7 +248,7 @@ export function ExerciseBlock({
                   : 'border-line text-faint active:bg-surface-2',
               )}
             >
-              {e.labelNl}
+              {equipmentLabel(e.category)}
             </button>
           ))}
         </div>
@@ -327,7 +328,7 @@ function IconPickerDialog({
                   ? 'border-solo-400/50 bg-solo-400/10'
                   : 'border-line active:bg-surface-2',
               )}
-              title={e.labelNl}
+              title={equipmentLabel(e.category)}
             >
               <EquipmentIcon category={e.category} size={24} />
             </button>

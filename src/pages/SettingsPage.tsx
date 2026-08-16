@@ -8,10 +8,14 @@ import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLiveHeartRate } from '@/hooks/useLiveHeartRate'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useTheme } from '@/hooks/useTheme'
+import { useLocale, useTranslation } from '@/i18n/hooks'
+import type { AppLocale } from '@/i18n/registry'
 import { describeCoachVoice, isCoachVoiceSupported, previewCoachVoice } from '@/lib/tv/coachVoice'
 import { cn } from '@/lib/cn'
 
 export function SettingsPage() {
+  const { t } = useTranslation(['settings', 'common'])
+  const { locale, setLocale, locales } = useLocale()
   const { theme, preference, setTheme, isAuto } = useTheme()
   const { gender, setGender } = useCoachVoiceGender()
   const { enabled: autoTranslateWger, setEnabled: setAutoTranslateWger } = useAutoTranslateWger()
@@ -35,7 +39,7 @@ export function SettingsPage() {
     refresh()
     window.speechSynthesis.addEventListener('voiceschanged', refresh)
     return () => window.speechSynthesis.removeEventListener('voiceschanged', refresh)
-  }, [gender, voiceSupported])
+  }, [gender, voiceSupported, locale])
 
   function selectGender(next: 'male' | 'female') {
     setGender(next)
@@ -49,17 +53,39 @@ export function SettingsPage() {
           <Settings className="size-6" />
         </span>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Instellingen</h1>
-          <p className="text-xs text-muted">Thema en voorkeuren</p>
+          <h1 className="text-xl font-bold tracking-tight">{t('settings:title')}</h1>
+          <p className="text-xs text-muted">{t('settings:subtitle')}</p>
         </div>
       </header>
 
       <section className="rounded-card border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">Thema</h2>
+        <h2 className="text-sm font-semibold">{t('settings:language.title')}</h2>
+        <p className="mt-1 text-xs text-muted">{t('settings:language.subtitle')}</p>
+        <ul className="mt-3 flex flex-col gap-2">
+          {locales.map((item) => (
+            <li key={item.code}>
+              <button
+                type="button"
+                onClick={() => setLocale(item.code as AppLocale)}
+                className={cn(
+                  'w-full rounded-xl border p-3 text-left transition-colors active:bg-surface-2',
+                  locale === item.code ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
+                )}
+              >
+                <p className="font-semibold">{item.nativeName}</p>
+                <p className="text-xs text-muted uppercase tracking-wide">{item.code}</p>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="rounded-card border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">{t('settings:theme.title')}</h2>
         <p className="mt-1 text-xs text-muted">
           {isAuto
-            ? `Automatisch actief — nu ${getThemeLabel(theme)}`
-            : 'Handmatig thema gekozen.'}
+            ? t('settings:theme.autoActive', { theme: getThemeLabel(theme) })
+            : t('settings:theme.manual')}
         </p>
         <ul className="mt-3 flex flex-col gap-2">
           <li>
@@ -71,25 +97,25 @@ export function SettingsPage() {
                 isAuto ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
               )}
             >
-              <p className="font-semibold">Automatisch</p>
+              <p className="font-semibold">{t('settings:theme.auto')}</p>
               <p className="text-xs text-muted">
-                Past zich aan op basis van tijd — nu {getThemeLabel(theme)}
+                {t('settings:theme.autoHint', { theme: getThemeLabel(theme) })}
               </p>
             </button>
           </li>
-          {THEMES.map((t) => (
-            <li key={t.id}>
+          {THEMES.map((themeOption) => (
+            <li key={themeOption.id}>
               <button
                 type="button"
-                onClick={() => setTheme(t.id)}
+                onClick={() => setTheme(themeOption.id)}
                 className={cn(
                   'w-full rounded-xl border p-3 text-left transition-colors active:bg-surface-2',
-                  preference === t.id ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
+                  preference === themeOption.id ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
                 )}
               >
-                <p className="font-semibold">{t.label}</p>
+                <p className="font-semibold">{themeOption.label}</p>
                 <p className="text-xs text-muted">
-                  {t.description} · {t.timeRange}
+                  {themeOption.description} · {themeOption.timeRange}
                 </p>
               </button>
             </li>
@@ -98,13 +124,11 @@ export function SettingsPage() {
       </section>
 
       <section className="rounded-card border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">Coachstem</h2>
-        <p className="mt-1 text-xs text-muted">
-          Kies een mannen- of vrouwenstem voor coach-aankondigingen tijdens een sessie.
-        </p>
+        <h2 className="text-sm font-semibold">{t('settings:coach.title')}</h2>
+        <p className="mt-1 text-xs text-muted">{t('settings:coach.subtitle')}</p>
 
         {!voiceSupported ? (
-          <p className="mt-3 text-xs text-warn">Spraak wordt niet ondersteund in deze browser.</p>
+          <p className="mt-3 text-xs text-warn">{t('settings:coach.unsupported')}</p>
         ) : (
           <div className="mt-3 flex flex-col gap-2">
             <div className="flex gap-2">
@@ -116,7 +140,7 @@ export function SettingsPage() {
                   gender === 'male' ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
                 )}
               >
-                Man
+                {t('settings:coach.male')}
               </button>
               <button
                 type="button"
@@ -126,12 +150,12 @@ export function SettingsPage() {
                   gender === 'female' ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
                 )}
               >
-                Vrouw
+                {t('settings:coach.female')}
               </button>
             </div>
             {activeVoice && (
               <p className="text-[11px] text-faint">
-                Stem: {activeVoice}
+                {t('settings:coach.voice', { name: activeVoice })}
                 {voiceNote && <span className="block text-warn">{voiceNote}</span>}
               </p>
             )}
@@ -141,18 +165,15 @@ export function SettingsPage() {
               className="flex items-center justify-center gap-2 rounded-xl border border-line bg-surface-2 py-2.5 text-sm font-medium text-solo-400 active:bg-surface-3"
             >
               <Play className="size-4" />
-              Voorbeeld beluisteren
+              {t('settings:coach.preview')}
             </button>
           </div>
         )}
       </section>
 
       <section className="rounded-card border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">Garmin & herstel</h2>
-        <p className="mt-1 text-xs text-muted">
-          Toon herstel en hartslag tijdens prep en sessie. Stel herstel handmatig in; koppel
-          optioneel een BLE-hartslagband voor live HR op telefoon en TV.
-        </p>
+        <h2 className="text-sm font-semibold">{t('settings:garmin.title')}</h2>
+        <p className="mt-1 text-xs text-muted">{t('settings:garmin.subtitle')}</p>
         <button
           type="button"
           onClick={() => setGarminConnected(!garminConnected)}
@@ -166,11 +187,11 @@ export function SettingsPage() {
               <Watch className="size-4" />
             </span>
             <div>
-              <p className="font-semibold">Wearable-functies</p>
+              <p className="font-semibold">{t('settings:garmin.wearable')}</p>
               <p className="text-xs text-muted">
                 {garminConnected
-                  ? 'Herstel en HR zichtbaar op Home, prep en TV'
-                  : 'Uit — geen herstel- of HR-data'}
+                  ? t('settings:garmin.wearableOn')
+                  : t('settings:garmin.wearableOff')}
               </p>
             </div>
           </div>
@@ -180,7 +201,7 @@ export function SettingsPage() {
               garminConnected ? 'bg-success/15 text-success' : 'bg-surface-2 text-faint',
             )}
           >
-            {garminConnected ? 'Aan' : 'Uit'}
+            {garminConnected ? t('common:on') : t('common:off')}
           </span>
         </button>
 
@@ -209,13 +230,16 @@ export function SettingsPage() {
                   <Heart className="size-4" />
                 </span>
                 <div>
-                  <p className="font-semibold">Hartslagband (BLE)</p>
+                  <p className="font-semibold">{t('settings:garmin.hrBand')}</p>
                   <p className="text-xs text-muted">
                     {heartRate.status === 'connecting'
-                      ? 'Verbinden… kies je band in de browser'
+                      ? t('settings:garmin.hrConnecting')
                       : heartRate.live
-                        ? `${heartRate.deviceName ?? 'Band'} · ${heartRate.bpm ?? '—'} bpm`
-                        : 'Koppel een standaard HR-band (0x180D)'}
+                        ? t('settings:garmin.hrLive', {
+                            device: heartRate.deviceName ?? '—',
+                            bpm: heartRate.bpm ?? '—',
+                          })
+                        : t('settings:garmin.hrIdle')}
                   </p>
                 </div>
               </div>
@@ -228,24 +252,19 @@ export function SettingsPage() {
                 {heartRate.status === 'connecting'
                   ? '…'
                   : heartRate.live
-                    ? 'Live'
-                    : 'Koppel'}
+                    ? t('common:live')
+                    : t('settings:garmin.hrPair')}
               </span>
             </button>
             {heartRate.error && <p className="text-[11px] text-warn">{heartRate.error}</p>}
-            <p className="text-[11px] text-faint">
-              Chrome of Edge op Android/desktop. Safari/iOS ondersteunt Web Bluetooth niet. Reps en
-              velocity volgen later via Connect IQ.
-            </p>
+            <p className="text-[11px] text-faint">{t('settings:garmin.hrHint')}</p>
           </div>
         )}
       </section>
 
       <section className="rounded-card border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">Wger vertaling</h2>
-        <p className="mt-1 text-xs text-muted">
-          Vertaal oefenuitleg automatisch naar Nederlands bij import (Duits, Engels, Frans → NL).
-        </p>
+        <h2 className="text-sm font-semibold">{t('settings:wger.title')}</h2>
+        <p className="mt-1 text-xs text-muted">{t('settings:wger.subtitle')}</p>
         <button
           type="button"
           onClick={() => setAutoTranslateWger(!autoTranslateWger)}
@@ -255,9 +274,9 @@ export function SettingsPage() {
           )}
         >
           <div>
-            <p className="font-semibold">Automatisch vertalen</p>
+            <p className="font-semibold">{t('settings:wger.auto')}</p>
             <p className="text-xs text-muted">
-              {autoTranslateWger ? 'Aan — vertalingen worden gecachet lokaal' : 'Uit — originele taal behouden'}
+              {autoTranslateWger ? t('settings:wger.autoOn') : t('settings:wger.autoOff')}
             </p>
           </div>
           <span
@@ -266,19 +285,15 @@ export function SettingsPage() {
               autoTranslateWger ? 'bg-success/15 text-success' : 'bg-surface-2 text-faint',
             )}
           >
-            {autoTranslateWger ? 'Aan' : 'Uit'}
+            {autoTranslateWger ? t('common:on') : t('common:off')}
           </span>
         </button>
-        <p className="mt-2 text-[11px] text-faint">
-          Vereist internet bij import. Tekst wordt via een gratis vertaaldienst verstuurd en daarna lokaal opgeslagen.
-        </p>
+        <p className="mt-2 text-[11px] text-faint">{t('settings:wger.privacy')}</p>
       </section>
 
       <section className="rounded-card border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">Privacy</h2>
-        <p className="mt-1 text-xs text-muted">
-          Workouts, locker en sessies blijven lokaal. Alleen wger-uitleg kan optioneel online vertaald worden.
-        </p>
+        <h2 className="text-sm font-semibold">{t('settings:privacy.title')}</h2>
+        <p className="mt-1 text-xs text-muted">{t('settings:privacy.body')}</p>
       </section>
     </div>
   )

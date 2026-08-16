@@ -15,6 +15,7 @@ import { clearLastSummary } from '@/lib/workout/sessionSummary'
 import { publishTvIdle } from '@/lib/tv/transport'
 import { bottomNav } from '@/config/nav'
 import { resolveCenterNav } from '@/components/layout/centerNavState'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 const variantClasses: Record<
@@ -39,6 +40,7 @@ const badgeClasses: Record<ReturnType<typeof resolveCenterNav>['variant'], strin
 }
 
 export function BottomNav() {
+  const { t } = useTranslation('nav')
   const navigate = useNavigate()
   const location = useLocation()
   const { session, active } = useActiveSession()
@@ -138,7 +140,13 @@ export function BottomNav() {
             type="button"
             onClick={onCenterClick}
             disabled={center.disabled}
-            aria-label={center.label || 'Workouts'}
+            aria-label={
+              center.labelKey
+                ? center.labelKey === 'center.prepCount'
+                  ? t(center.labelKey, { count: center.labelCount ?? 0 })
+                  : t(center.labelKey)
+                : t('workouts')
+            }
             className={cn(
               '-mt-8 grid size-16 place-items-center rounded-full border-4 shadow-lg transition-transform',
               variantClasses[center.variant],
@@ -162,14 +170,16 @@ export function BottomNav() {
               )
             )}
           </button>
-          {center.label ? (
+          {center.labelKey ? (
             <span
               className={cn(
                 'absolute -mt-[4.75rem] rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider',
                 badgeClasses[center.variant],
               )}
             >
-              {center.label}
+              {center.labelKey === 'center.prepCount'
+                ? t(center.labelKey, { count: center.labelCount ?? 0 })
+                : t(center.labelKey)}
             </span>
           ) : null}
         </div>
@@ -184,9 +194,10 @@ export function BottomNav() {
 
 function NavItemLink({
   to,
-  label,
+  labelKey,
   icon: Icon,
 }: (typeof bottomNav)[number]) {
+  const { t } = useTranslation('nav')
   return (
     <NavLink
       to={to}
@@ -199,7 +210,7 @@ function NavItemLink({
       }
     >
       <Icon className="size-6" />
-      <span className="text-[0.65rem] font-medium tracking-wide">{label}</span>
+      <span className="text-[0.65rem] font-medium tracking-wide">{t(labelKey)}</span>
     </NavLink>
   )
 }

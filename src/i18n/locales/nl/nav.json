@@ -1,0 +1,18 @@
+{
+  "home": "Home",
+  "workouts": "Workouts",
+  "locker": "Locker",
+  "history": "Logboek",
+  "labs": "Labs",
+  "integrations": "Integraties",
+  "settings": "Instellingen",
+  "about": "Over SOLO.",
+  "center": {
+    "prepare": "Voorbereiden",
+    "stop": "Stop",
+    "live": "Live",
+    "workouts": "Workouts",
+    "choose": "Kies",
+    "prepCount": "Prep {{count}}"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "title": "Settings",
+  "subtitle": "Theme and preferences",
+  "language": {
+    "title": "Language",
+    "subtitle": "App language for UI, coach voice, and Wger exercise text."
+  },
+  "theme": {
+    "title": "Theme",
+    "autoActive": "Automatic — currently {{theme}}",
+    "manual": "Manual theme selected.",
+    "auto": "Automatic",
+    "autoHint": "Follows time of day — now {{theme}}"
+  },
+  "coach": {
+    "title": "Coach voice",
+    "subtitle": "Choose a male or female voice for coach announcements during a session.",
+    "unsupported": "Speech is not supported in this browser.",
+    "male": "Male",
+    "female": "Female",
+    "voice": "Voice: {{name}}",
+    "preview": "Listen to preview",
+    "noLocaleFemale": "No {{locale}} female voice — using system female voice",
+    "noLocaleMale": "No {{locale}} male voice — using system male voice",
+    "pitchAdjusted": "Pitch adjusted (no matching gendered voice found)",
+    "installHint": "Only a male voice available — install a female system voice if needed"
+  },
+  "garmin": {
+    "title": "Garmin & recovery",
+    "subtitle": "Show recovery and heart rate during prep and session. Set recovery manually; optionally connect a BLE heart-rate band for live HR on phone and TV.",
+    "wearable": "Wearable features",
+    "wearableOn": "Recovery and HR visible on Home, prep, and TV",
+    "wearableOff": "Off — no recovery or HR data",
+    "hrBand": "Heart-rate band (BLE)",
+    "hrConnecting": "Connecting… pick your band in the browser",
+    "hrLive": "{{device}} · {{bpm}} bpm",
+    "hrIdle": "Connect a standard HR band (0x180D)",
+    "hrPair": "Pair",
+    "hrHint": "Chrome or Edge on Android/desktop. Safari/iOS does not support Web Bluetooth. Reps and velocity come later via Connect IQ."
+  },
+  "wger": {
+    "title": "Wger translation",
+    "subtitle": "When Wger text is not available in your app language, translate it and cache it locally.",
+    "auto": "Auto-translate",
+    "autoOn": "On — translations are cached locally",
+    "autoOff": "Off — keep original language",
+    "privacy": "Needs internet on import or language switch. Text is sent through a free translation service, then stored locally."
+  },
+  "privacy": {
+    "title": "Privacy",
+    "body": "Workouts, locker, and sessions stay on device. Only Wger exercise text may optionally be translated online."
+  }
+}

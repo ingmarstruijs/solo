@@ -1,0 +1,40 @@
+{
+  "title": "Workouts",
+  "new": "Nieuwe workout",
+  "empty": "Nog geen workouts",
+  "emptyHint": "Maak een workout of importeer uit Wger.",
+  "favorite": "Favoriet",
+  "importWger": "Importeren uit Wger",
+  "share": "Delen",
+  "duplicate": "Dupliceren",
+  "deleteConfirm": "Deze workout verwijderen?",
+  "searchPlaceholder": "Zoek workouts",
+  "filters": "Filters",
+  "prep": "Prep",
+  "edit": "Workout bewerken",
+  "addExercise": "Oefening toevoegen",
+  "fromWger": "Uit Wger",
+  "sets": "Sets",
+  "restBetweenSets": "Rust tussen sets",
+  "estimated": "{{minutes}} min",
+  "suggestNew": "Nieuwe workout",
+  "categories": {
+    "abs": "Buik",
+    "arms": "Armen",
+    "back": "Rug",
+    "calves": "Kuiten",
+    "cardio": "Cardio",
+    "chest": "Borst",
+    "legs": "Benen",
+    "shoulders": "Schouders"
+  },
+  "equipmentThemes": {
+    "barbell": "Staaf",
+    "dumbbell": "Halters",
+    "kettlebell": "Kettlebells",
+    "bodyweight": "Eigen gewicht",
+    "pull_up_bar": "Optrekstang",
+    "resistance_band": "Weerstandsband"
+  },
+  "fullBody": "Full body"
+}

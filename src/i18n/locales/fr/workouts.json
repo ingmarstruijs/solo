@@ -1,0 +1,40 @@
+{
+  "title": "Séances",
+  "new": "Nouvelle séance",
+  "empty": "Pas encore de séances",
+  "emptyHint": "Créez une séance ou importez depuis Wger.",
+  "favorite": "Favori",
+  "importWger": "Importer depuis Wger",
+  "share": "Partager",
+  "duplicate": "Dupliquer",
+  "deleteConfirm": "Supprimer cette séance ?",
+  "searchPlaceholder": "Rechercher des séances",
+  "filters": "Filtres",
+  "prep": "Prep",
+  "edit": "Modifier la séance",
+  "addExercise": "Ajouter un exercice",
+  "fromWger": "Depuis Wger",
+  "sets": "Séries",
+  "restBetweenSets": "Repos entre séries",
+  "estimated": "{{minutes}} min",
+  "suggestNew": "Nouvelle séance",
+  "categories": {
+    "abs": "Abdos",
+    "arms": "Bras",
+    "back": "Dos",
+    "calves": "Mollets",
+    "cardio": "Cardio",
+    "chest": "Pectoraux",
+    "legs": "Jambes",
+    "shoulders": "Épaules"
+  },
+  "equipmentThemes": {
+    "barbell": "Barre",
+    "dumbbell": "Haltères",
+    "kettlebell": "Kettlebells",
+    "bodyweight": "Poids du corps",
+    "pull_up_bar": "Barre de traction",
+    "resistance_band": "Bande élastique"
+  },
+  "fullBody": "Full body"
+}

@@ -1,0 +1,23 @@
+{
+  "title": "Locker",
+  "subtitle": "Your gear at home",
+  "empty": "No equipment yet",
+  "add": "Add item",
+  "profiles": "Profiles",
+  "equipment": {
+    "dumbbell": "Dumbbell",
+    "kettlebell": "Kettlebell",
+    "medicine_ball": "Medicine ball",
+    "resistance_band": "Resistance band",
+    "barbell": "Barbell",
+    "weight_plate": "Weight plate",
+    "pull_up_bar": "Pull-up bar",
+    "bench": "Bench",
+    "rower": "Rower",
+    "cable": "Cable machine",
+    "foam_roller": "Foam roller",
+    "jump_rope": "Jump rope",
+    "bodyweight": "Bodyweight",
+    "other": "Other"
+  }
+}

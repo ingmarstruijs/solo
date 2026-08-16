@@ -2,6 +2,7 @@ import { Globe } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import type { EquipmentCategory, LockerItem } from '@/types/locker'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
+import { equipmentLabel } from '@/lib/locker/equipmentLabel'
 import { parseSmartImport } from '@/lib/locker/smartImport'
 import { LabActionButton } from '@/components/lab/LabPrimitives'
 import { cn } from '@/lib/cn'
@@ -120,7 +121,7 @@ export function LockerItemForm({ initial, onSave, onCancel }: LockerItemFormProp
         >
           {EQUIPMENT_CATALOG.map((e) => (
             <option key={e.category} value={e.category}>
-              {e.labelNl}
+              {equipmentLabel(e.category)}
             </option>
           ))}
         </select>

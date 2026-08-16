@@ -1,6 +1,7 @@
 import type { WorkoutExport, WorkoutTemplate } from '@/types/workout'
 import { SEED_WORKOUTS } from '@/data/seedWorkouts'
 import { migrateWorkout, type LegacyWorkout } from '@/lib/workout/migrateWorkout'
+import { i18n } from '@/i18n'
 import { createId, readStore, subscribeStore, writeStore } from './localStore'
 
 const KEY = 'solo-workouts'
@@ -139,7 +140,7 @@ export function duplicateWorkout(id: string): WorkoutTemplate | null {
   const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = original
   return addWorkout({
     ...rest,
-    name: `${rest.name} (kopie)`,
+    name: `${rest.name} ${i18n.t('common:copySuffix')}`,
     favorite: false,
     exercises: rest.exercises.map((ex) => ({ ...ex, id: createId() })),
   })
