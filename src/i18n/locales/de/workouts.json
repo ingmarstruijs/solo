@@ -36,5 +36,27 @@
     "pull_up_bar": "Klimmzugstange",
     "resistance_band": "Widerstandsband"
   },
-  "fullBody": "Ganzkörper"
+  "fullBody": "Ganzkörper",
+  "available": "{{count}} verfügbar",
+  "multi": "Multi",
+  "tapHint": "Tippe ein Workout zum Öffnen und Starten.",
+  "multiHint": "Tippe Workouts an, um mehrere zu wählen. Unten starten für Prep.",
+  "emptyCreate": "Noch keine Workouts. Erstelle eines oder suche Übungen zum Importieren.",
+  "deleteNamedConfirm": "\"{{name}}\" löschen?",
+  "fitImported": "FIT {{fileType}} \"{{name}}\" importiert.\n\n{{warnings}}",
+  "linkCopied": "Workout-Link in die Zwischenablage kopiert.",
+  "newShort": "Neu",
+  "searchShort": "Suchen",
+  "exportWorkouts": "Workouts exportieren",
+  "importWorkouts": "Workouts importieren",
+  "garminFit": "Garmin FIT",
+  "importedAlert": "{{count}} Workout(s) importiert.",
+  "rounds": "{{count}} Runden",
+  "setsCount": "{{count}} Sätze",
+  "editAction": "Bearbeiten",
+  "duplicateAction": "Duplizieren",
+  "shareAction": "Teilen",
+  "deleteAction": "Löschen",
+  "favoriteOn": "Favorit",
+  "favoriteOff": "Als Favorit"
 }

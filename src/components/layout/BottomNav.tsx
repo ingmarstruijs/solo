@@ -40,7 +40,7 @@ const badgeClasses: Record<ReturnType<typeof resolveCenterNav>['variant'], strin
 }
 
 export function BottomNav() {
-  const { t } = useTranslation('nav')
+  const { t } = useTranslation(['nav', 'common'])
   const navigate = useNavigate()
   const location = useLocation()
   const { session, active } = useActiveSession()
@@ -90,7 +90,7 @@ export function BottomNav() {
 
     if (active && session) {
       if (location.pathname === '/session') {
-        if (!confirm('Sessie afbreken? Deze workout wordt niet opgeslagen.')) return
+        if (!confirm(t('common:abortSessionConfirm'))) return
         publishTvIdle(theme)
         cancelSession()
         navigate('/workouts')

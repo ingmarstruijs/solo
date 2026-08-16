@@ -1,5 +1,6 @@
 import type { ActiveSession, SetMetric } from '@/types/workout'
 import { formatElapsedSeconds } from '@/hooks/useElapsedTimer'
+import { i18n } from '@/i18n'
 import { getPhaseInfo } from '@/lib/workout/workoutStructure'
 
 export type ExerciseTrend = 'faster' | 'slower' | 'stable'
@@ -189,9 +190,12 @@ export function buildSessionSummary(session: ActiveSession): SessionSummary {
       ? Math.round(((lastSetAvg - firstSetAvg) / firstSetAvg) * 100)
       : 0
 
-  let paceLabel = 'Stabiel tempo'
-  if (paceChangePercent >= 10) paceLabel = `${paceChangePercent}% langzamer in latere sets`
-  else if (paceChangePercent <= -10) paceLabel = `${Math.abs(paceChangePercent)}% sneller in latere sets`
+  let paceLabel = i18n.t('session:paceStable')
+  if (paceChangePercent >= 10) {
+    paceLabel = i18n.t('session:paceSlower', { percent: paceChangePercent })
+  } else if (paceChangePercent <= -10) {
+    paceLabel = i18n.t('session:paceFaster', { percent: Math.abs(paceChangePercent) })
+  }
 
   const totalDurationSeconds = Math.max(
     1,
@@ -257,7 +261,7 @@ export function normalizeSummary(raw: Partial<SessionSummary> & { workoutName: s
     exercises,
     sets: raw.sets ?? [],
     stats: raw.stats ?? {
-      phaseLabel: 'Set',
+      phaseLabel: i18n.t('common:set'),
       totalSets: raw.sets?.length ?? 0,
       totalExercisesCompleted: exercises.length,
       avgSetDurationSeconds: 0,
@@ -272,7 +276,7 @@ export function normalizeSummary(raw: Partial<SessionSummary> & { workoutName: s
       fastestExercise: null,
       slowestExercise: null,
       paceChangePercent: 0,
-      paceLabel: 'Stabiel tempo',
+      paceLabel: i18n.t('session:paceStable'),
     },
     totalDurationSeconds: raw.totalDurationSeconds ?? 0,
     startedAt: raw.startedAt ?? new Date().toISOString(),

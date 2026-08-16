@@ -1,0 +1,36 @@
+{
+  "greeting": {
+    "morning": "Goedemorgen",
+    "afternoon": "Goedemiddag",
+    "evening": "Goedenavond",
+    "night": "Goedenacht"
+  },
+  "hero": "Klaar om te trainen",
+  "sessionLive": "Sessie bezig",
+  "resumeSet": "Set {{set}} · tik om te hervatten",
+  "recovery": "Herstel",
+  "recoveryFresh": "Je bent fris — goede dag voor een zware sessie.",
+  "recoveryOk": "Redelijk hersteld. Houd het volume in de gaten.",
+  "recoveryTired": "Beperkt hersteld. Overweeg een lichte sessie of rust.",
+  "toneFresh": "Fris",
+  "toneOk": "Oké",
+  "toneTired": "Moe",
+  "thisWeek": "Deze week",
+  "sessions": "Sessies",
+  "minutes": "Minuten",
+  "chooseWorkout": "Kies een workout",
+  "chooseWorkoutHint": "Selecteer, prep en start je sessie.",
+  "activeLocker": "Actieve locker",
+  "manage": "Beheer",
+  "lockerHint": "Workout prep gebruikt het materiaal van de geselecteerde locker ({{name}}).",
+  "recent": "Recent",
+  "seeAll": "Alles",
+  "recentMeta": "{{count}} oefeningen · {{minutes}} min",
+  "relative": {
+    "today": "Vandaag",
+    "yesterday": "Gisteren",
+    "daysAgo": "{{count}} dagen geleden",
+    "weekAgo": "1 week geleden",
+    "weeksAgo": "{{count}} weken geleden"
+  }
+}

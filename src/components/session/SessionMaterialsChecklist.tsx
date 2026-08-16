@@ -1,18 +1,21 @@
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import type { SessionMaterialLine } from '@/lib/workout/sessionMaterials'
+import { useTranslation } from '@/i18n/hooks'
 
 type SessionMaterialsChecklistProps = {
   materials: SessionMaterialLine[]
 }
 
 export function SessionMaterialsChecklist({ materials }: SessionMaterialsChecklistProps) {
+  const { t } = useTranslation('session')
+
   if (materials.length === 0) {
-    return <p className="mt-2 text-xs text-muted">Geen materiaal nodig — bodyweight workout.</p>
+    return <p className="mt-2 text-xs text-muted">{t('materialsEmpty')}</p>
   }
 
   return (
     <div className="mt-3">
-      <p className="label-mono text-[10px] text-faint">Leg klaar</p>
+      <p className="label-mono text-[10px] text-faint">{t('materialsReady')}</p>
       <ul className="mt-1.5 flex flex-col gap-1.5">
         {materials.map((line) => (
           <li

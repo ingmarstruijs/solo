@@ -31,5 +31,9 @@
   "notFound": "Pagina niet gevonden",
   "notFoundHint": "Deze route bestaat niet.",
   "importedFromWger": "Geïmporteerd uit Wger open-source database",
-  "copySuffix": "(kopie)"
+  "copySuffix": "(kopie)",
+  "abortSessionConfirm": "Sessie afbreken? Deze workout wordt niet opgeslagen.",
+  "openMenu": "Menu openen",
+  "closeMenu": "Sluit menu",
+  "moreOptions": "Meer opties"
 }

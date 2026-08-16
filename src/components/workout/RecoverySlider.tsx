@@ -1,9 +1,16 @@
 import { cn } from '@/lib/cn'
+import { useTranslation } from '@/i18n/hooks'
 
-function recoveryTone(score: number) {
-  if (score >= 75) return { label: 'Fris', color: 'var(--color-solo-400)' }
-  if (score >= 50) return { label: 'Oké', color: '#eab308' }
-  return { label: 'Moe', color: '#ef4444' }
+function recoveryToneKey(score: number): 'toneFresh' | 'toneOk' | 'toneTired' {
+  if (score >= 75) return 'toneFresh'
+  if (score >= 50) return 'toneOk'
+  return 'toneTired'
+}
+
+function recoveryToneColor(score: number): string {
+  if (score >= 75) return 'var(--color-solo-400)'
+  if (score >= 50) return '#eab308'
+  return '#ef4444'
 }
 
 type RecoverySliderProps = {
@@ -23,22 +30,24 @@ export function RecoverySlider({
   className,
   id = 'recovery-score',
 }: RecoverySliderProps) {
-  const tone = recoveryTone(score)
+  const { t } = useTranslation('session')
+  const toneKey = recoveryToneKey(score)
+  const toneColor = recoveryToneColor(score)
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       <div className="flex items-baseline justify-between gap-2">
         <label htmlFor={id} className={cn('font-medium', compact ? 'text-xs' : 'text-sm')}>
-          Herstel
+          {t('recovery')}
         </label>
         <p className="tabular-nums">
           <span
             className={cn('font-bold', compact ? 'text-base' : 'text-lg')}
-            style={{ color: tone.color }}
+            style={{ color: toneColor }}
           >
             {score}
           </span>
-          <span className="label-mono ml-1.5 text-[10px] text-faint">{tone.label}</span>
+          <span className="label-mono ml-1.5 text-[10px] text-faint">{t(toneKey)}</span>
         </p>
       </div>
       <input
@@ -52,12 +61,10 @@ export function RecoverySlider({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={score}
-        aria-label="Herstelscore"
+        aria-label={t('recoveryAria')}
         className="w-full accent-[var(--color-solo-400)]"
       />
-      <p className={cn('text-faint', compact ? 'text-[10px]' : 'text-[11px]')}>
-        Stel je herstel in (0–100). Onder 50 worden zware gewichten met 5–10% verlaagd.
-      </p>
+      <p className={cn('text-faint', compact ? 'text-[10px]' : 'text-[11px]')}>{t('recoveryHint')}</p>
     </div>
   )
 }

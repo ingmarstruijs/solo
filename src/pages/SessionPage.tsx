@@ -244,19 +244,17 @@ export function SessionPage() {
             <Play className="size-6" />
           </span>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Sessie</h1>
-            <p className="text-xs text-muted">Geen actieve workout</p>
+            <h1 className="text-xl font-bold tracking-tight">{t('session:idleTitle')}</h1>
+            <p className="text-xs text-muted">{t('session:idleSubtitle')}</p>
           </div>
         </div>
-        <p className="text-sm text-muted">
-          Kies een workout en ga via <strong>Workout Prep</strong> naar start.
-        </p>
+        <p className="text-sm text-muted">{t('session:idleHint')}</p>
         <button
           type="button"
           onClick={() => navigate('/workouts')}
           className="rounded-xl bg-solo-400 py-3 text-sm font-semibold text-ink active:bg-solo-500"
         >
-          Naar workouts
+          {t('session:goToWorkouts')}
         </button>
       </section>
     )
@@ -515,10 +513,8 @@ export function SessionPage() {
           id="session-setup"
           className="shrink-0 rounded-card border border-solo-400/30 bg-solo-400/10 p-4"
         >
-          <p className="text-sm font-semibold">Materiaal klaarleggen</p>
-          <p className="mt-1 text-xs text-muted">
-            Stel camera, coach en TV in. Vink je materiaal af en bevestig wanneer alles klaarligt.
-          </p>
+          <p className="text-sm font-semibold">{t('session:setupMaterials')}</p>
+          <p className="mt-1 text-xs text-muted">{t('session:setupHint')}</p>
           <SessionMaterialsChecklist materials={sessionMaterials} />
           <button
             type="button"
@@ -526,7 +522,7 @@ export function SessionPage() {
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-solo-400 py-3.5 text-sm font-bold text-ink active:bg-solo-500"
           >
             <Play className="size-5 fill-ink" />
-            Klaar — start workout
+            {t('session:readyStart')}
           </button>
         </div>
       )}
@@ -556,7 +552,7 @@ export function SessionPage() {
 
       {queue.length > 0 && (
         <p className="shrink-0 truncate text-[10px] text-faint">
-          Wachtrij: {queue.map((q) => q.workout.name).join(' → ')}
+          {t('session:queue', { names: queue.map((q) => q.workout.name).join(' → ') })}
         </p>
       )}
 
@@ -566,7 +562,7 @@ export function SessionPage() {
           onClick={handleNextSet}
           className="flex shrink-0 w-full items-center justify-center gap-2 rounded-xl bg-solo-400 py-4 text-base font-bold text-ink shadow-lg shadow-solo-400/20 active:bg-solo-500"
         >
-          Volgende {phase.label.toLowerCase()}
+          {t('session:nextPhase', { phase: phase.label.toLowerCase() })}
           <ChevronRight className="size-5" strokeWidth={2.5} />
         </button>
       )}
@@ -579,7 +575,7 @@ export function SessionPage() {
             className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-solo-400 py-3 text-sm font-bold text-ink active:bg-solo-500"
           >
             <span className="flex items-center gap-2">
-              Volgende workout
+              {t('session:nextWorkout')}
               <ChevronRight className="size-5" />
             </span>
             <span className="text-xs font-medium text-ink/80">{queue[0].workout.name}</span>
@@ -591,7 +587,7 @@ export function SessionPage() {
             className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-success py-3 text-sm font-bold text-ink"
           >
             <Check className="size-5" />
-            Workout afronden
+            {t('session:finishWorkout')}
           </button>
         )
       )}
@@ -681,6 +677,7 @@ function SessionExerciseRow({
   compact,
   sticky,
 }: SessionExerciseRowProps) {
+  const { t } = useTranslation(['session', 'common'])
   const [showWeight, setShowWeight] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   const tracksTime = ex.metric !== 'reps'
@@ -723,7 +720,7 @@ function SessionExerciseRow({
               {!isPaused && !awaitingStart && (
                 <span className="size-1.5 animate-pulse rounded-full bg-ink" />
               )}
-              {isPaused ? 'Gepauzeerd' : awaitingStart ? 'Volgende oefening' : sticky ? 'Nu bezig' : 'Actief'}
+              {isPaused ? t('session:statusPaused') : awaitingStart ? t('session:statusNext') : sticky ? t('session:statusNow') : t('session:statusActive')}
             </span>
           )}
           <div className="flex items-start justify-between gap-2">
@@ -755,7 +752,7 @@ function SessionExerciseRow({
             className="flex items-center gap-1 rounded-lg border border-line px-2 py-1.5 text-[10px] text-solo-400 active:bg-surface-2"
           >
             <Scale className="size-3.5" />
-            Gewichten
+            {t('session:weights')}
           </button>
         </div>
       )}
@@ -777,7 +774,7 @@ function SessionExerciseRow({
             )}
           >
             {isPaused ? <Play className="size-4" /> : <Pause className="size-4" />}
-            {isPaused ? 'Hervat' : 'Pauze'}
+            {isPaused ? t('session:resume') : t('session:pause')}
           </button>
           <button
             type="button"
@@ -789,7 +786,7 @@ function SessionExerciseRow({
             )}
           >
             <Check className="size-4" strokeWidth={3} />
-            Klaar
+            {t('session:done')}
           </button>
         </div>
       )}
@@ -803,10 +800,10 @@ function SessionExerciseRow({
         >
           <span className="flex items-center gap-2 text-sm font-semibold text-success">
             <Check className="size-4" strokeWidth={3} />
-            {compact ? 'Klaar' : 'Afgevinkt'}
+            {compact ? t('session:done') : t('session:checkedOff')}
           </span>
           <button type="button" onClick={onUndo} className="text-xs font-medium text-muted active:text-fg">
-            Ongedaan
+            {t('session:undo')}
           </button>
         </div>
       )}

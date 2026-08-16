@@ -2,6 +2,8 @@ import { Pencil, Trash2 } from 'lucide-react'
 import type { LockerItem } from '@/types/locker'
 import { getEquipmentMeta } from '@/lib/locker/equipmentCatalog'
 import { equipmentLabel } from '@/lib/locker/equipmentLabel'
+import { getAppLocale } from '@/i18n'
+import { useTranslation } from '@/i18n/hooks'
 import { EquipmentIcon } from './EquipmentIcon'
 
 type LockerItemCardProps = {
@@ -11,7 +13,9 @@ type LockerItemCardProps = {
 }
 
 export function LockerItemCard({ item, onEdit, onDelete }: LockerItemCardProps) {
+  const { t, i18n } = useTranslation(['locker', 'common'])
   const meta = getEquipmentMeta(item.category)
+  const locale = i18n.language || getAppLocale()
 
   return (
     <article className="flex items-center gap-3 rounded-card border border-line bg-surface p-3">
@@ -23,11 +27,12 @@ export function LockerItemCard({ item, onEdit, onDelete }: LockerItemCardProps) 
         <p className="truncate font-semibold">{item.name}</p>
         <p className="text-xs text-muted">
           {equipmentLabel(meta.category)}
-          {item.weightKg != null && ` · ${item.weightKg} kg`}
+          {item.weightKg != null && ` · ${item.weightKg} ${t('common:kg')}`}
           {item.resistance && ` · ${item.resistance}`}
         </p>
         <p className="label-mono mt-0.5 text-faint">
-          {item.brand || 'Geen merk'} · sinds {formatDate(item.firstUsedAt)}
+          {item.brand || t('locker:noBrand')} ·{' '}
+          {t('locker:since', { date: formatDate(item.firstUsedAt, locale) })}
         </p>
       </div>
 
@@ -36,7 +41,7 @@ export function LockerItemCard({ item, onEdit, onDelete }: LockerItemCardProps) 
           type="button"
           onClick={() => onEdit(item)}
           className="grid size-9 place-items-center rounded-lg text-muted active:bg-surface-2"
-          aria-label="Bewerken"
+          aria-label={t('common:edit')}
         >
           <Pencil className="size-4" />
         </button>
@@ -44,7 +49,7 @@ export function LockerItemCard({ item, onEdit, onDelete }: LockerItemCardProps) 
           type="button"
           onClick={() => onDelete(item.id)}
           className="grid size-9 place-items-center rounded-lg text-danger active:bg-danger/10"
-          aria-label="Verwijderen"
+          aria-label={t('common:delete')}
         >
           <Trash2 className="size-4" />
         </button>
@@ -53,9 +58,13 @@ export function LockerItemCard({ item, onEdit, onDelete }: LockerItemCardProps) 
   )
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   try {
-    return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+    return new Date(iso).toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
   } catch {
     return iso
   }

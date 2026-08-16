@@ -31,5 +31,9 @@
   "notFound": "Page introuvable",
   "notFoundHint": "Cette route n’existe pas.",
   "importedFromWger": "Importé depuis la base open-source Wger",
-  "copySuffix": "(copie)"
+  "copySuffix": "(copie)",
+  "abortSessionConfirm": "Interrompre la séance ? Cet entraînement ne sera pas enregistré.",
+  "openMenu": "Ouvrir le menu",
+  "closeMenu": "Fermer le menu",
+  "moreOptions": "Plus d'options"
 }

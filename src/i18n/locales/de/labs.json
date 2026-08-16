@@ -1,0 +1,33 @@
+{
+  "title": "Labs",
+  "subtitle": "Feasibility-Experimente",
+  "intro": "Architektur-Experimente — nicht Teil des Hauptflows, bis sie übernommen werden.",
+  "hub": "SOLO. Labs",
+  "items": {
+    "active-set": {
+      "label": "Active Set Loop",
+      "pillar": "Integriert",
+      "description": "Vollständiger Trainingsloop: Garmin BLE → Telemetrie → Kamera/Pose → Canvas-Composite → TV-Stream."
+    },
+    "garmin-sync": {
+      "label": "Garmin BLE Channel",
+      "pillar": "Pillar 2",
+      "description": "HF-Gurt über Standard-BLE (0x180D) oder Breitscan für zukünftige Connect-IQ-Bridge mit Reps/Velocity."
+    },
+    "pose": {
+      "label": "Kamera & Pose",
+      "pillar": "Pillar 3",
+      "description": "Frontkamera-Zugang und GPU/Wasm-Bereitschaft für MediaPipe Pose Landmarker."
+    },
+    "canvas-composite": {
+      "label": "Canvas Compositor",
+      "pillar": "Pillar 3",
+      "description": "16:9-Frame mit Studio-Loop-Platzhalter, Skeleton-Overlay und oversized Garmin-HUD."
+    },
+    "cast-stream": {
+      "label": "TV Cast Stream",
+      "pillar": "Web-to-Cast",
+      "description": "canvas.captureStream bei 30 FPS — AirPlay/Chromecast-Bereitschaft und MediaStream-Pipeline."
+    }
+  }
+}

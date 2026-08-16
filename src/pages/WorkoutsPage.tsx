@@ -8,9 +8,11 @@ import { useWorkoutSelection } from '@/hooks/useWorkoutSelection'
 import { WgerBrowser } from '@/components/workout/WgerBrowser'
 import { WorkoutCard } from '@/components/workout/WorkoutCard'
 import { WorkoutCompactToolbar } from '@/components/workout/WorkoutCompactToolbar'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 export function WorkoutsPage() {
+  const { t } = useTranslation('workouts')
   const navigate = useNavigate()
   const { workouts, add, remove, duplicate, toggleFav, exportData, importData } = useWorkouts()
   const {
@@ -36,7 +38,13 @@ export function WorkoutsPage() {
   function handleFitImport(buffer: ArrayBuffer) {
     const { workout, warnings, fileType } = parseFitFile(buffer)
     add(workout)
-    alert(`FIT ${fileType} "${workout.name}" geïmporteerd.\n\n${warnings.join('\n')}`)
+    alert(
+      t('fitImported', {
+        fileType,
+        name: workout.name,
+        warnings: warnings.join('\n'),
+      }),
+    )
   }
 
   function openPrep(id: string) {
@@ -46,16 +54,16 @@ export function WorkoutsPage() {
   async function handleShare(workout: import('@/types/workout').WorkoutTemplate) {
     try {
       const result = await shareWorkoutLink(workout)
-      if (result === 'copied') alert('Workout-link gekopieerd naar klembord.')
+      if (result === 'copied') alert(t('linkCopied'))
     } catch {
-      // gebruiker sloot het native share-sheet
+      // user dismissed native share sheet
     }
   }
 
   function handleDelete(id: string) {
     const workout = workouts.find((w) => w.id === id)
     if (!workout) return
-    if (!confirm(`"${workout.name}" verwijderen?`)) return
+    if (!confirm(t('deleteNamedConfirm', { name: workout.name }))) return
     remove(id)
     removeFromSelection(id)
   }
@@ -68,8 +76,8 @@ export function WorkoutsPage() {
             <Dumbbell className="size-5" />
           </span>
           <div>
-            <h1 className="text-lg font-bold tracking-tight">Workouts</h1>
-            <p className="text-[11px] text-muted">{workouts.length} beschikbaar</p>
+            <h1 className="text-lg font-bold tracking-tight">{t('title')}</h1>
+            <p className="text-[11px] text-muted">{t('available', { count: workouts.length })}</p>
           </div>
         </div>
         <button
@@ -81,7 +89,7 @@ export function WorkoutsPage() {
           )}
         >
           {selectionMode ? <CheckSquare className="size-4" /> : <Square className="size-4" />}
-          Multi
+          {t('multi')}
         </button>
       </header>
 
@@ -93,14 +101,8 @@ export function WorkoutsPage() {
         onBrowseWger={() => setWgerOpen(true)}
       />
 
-      {!selectionMode && (
-        <p className="text-[11px] text-faint">Tik een workout om te openen en te starten.</p>
-      )}
-      {selectionMode && (
-        <p className="text-[11px] text-solo-400">
-          Tik workouts aan om meerdere te selecteren. Start onderin om naar prep te gaan.
-        </p>
-      )}
+      {!selectionMode && <p className="text-[11px] text-faint">{t('tapHint')}</p>}
+      {selectionMode && <p className="text-[11px] text-solo-400">{t('multiHint')}</p>}
 
       <div className="flex flex-col gap-2 pb-20">
         {workouts.map((workout) => (
@@ -122,7 +124,7 @@ export function WorkoutsPage() {
 
         {workouts.length === 0 && (
           <p className="rounded-card border border-dashed border-line p-6 text-center text-sm text-muted">
-            Nog geen workouts. Maak er een of zoek oefeningen om te importeren.
+            {t('emptyCreate')}
           </p>
         )}
       </div>

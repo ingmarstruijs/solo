@@ -36,5 +36,27 @@
     "pull_up_bar": "Optrekstang",
     "resistance_band": "Weerstandsband"
   },
-  "fullBody": "Full body"
+  "fullBody": "Full body",
+  "available": "{{count}} beschikbaar",
+  "multi": "Multi",
+  "tapHint": "Tik een workout om te openen en te starten.",
+  "multiHint": "Tik workouts aan om meerdere te selecteren. Start onderin om naar prep te gaan.",
+  "emptyCreate": "Nog geen workouts. Maak er een of zoek oefeningen om te importeren.",
+  "deleteNamedConfirm": "\"{{name}}\" verwijderen?",
+  "fitImported": "FIT {{fileType}} \"{{name}}\" geïmporteerd.\n\n{{warnings}}",
+  "linkCopied": "Workout-link gekopieerd naar klembord.",
+  "newShort": "Nieuw",
+  "searchShort": "Zoeken",
+  "exportWorkouts": "Export workouts",
+  "importWorkouts": "Import workouts",
+  "garminFit": "Garmin FIT",
+  "importedAlert": "{{count}} workout(s) geïmporteerd.",
+  "rounds": "{{count}} rondes",
+  "setsCount": "{{count}} sets",
+  "editAction": "Bewerken",
+  "duplicateAction": "Dupliceer",
+  "shareAction": "Delen",
+  "deleteAction": "Verwijderen",
+  "favoriteOn": "Favoriet",
+  "favoriteOff": "Favoriet maken"
 }

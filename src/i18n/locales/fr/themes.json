@@ -1,0 +1,18 @@
+{
+  "ochtend": {
+    "label": "Matin",
+    "description": "Lumière douce, aube chaude"
+  },
+  "middag": {
+    "label": "Après-midi",
+    "description": "Plein jour clair et frais"
+  },
+  "avond": {
+    "label": "Soir",
+    "description": "Crépuscule frais, indigo"
+  },
+  "nacht": {
+    "label": "Nuit",
+    "description": "Noir profond, bleu SOLO minimal"
+  }
+}

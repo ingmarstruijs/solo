@@ -17,6 +17,12 @@ import enWorkouts from './locales/en/workouts.json'
 import enWger from './locales/en/wger.json'
 import enLocker from './locales/en/locker.json'
 import enCoach from './locales/en/coach.json'
+import enHome from './locales/en/home.json'
+import enHistory from './locales/en/history.json'
+import enThemes from './locales/en/themes.json'
+import enAbout from './locales/en/about.json'
+import enLabs from './locales/en/labs.json'
+import enTv from './locales/en/tv.json'
 
 import nlCommon from './locales/nl/common.json'
 import nlNav from './locales/nl/nav.json'
@@ -26,6 +32,12 @@ import nlWorkouts from './locales/nl/workouts.json'
 import nlWger from './locales/nl/wger.json'
 import nlLocker from './locales/nl/locker.json'
 import nlCoach from './locales/nl/coach.json'
+import nlHome from './locales/nl/home.json'
+import nlHistory from './locales/nl/history.json'
+import nlThemes from './locales/nl/themes.json'
+import nlAbout from './locales/nl/about.json'
+import nlLabs from './locales/nl/labs.json'
+import nlTv from './locales/nl/tv.json'
 
 import deCommon from './locales/de/common.json'
 import deNav from './locales/de/nav.json'
@@ -35,6 +47,12 @@ import deWorkouts from './locales/de/workouts.json'
 import deWger from './locales/de/wger.json'
 import deLocker from './locales/de/locker.json'
 import deCoach from './locales/de/coach.json'
+import deHome from './locales/de/home.json'
+import deHistory from './locales/de/history.json'
+import deThemes from './locales/de/themes.json'
+import deAbout from './locales/de/about.json'
+import deLabs from './locales/de/labs.json'
+import deTv from './locales/de/tv.json'
 
 import frCommon from './locales/fr/common.json'
 import frNav from './locales/fr/nav.json'
@@ -44,6 +62,12 @@ import frWorkouts from './locales/fr/workouts.json'
 import frWger from './locales/fr/wger.json'
 import frLocker from './locales/fr/locker.json'
 import frCoach from './locales/fr/coach.json'
+import frHome from './locales/fr/home.json'
+import frHistory from './locales/fr/history.json'
+import frThemes from './locales/fr/themes.json'
+import frAbout from './locales/fr/about.json'
+import frLabs from './locales/fr/labs.json'
+import frTv from './locales/fr/tv.json'
 
 export const I18N_NAMESPACES = [
   'common',
@@ -54,6 +78,12 @@ export const I18N_NAMESPACES = [
   'wger',
   'locker',
   'coach',
+  'home',
+  'history',
+  'themes',
+  'about',
+  'labs',
+  'tv',
 ] as const
 
 export type I18nNamespace = (typeof I18N_NAMESPACES)[number]
@@ -68,6 +98,12 @@ const resources = {
     wger: enWger,
     locker: enLocker,
     coach: enCoach,
+    home: enHome,
+    history: enHistory,
+    themes: enThemes,
+    about: enAbout,
+    labs: enLabs,
+    tv: enTv,
   },
   nl: {
     common: nlCommon,
@@ -78,6 +114,12 @@ const resources = {
     wger: nlWger,
     locker: nlLocker,
     coach: nlCoach,
+    home: nlHome,
+    history: nlHistory,
+    themes: nlThemes,
+    about: nlAbout,
+    labs: nlLabs,
+    tv: nlTv,
   },
   de: {
     common: deCommon,
@@ -88,6 +130,12 @@ const resources = {
     wger: deWger,
     locker: deLocker,
     coach: deCoach,
+    home: deHome,
+    history: deHistory,
+    themes: deThemes,
+    about: deAbout,
+    labs: deLabs,
+    tv: deTv,
   },
   fr: {
     common: frCommon,
@@ -98,6 +146,12 @@ const resources = {
     wger: frWger,
     locker: frLocker,
     coach: frCoach,
+    home: frHome,
+    history: frHistory,
+    themes: frThemes,
+    about: frAbout,
+    labs: frLabs,
+    tv: frTv,
   },
 } as const
 

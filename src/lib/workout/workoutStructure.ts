@@ -1,4 +1,5 @@
 import type { WorkoutTemplate } from '@/types/workout'
+import { i18n } from '@/i18n'
 
 export type WorkoutStructure = 'strength' | 'circuit'
 
@@ -10,9 +11,9 @@ export function getWorkoutStructure(
 
 export function getPhaseInfo(workout: WorkoutTemplate): { label: string; total: number } {
   if (getWorkoutStructure(workout) === 'circuit') {
-    return { label: 'Ronde', total: workout.circuitRounds ?? 1 }
+    return { label: i18n.t('common:round'), total: workout.circuitRounds ?? 1 }
   }
-  return { label: 'Set', total: workout.sets }
+  return { label: i18n.t('common:set'), total: workout.sets }
 }
 
 export function getPhaseRestSeconds(workout: WorkoutTemplate): number {
@@ -24,10 +25,18 @@ export function getPhaseRestSeconds(workout: WorkoutTemplate): number {
 
 export function structureSummary(workout: WorkoutTemplate): string {
   if (getWorkoutStructure(workout) === 'circuit') {
-    const rest = workout.restBetweenRounds ? ` · rust tussen rondes ${workout.restBetweenRounds}s` : ''
-    return `${workout.circuitRounds} rondes${rest}`
+    if (!workout.restBetweenRounds) {
+      return i18n.t('session:structureCircuitShort', { rounds: workout.circuitRounds })
+    }
+    return i18n.t('session:structureCircuit', {
+      rounds: workout.circuitRounds,
+      seconds: workout.restBetweenRounds,
+    })
   }
-  return `${workout.sets} sets · rust tussen sets ${workout.restBetweenSets}s`
+  return i18n.t('session:structureSets', {
+    sets: workout.sets,
+    seconds: workout.restBetweenSets ?? 0,
+  })
 }
 
 export type WorkoutProgress = {

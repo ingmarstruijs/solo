@@ -1,0 +1,36 @@
+{
+  "greeting": {
+    "morning": "Bonjour",
+    "afternoon": "Bon après-midi",
+    "evening": "Bonsoir",
+    "night": "Bonne nuit"
+  },
+  "hero": "Prêt à s’entraîner",
+  "sessionLive": "Séance en cours",
+  "resumeSet": "Série {{set}} · appuyez pour reprendre",
+  "recovery": "Récupération",
+  "recoveryFresh": "Vous êtes frais — bon jour pour une séance intense.",
+  "recoveryOk": "Récupération correcte. Surveillez le volume.",
+  "recoveryTired": "Récupération limitée. Préférez une séance légère ou du repos.",
+  "toneFresh": "Frais",
+  "toneOk": "OK",
+  "toneTired": "Fatigué",
+  "thisWeek": "Cette semaine",
+  "sessions": "Séances",
+  "minutes": "Minutes",
+  "chooseWorkout": "Choisir une séance",
+  "chooseWorkoutHint": "Sélectionnez, préparez et démarrez.",
+  "activeLocker": "Casier actif",
+  "manage": "Gérer",
+  "lockerHint": "La préparation utilise le matériel du casier sélectionné ({{name}}).",
+  "recent": "Récent",
+  "seeAll": "Tout",
+  "recentMeta": "{{count}} exercices · {{minutes}} min",
+  "relative": {
+    "today": "Aujourd’hui",
+    "yesterday": "Hier",
+    "daysAgo": "il y a {{count}} jours",
+    "weekAgo": "il y a 1 semaine",
+    "weeksAgo": "il y a {{count}} semaines"
+  }
+}

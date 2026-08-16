@@ -53,9 +53,9 @@ export function WorkoutPrepPage() {
   if (!prep || prep.workouts.length === 0) {
     return (
       <div className="flex flex-col gap-4 py-8 text-center">
-        <p className="text-muted">Workout niet gevonden.</p>
+        <p className="text-muted">{t('session:workoutNotFound')}</p>
         <button type="button" onClick={() => navigate('/workouts')} className="text-solo-400">
-          Terug naar workouts
+          {t('session:backToWorkouts')}
         </button>
       </div>
     )
@@ -141,7 +141,7 @@ export function WorkoutPrepPage() {
         <section key={workout.id} className="rounded-card border border-line bg-surface p-3">
           {isMulti && (
             <p className="label-mono mb-2 text-faint">
-              Workout {wi + 1} · {workout.name}
+              {t('session:workoutN', { n: wi + 1, name: workout.name })}
             </p>
           )}
           <p className="mb-2 text-xs text-muted">{structureSummary(workout)}</p>
@@ -170,6 +170,7 @@ function PrepExerciseRow({
   index: number
   targets: import('@/types/workout').OverloadTarget[]
 }) {
+  const { t } = useTranslation('session')
   const [showInfo, setShowInfo] = useState(false)
   const target = targets.find((t) => t.exerciseId === ex.id)
   const weight = target?.adjustedWeightKg ?? ex.weightKg
@@ -194,9 +195,9 @@ function PrepExerciseRow({
             {metricLabel(ex.metric, ex.target)}
             {weight > 0 && ` · ${weight} kg`}
             {gear && ` · ${gear}`}
-            {ex.restSeconds > 0 && ` · rust ${ex.restSeconds}s`}
+            {ex.restSeconds > 0 && ` · ${t('session:restInline', { seconds: ex.restSeconds })}`}
           </p>
-          <p className="mt-1 text-xs font-medium text-solo-400">Bekijk uitleg</p>
+          <p className="mt-1 text-xs font-medium text-solo-400">{t('session:viewInstructions')}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span className="label-mono text-faint">#{index + 1}</span>

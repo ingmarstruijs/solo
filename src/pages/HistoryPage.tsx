@@ -1,9 +1,11 @@
 import { BarChart3, ChevronRight, Clock, Dumbbell, Flame, Trash2, TrendingUp } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { useHistory } from '@/hooks/useHistory'
+import { getAppLocale } from '@/i18n'
+import { useTranslation } from '@/i18n/hooks'
 import { formatDuration } from '@/lib/workout/sessionSummary'
 
-function formatWhen(iso: string): string {
+function formatWhen(iso: string, locale: string, todayAt: (time: string) => string): string {
   const date = new Date(iso)
   const now = new Date()
   const sameDay =
@@ -12,10 +14,12 @@ function formatWhen(iso: string): string {
     date.getDate() === now.getDate()
 
   if (sameDay) {
-    return `Vandaag · ${date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`
+    return todayAt(
+      date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+    )
   }
 
-  return date.toLocaleDateString('nl-NL', {
+  return date.toLocaleDateString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -25,16 +29,18 @@ function formatWhen(iso: string): string {
 }
 
 export function HistoryPage() {
+  const { t, i18n } = useTranslation('history')
   const navigate = useNavigate()
   const { history, stats, remove, clearAll } = useHistory()
+  const locale = i18n.language || getAppLocale()
 
   function handleClearAll() {
-    if (!confirm('Alle sessies uit je logboek verwijderen?')) return
+    if (!confirm(t('clearConfirm'))) return
     clearAll()
   }
 
   function handleDelete(id: string, name: string) {
-    if (!confirm(`"${name}" uit je logboek verwijderen?`)) return
+    if (!confirm(t('deleteConfirm', { name }))) return
     remove(id)
   }
 
@@ -47,8 +53,8 @@ export function HistoryPage() {
               <BarChart3 className="size-5" />
             </span>
             <div>
-              <h1 className="text-lg font-bold tracking-tight">Logboek</h1>
-              <p className="text-[11px] text-muted">Je afgeronde trainingen</p>
+              <h1 className="text-lg font-bold tracking-tight">{t('title')}</h1>
+              <p className="text-[11px] text-muted">{t('subtitle')}</p>
             </div>
           </div>
           {history.length > 0 && (
@@ -57,21 +63,21 @@ export function HistoryPage() {
               onClick={handleClearAll}
               className="shrink-0 rounded-lg border border-danger/40 px-2.5 py-1.5 text-xs font-medium text-danger active:bg-danger/10"
             >
-              Alles wissen
+              {t('clearAll')}
             </button>
           )}
         </header>
 
         <div className="mt-3 grid grid-cols-3 gap-2">
-          <StatPill icon={Flame} label="Deze week" value={String(stats.sessionsThisWeek)} />
-          <StatPill icon={TrendingUp} label="Sessies" value={String(stats.totalSessions)} />
-          <StatPill icon={Clock} label="Minuten" value={String(stats.totalMinutes)} />
+          <StatPill icon={Flame} label={t('thisWeek')} value={String(stats.sessionsThisWeek)} />
+          <StatPill icon={TrendingUp} label={t('sessions')} value={String(stats.totalSessions)} />
+          <StatPill icon={Clock} label={t('minutes')} value={String(stats.totalMinutes)} />
         </div>
       </div>
 
       {history.length === 0 ? (
         <p className="rounded-card border border-dashed border-line p-6 text-center text-sm text-muted">
-          Nog geen afgeronde sessies. Rond een workout af om je samenvatting hier te bewaren.
+          {t('empty')}
         </p>
       ) : (
         <div className="flex flex-col gap-2 pb-20">
@@ -90,7 +96,9 @@ export function HistoryPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{record.workoutName}</p>
-                  <p className="mt-0.5 text-[11px] text-muted">{formatWhen(record.completedAt)}</p>
+                  <p className="mt-0.5 text-[11px] text-muted">
+                    {formatWhen(record.completedAt, locale, (time) => t('todayAt', { time }))}
+                  </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-faint">
                     <span className="flex items-center gap-1">
                       <Clock className="size-3" />
@@ -98,10 +106,10 @@ export function HistoryPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Dumbbell className="size-3" />
-                      {record.exerciseCount} oefeningen
+                      {t('exercises', { count: record.exerciseCount })}
                     </span>
                     {record.summary.stats.totalSets > 0 && (
-                      <span>{record.summary.stats.totalSets} sets</span>
+                      <span>{t('sets', { count: record.summary.stats.totalSets })}</span>
                     )}
                   </div>
                 </div>
@@ -111,7 +119,7 @@ export function HistoryPage() {
                 type="button"
                 onClick={() => handleDelete(record.id, record.workoutName)}
                 className="grid size-10 shrink-0 place-items-center rounded-lg text-faint active:bg-danger/10 active:text-danger"
-                aria-label={`${record.workoutName} verwijderen`}
+                aria-label={t('deleteAria', { name: record.workoutName })}
               >
                 <Trash2 className="size-5" />
               </button>

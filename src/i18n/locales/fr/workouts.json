@@ -36,5 +36,27 @@
     "pull_up_bar": "Barre de traction",
     "resistance_band": "Bande élastique"
   },
-  "fullBody": "Full body"
+  "fullBody": "Full body",
+  "available": "{{count}} disponibles",
+  "multi": "Multi",
+  "tapHint": "Touchez un entraînement pour ouvrir et démarrer.",
+  "multiHint": "Touchez pour en sélectionner plusieurs. Démarrez en bas pour la prep.",
+  "emptyCreate": "Pas encore d’entraînements. Créez-en un ou importez des exercices.",
+  "deleteNamedConfirm": "Supprimer « {{name}} » ?",
+  "fitImported": "FIT {{fileType}} « {{name}} » importé.\n\n{{warnings}}",
+  "linkCopied": "Lien d’entraînement copié dans le presse-papiers.",
+  "newShort": "Nouveau",
+  "searchShort": "Rechercher",
+  "exportWorkouts": "Exporter les entraînements",
+  "importWorkouts": "Importer les entraînements",
+  "garminFit": "Garmin FIT",
+  "importedAlert": "{{count}} entraînement(s) importé(s).",
+  "rounds": "{{count}} tours",
+  "setsCount": "{{count}} séries",
+  "editAction": "Modifier",
+  "duplicateAction": "Dupliquer",
+  "shareAction": "Partager",
+  "deleteAction": "Supprimer",
+  "favoriteOn": "Favori",
+  "favoriteOff": "Ajouter aux favoris"
 }

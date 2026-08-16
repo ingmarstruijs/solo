@@ -1,12 +1,15 @@
 import { Share2 } from 'lucide-react'
 import { Placeholder } from '@/components/Placeholder'
+import { useTranslation } from '@/i18n/hooks'
 
 export function IntegrationsPage() {
+  const { t } = useTranslation('about')
+
   return (
     <Placeholder
       icon={Share2}
-      title="Integraties"
-      description="Verbind optioneel met Google Health, Apple Health, Strava of je Garmin-wearable. Volledig vrijwillig — SOLO. werkt 100% offline zonder deze koppelingen."
+      title={t('integrationsTitle')}
+      description={t('integrationsBody')}
     />
   )
 }

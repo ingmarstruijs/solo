@@ -1,5 +1,6 @@
 import { ArrowLeft, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type PageStickyHeaderProps = {
@@ -13,10 +14,13 @@ type PageStickyHeaderProps = {
 export function PageStickyHeader({
   title,
   onBack,
-  backAriaLabel = 'Terug',
+  backAriaLabel,
   actions,
   titleClassName,
 }: PageStickyHeaderProps) {
+  const { t } = useTranslation('common')
+  const aria = backAriaLabel ?? t('back')
+
   return (
     <header className="sticky top-[var(--header-h)] z-20 -mx-4 mb-3 flex items-center gap-2 border-b border-line bg-ink/90 px-4 py-2 backdrop-blur-md">
       {onBack ? (
@@ -24,7 +28,7 @@ export function PageStickyHeader({
           type="button"
           onClick={onBack}
           className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-fg active:bg-surface-3"
-          aria-label={backAriaLabel}
+          aria-label={aria}
         >
           <ArrowLeft className="size-5" strokeWidth={2.5} />
         </button>

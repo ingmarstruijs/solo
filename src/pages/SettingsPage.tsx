@@ -1,7 +1,7 @@
 import { Heart, Play, Settings, Watch } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { RecoverySlider } from '@/components/workout/RecoverySlider'
-import { THEMES, getThemeLabel } from '@/lib/theme/themes'
+import { THEMES, getThemeDescription, getThemeLabel } from '@/lib/theme/themes'
 import { useAutoTranslateWger } from '@/hooks/useAutoTranslateWger'
 import { useCoachVoiceGender } from '@/hooks/useCoachVoiceGender'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
@@ -113,9 +113,9 @@ export function SettingsPage() {
                   preference === themeOption.id ? 'border-solo-400/50 bg-solo-400/5' : 'border-line',
                 )}
               >
-                <p className="font-semibold">{themeOption.label}</p>
+                <p className="font-semibold">{getThemeLabel(themeOption.id)}</p>
                 <p className="text-xs text-muted">
-                  {themeOption.description} · {themeOption.timeRange}
+                  {getThemeDescription(themeOption.id)} · {themeOption.timeRange}
                 </p>
               </button>
             </li>

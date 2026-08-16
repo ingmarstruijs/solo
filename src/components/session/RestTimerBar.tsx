@@ -6,6 +6,7 @@ import {
   restNextExerciseLabel,
   type RestCountdown,
 } from '@/hooks/useRestCountdown'
+import { useTranslation } from '@/i18n/hooks'
 
 type RestTimerBarProps = {
   countdown: RestCountdown
@@ -18,6 +19,8 @@ type RestTimerBarProps = {
  * Shows rust / set rust countdown and the exercise coming next.
  */
 export function RestTimerBar({ countdown, onSkip, className }: RestTimerBarProps) {
+  const { t } = useTranslation('session')
+
   if (!countdown.active) return null
 
   const isPhaseRest = countdown.kind === 'phase'
@@ -65,7 +68,7 @@ export function RestTimerBar({ countdown, onSkip, className }: RestTimerBarProps
           </div>
 
           <p className="text-xs text-muted">
-            {countdown.remaining} / {countdown.total} seconden
+            {t('restSeconds', { remaining: countdown.remaining, total: countdown.total })}
           </p>
 
           {countdown.nextExerciseName && (
@@ -95,7 +98,7 @@ export function RestTimerBar({ countdown, onSkip, className }: RestTimerBarProps
             onClick={onSkip}
             className="min-h-12 w-full rounded-xl border border-line bg-surface-2 px-5 text-sm font-semibold text-solo-400 active:bg-surface-3"
           >
-            Overslaan
+            {t('skip')}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { i18n } from '@/i18n'
 
 export type RestTimerKind = 'exercise' | 'phase'
 
@@ -38,6 +39,11 @@ const IDLE: RestCountdown = {
   kind: 'exercise',
 }
 
+function isRoundPhase(phaseLabel?: string): boolean {
+  if (!phaseLabel) return false
+  return phaseLabel === i18n.t('common:round') || phaseLabel === 'Ronde'
+}
+
 export function useRestCountdown(timer: RestTimer | null): RestCountdown {
   const [now, setNow] = useState(() => Date.now())
 
@@ -72,9 +78,11 @@ export function restCountdownTitle(
   countdown: Pick<RestCountdown, 'kind' | 'phaseLabel'>,
 ): string {
   if (countdown.kind === 'phase') {
-    return countdown.phaseLabel === 'Ronde' ? 'Ronde rust' : 'Set rust'
+    return isRoundPhase(countdown.phaseLabel)
+      ? i18n.t('session:restTitleRound')
+      : i18n.t('session:restTitleSet')
   }
-  return 'Rust'
+  return i18n.t('session:restTitle')
 }
 
 export function restCountdownSubtitle(
@@ -85,16 +93,16 @@ export function restCountdownSubtitle(
 ): string {
   if (countdown.kind === 'phase') {
     const n = countdown.completedPhase
-    if (countdown.phaseLabel === 'Ronde') {
+    if (isRoundPhase(countdown.phaseLabel)) {
       return n != null
-        ? `Ronde ${n} voltooid · daarna ronde ${n + 1}`
-        : 'Rust tussen rondes'
+        ? i18n.t('session:restRoundDone', { n, next: n + 1 })
+        : i18n.t('session:restBetweenRounds')
     }
     return n != null
-      ? `Set ${n} voltooid · daarna set ${n + 1}`
-      : 'Rust tussen sets'
+      ? i18n.t('session:restSetDone', { n, next: n + 1 })
+      : i18n.t('session:restBetweenSets')
   }
-  return `Na ${countdown.afterExerciseName}`
+  return i18n.t('session:restAfter', { name: countdown.afterExerciseName })
 }
 
 /** Label above the upcoming exercise on the rest overlay. */
@@ -104,12 +112,13 @@ export function restNextExerciseLabel(
   if (countdown.kind === 'phase') {
     const n = countdown.completedPhase
     if (n != null) {
-      const unit = countdown.phaseLabel === 'Ronde' ? 'ronde' : 'set'
-      return `Volgende · ${unit} ${n + 1}`
+      return isRoundPhase(countdown.phaseLabel)
+        ? i18n.t('session:restNextRound', { n: n + 1 })
+        : i18n.t('session:restNextSet', { n: n + 1 })
     }
-    return 'Volgende'
+    return i18n.t('session:restNext')
   }
-  return 'Volgende oefening'
+  return i18n.t('session:restNextExercise')
 }
 
 export function formatRestSeconds(seconds: number): string {

@@ -1,0 +1,15 @@
+{
+  "title": "Logboek",
+  "subtitle": "Je afgeronde trainingen",
+  "clearAll": "Alles wissen",
+  "clearConfirm": "Alle sessies uit je logboek verwijderen?",
+  "deleteConfirm": "\"{{name}}\" uit je logboek verwijderen?",
+  "deleteAria": "{{name}} verwijderen",
+  "empty": "Nog geen afgeronde sessies. Rond een workout af om je samenvatting hier te bewaren.",
+  "thisWeek": "Deze week",
+  "sessions": "Sessies",
+  "minutes": "Minuten",
+  "exercises": "{{count}} oefeningen",
+  "sets": "{{count}} sets",
+  "todayAt": "Vandaag · {{time}}"
+}

@@ -36,5 +36,27 @@
     "pull_up_bar": "Pull-up bar",
     "resistance_band": "Resistance band"
   },
-  "fullBody": "Full body"
+  "fullBody": "Full body",
+  "available": "{{count}} available",
+  "multi": "Multi",
+  "tapHint": "Tap a workout to open and start.",
+  "multiHint": "Tap workouts to select several. Start below to go to prep.",
+  "emptyCreate": "No workouts yet. Create one or search exercises to import.",
+  "deleteNamedConfirm": "Delete \"{{name}}\"?",
+  "fitImported": "FIT {{fileType}} \"{{name}}\" imported.\n\n{{warnings}}",
+  "linkCopied": "Workout link copied to clipboard.",
+  "newShort": "New",
+  "searchShort": "Search",
+  "exportWorkouts": "Export workouts",
+  "importWorkouts": "Import workouts",
+  "garminFit": "Garmin FIT",
+  "importedAlert": "{{count}} workout(s) imported.",
+  "rounds": "{{count}} rounds",
+  "setsCount": "{{count}} sets",
+  "editAction": "Edit",
+  "duplicateAction": "Duplicate",
+  "shareAction": "Share",
+  "deleteAction": "Delete",
+  "favoriteOn": "Favorite",
+  "favoriteOff": "Add favorite"
 }

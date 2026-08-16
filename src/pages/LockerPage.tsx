@@ -6,10 +6,12 @@ import { LockerItemCard } from '@/components/locker/LockerItemCard'
 import { LockerItemForm } from '@/components/locker/LockerItemForm'
 import { LockerProfileSwitcher } from '@/components/locker/LockerProfileSwitcher'
 import { LockerToolbar } from '@/components/locker/LockerToolbar'
+import { useTranslation } from '@/i18n/hooks'
 
 type Modal = 'add' | 'edit' | null
 
 export function LockerPage() {
+  const { t } = useTranslation(['locker', 'common'])
   const { items, activeProfile, add, update, remove, exportData, importData } = useLocker()
   const [modal, setModal] = useState<Modal>(null)
   const [editing, setEditing] = useState<LockerItem | null>(null)
@@ -48,9 +50,9 @@ export function LockerPage() {
           <Boxes className="size-6" />
         </span>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Locker</h1>
+          <h1 className="text-xl font-bold tracking-tight">{t('locker:title')}</h1>
           <p className="text-xs text-muted">
-            {activeProfile.name} · {items.length} item{items.length !== 1 && 's'}
+            {activeProfile.name} · {t('locker:itemCount', { count: items.length })}
           </p>
         </div>
       </header>
@@ -68,7 +70,7 @@ export function LockerPage() {
 
       {items.length === 0 ? (
         <p className="rounded-card border border-dashed border-line p-6 text-center text-sm text-muted">
-          Nog geen materiaal in {activeProfile.name}. Voeg dumbbells, kettlebells, banden en meer toe.
+          {t('locker:emptyNamed', { name: activeProfile.name })}
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -78,7 +80,7 @@ export function LockerPage() {
                 item={item}
                 onEdit={openEdit}
                 onDelete={(id) => {
-                  if (confirm('Item verwijderen?')) remove(id)
+                  if (confirm(t('locker:deleteItemConfirm'))) remove(id)
                 }}
               />
             </li>
@@ -92,9 +94,10 @@ export function LockerPage() {
             setModal(null)
             setEditing(null)
           }}
+          closeLabel={t('common:close')}
         >
           <h2 className="mb-4 text-lg font-bold">
-            {modal === 'edit' ? 'Item bewerken' : 'Materiaal toevoegen'}
+            {modal === 'edit' ? t('locker:editItem') : t('locker:addMaterial')}
           </h2>
           <LockerItemForm
             initial={editing ?? undefined}
@@ -110,10 +113,18 @@ export function LockerPage() {
   )
 }
 
-function ModalOverlay({ children, onClose }: { children: ReactNode; onClose: () => void }) {
+function ModalOverlay({
+  children,
+  onClose,
+  closeLabel,
+}: {
+  children: ReactNode
+  onClose: () => void
+  closeLabel: string
+}) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/80 sm:items-center">
-      <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Sluiten" />
+      <button type="button" className="absolute inset-0" onClick={onClose} aria-label={closeLabel} />
       <div className="relative z-10 max-h-[85dvh] w-full max-w-screen-sm overflow-y-auto rounded-t-card border border-line bg-surface p-5 sm:rounded-card">
         {children}
       </div>

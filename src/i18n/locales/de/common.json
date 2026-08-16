@@ -31,5 +31,9 @@
   "notFound": "Seite nicht gefunden",
   "notFoundHint": "Diese Route existiert nicht.",
   "importedFromWger": "Importiert aus der Wger-Open-Source-Datenbank",
-  "copySuffix": "(Kopie)"
+  "copySuffix": "(Kopie)",
+  "abortSessionConfirm": "Session abbrechen? Dieses Workout wird nicht gespeichert.",
+  "openMenu": "Menü öffnen",
+  "closeMenu": "Menü schließen",
+  "moreOptions": "Weitere Optionen"
 }

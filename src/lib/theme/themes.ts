@@ -1,3 +1,5 @@
+import { i18n } from '@/i18n'
+
 export type ThemeId = 'ochtend' | 'middag' | 'avond' | 'nacht'
 
 export type ThemePreference = 'auto' | ThemeId
@@ -88,7 +90,17 @@ export function applyStoredTheme(): void {
 }
 
 export function getThemeLabel(id: ThemeId): string {
+  const key = `themes:${id}.label`
+  const translated = i18n.t(key)
+  if (translated !== key) return translated
   return THEMES.find((t) => t.id === id)?.label ?? id
+}
+
+export function getThemeDescription(id: ThemeId): string {
+  const key = `themes:${id}.description`
+  const translated = i18n.t(key)
+  if (translated !== key) return translated
+  return THEMES.find((t) => t.id === id)?.description ?? ''
 }
 
 function nextBoundaryDate(from = new Date()): Date {
