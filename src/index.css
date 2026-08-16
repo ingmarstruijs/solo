@@ -301,3 +301,13 @@
     filter: brightness(1);
   }
 }
+
+@keyframes strain-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}

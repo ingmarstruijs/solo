@@ -24,6 +24,8 @@ import { useRestCountdown, type RestTimer } from '@/hooks/useRestCountdown'
 import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { SessionMaterialsChecklist } from '@/components/session/SessionMaterialsChecklist'
 import { RestTimerBar } from '@/components/session/RestTimerBar'
+import { StrainEdgeFeedback } from '@/components/session/StrainEdgeFeedback'
+import { RpePrompt } from '@/components/session/RpePrompt'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { buildSessionTvState, buildSetupTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
@@ -34,6 +36,7 @@ import {
   buildNextSetReadyAnnouncement,
   buildPauseAnnouncement,
   buildResumeAnnouncement,
+  buildStrainAnnouncement,
   formatExerciseTargetLine,
   getExerciseWeight,
 } from '@/lib/tv/coachEngine'
@@ -46,7 +49,10 @@ import { useRestCoach } from '@/hooks/useRestCoach'
 import { useElapsedTimer } from '@/hooks/useElapsedTimer'
 import type { ActiveSession } from '@/types/workout'
 import { cn } from '@/lib/cn'
-import { RpePrompt } from '@/components/session/RpePrompt'
+import {
+  isLiveHrStrain,
+  STRAIN_COACH_COOLDOWN_MS,
+} from '@/lib/session/strain'
 
 function buildPrepBackUrl(workoutId: string): string {
   const queue = loadWorkoutQueue()
@@ -217,6 +223,24 @@ export function SessionPage() {
     coachAnnouncement?.key ?? '',
     coachEnabled,
   )
+
+  const strainActive =
+    exercisesStarted &&
+    garminConnected &&
+    heartRate.live &&
+    isLiveHrStrain(heartRate.bpm)
+
+  const lastStrainCoachAtRef = useRef(0)
+  useEffect(() => {
+    if (!strainActive || !coachEnabled) return
+    const now = Date.now()
+    if (now - lastStrainCoachAtRef.current < STRAIN_COACH_COOLDOWN_MS) return
+    lastStrainCoachAtRef.current = now
+    setCoachAnnouncement({
+      text: buildStrainAnnouncement(),
+      key: `strain-hr-${now}`,
+    })
+  }, [strainActive, coachEnabled])
 
   useEffect(() => {
     if (!session || !coachEnabled || !exercisesStarted) return
@@ -684,6 +708,7 @@ export function SessionPage() {
           onSkip={handleRpeSkip}
         />
       )}
+      <StrainEdgeFeedback active={strainActive} />
     </section>
   )
 }

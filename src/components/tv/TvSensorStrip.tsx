@@ -1,10 +1,12 @@
 import type { TvSensorState } from '@/lib/tv/broadcast'
 import { Camera, Heart, Zap } from 'lucide-react'
 import { useTranslation } from '@/i18n/hooks'
+import { STRAIN_HR_PERCENT } from '@/lib/session/strain'
 import { cn } from '@/lib/cn'
 
 export function TvSensorStrip({ sensor }: { sensor: TvSensorState }) {
   const { t } = useTranslation('tv')
+  const hrWarn = sensor.garminConnected && sensor.heartRatePercentMax >= STRAIN_HR_PERCENT
 
   return (
     <div className="grid grid-cols-3 gap-[1.5vh] rounded-[1.5vh] border border-line bg-surface p-[2vh]">
@@ -25,7 +27,7 @@ export function TvSensorStrip({ sensor }: { sensor: TvSensorState }) {
               : `${sensor.heartRatePercentMax}%`
         }
         active={sensor.garminConnected}
-        warn={sensor.garminConnected && sensor.heartRatePercentMax >= 85}
+        warn={hrWarn}
       />
       <SensorTile
         icon={Zap}

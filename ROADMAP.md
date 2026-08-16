@@ -70,8 +70,8 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Speech announcements (next exercise, set transitions) | **Shipped** | Web Speech API; male/female voice in Settings |
 | Rest countdown voice (last 5 s) | **Shipped** | `[useRestCoach](src/hooks/useRestCoach.ts)` |
 | Coach style matrix (Screamer / Mid-Line / Ambient) | Out of scope | Single calm coach for now |
-| Strain-triggered coach (velocity drop + HR threshold) | **Next** | Depends on Pillar 2 sensor data |
-| Screen edge visual feedback on strain | **Next** | Orange flash / calm pulse |
+| Strain-triggered coach (velocity drop + HR threshold) | Partial | Live HR ≥85% max triggers calm coach line (90s cooldown); velocity still needs Connect IQ |
+| Screen edge visual feedback on strain | **Shipped** | Warn edge pulse on phone session + TV when HR strain is active |
 
 ---
 

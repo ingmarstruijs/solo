@@ -143,6 +143,7 @@
   "prepReasonTut": "Home weight ceiling — +{{seconds}}s TUT",
   "tutTempo": "{{seconds}}s TUT",
   "tutBadge": "+{{seconds}}s TUT",
+  "strainCoach": "Ease the pace — heart rate is high.",
   "prepBody": "Target weights based on locker <strong>{{name}}</strong>{{recoveryPart}}.",
   "prepBodyRecovery": " and recovery",
   "prepBodyHint": ". With low recovery, heavy targets are reduced slightly.",
