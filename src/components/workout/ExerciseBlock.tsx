@@ -8,6 +8,7 @@ import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import { MarkdownField } from '@/components/MarkdownField'
 import { TouchNumberField } from '@/components/ui/TouchNumberField'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type ExerciseBlockProps = {
@@ -27,10 +28,10 @@ type ExerciseBlockProps = {
 
 const DRAG_MIME = 'application/x-solo-exercise-index'
 
-const METRIC_HINTS: Record<SetMetric, string> = {
-  reps: 'Aantal herhalingen per set',
-  time: 'Duur in seconden per set',
-  distance: 'Afstand in meters (hardlopen / Hyrox)',
+const KIND_KEYS: Record<ExerciseKind, 'kindStrength' | 'kindCardio' | 'kindMobility'> = {
+  strength: 'kindStrength',
+  cardio: 'kindCardio',
+  mobility: 'kindMobility',
 }
 
 export function ExerciseBlock({
@@ -46,6 +47,7 @@ export function ExerciseBlock({
   circuitMode = false,
   autoFocusName = false,
 }: ExerciseBlockProps) {
+  const { t } = useTranslation(['workouts', 'common'])
   const [dragOver, setDragOver] = useState(false)
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -73,7 +75,11 @@ export function ExerciseBlock({
   }
 
   const targetLabel =
-    exercise.metric === 'reps' ? 'Reps' : exercise.metric === 'time' ? 'Tijd (s)' : 'Afstand (m)'
+    exercise.metric === 'reps'
+      ? t('metricReps')
+      : exercise.metric === 'time'
+        ? t('metricTime')
+        : t('metricDistance')
 
   return (
     <div
@@ -103,7 +109,7 @@ export function ExerciseBlock({
             e.dataTransfer.effectAllowed = 'move'
           }}
           className="cursor-grab touch-none text-faint active:cursor-grabbing"
-          aria-label="Sleep om te verplaatsen"
+          aria-label="Reorder"
         >
           <GripVertical className="size-4" />
         </button>
@@ -113,7 +119,7 @@ export function ExerciseBlock({
             onClick={onMoveUp}
             disabled={!canMoveUp}
             className="grid size-6 place-items-center rounded text-faint disabled:opacity-25 active:bg-surface-2"
-            aria-label="Omhoog"
+            aria-label="Move up"
           >
             <ChevronUp className="size-4" />
           </button>
@@ -122,7 +128,7 @@ export function ExerciseBlock({
             onClick={onMoveDown}
             disabled={!canMoveDown}
             className="grid size-6 place-items-center rounded text-faint disabled:opacity-25 active:bg-surface-2"
-            aria-label="Omlaag"
+            aria-label="Move down"
           >
             <ChevronDown className="size-4" />
           </button>
@@ -131,8 +137,8 @@ export function ExerciseBlock({
           type="button"
           onClick={() => setIconPickerOpen(true)}
           className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 active:bg-surface-3"
-          aria-label="Icoon aanpassen"
-          title="Icoon aanpassen"
+          aria-label={t('iconPick')}
+          title={t('iconPick')}
         >
           <ExerciseIcon
             metric={exercise.metric}
@@ -146,14 +152,14 @@ export function ExerciseBlock({
           ref={nameInputRef}
           value={exercise.name}
           onChange={(e) => patch({ name: e.target.value })}
-          placeholder="Oefening naam"
+          placeholder={t('exerciseNamePlaceholder')}
           className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none"
         />
         <button
           type="button"
           onClick={onRemove}
           className="grid size-10 place-items-center text-danger active:opacity-70"
-          aria-label="Verwijderen"
+          aria-label={t('common:delete')}
         >
           <Trash2 className="size-5" />
         </button>
@@ -166,25 +172,25 @@ export function ExerciseBlock({
             type="button"
             onClick={() => patch({ kind: k })}
             className={cn(
-              'rounded-lg border px-2.5 py-1.5 text-xs capitalize',
+              'rounded-lg border px-2.5 py-1.5 text-xs',
               exercise.kind === k || (!exercise.kind && k === inferKind(exercise.metric))
                 ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
                 : 'border-line text-faint',
             )}
           >
-            {k}
+            {t(KIND_KEYS[k])}
           </button>
         ))}
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Field label="Type" hint={METRIC_HINTS[exercise.metric]}>
+        <Field label={t('typeLabel')}>
           <div className="flex overflow-hidden rounded-xl border border-line bg-surface-2">
             {(
               [
-                { id: 'reps' as const, label: 'Reps' },
-                { id: 'time' as const, label: 'Tijd' },
-                { id: 'distance' as const, label: 'Afstand' },
+                { id: 'reps' as const, labelKey: 'metricReps' as const },
+                { id: 'time' as const, labelKey: 'metricTime' as const },
+                { id: 'distance' as const, labelKey: 'metricDistance' as const },
               ] as const
             ).map((opt, index, list) => (
               <button
@@ -199,22 +205,22 @@ export function ExerciseBlock({
                   index < list.length - 1 && 'border-r border-line',
                 )}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </button>
             ))}
           </div>
         </Field>
         <NumberField
           label={targetLabel}
-          hint="Doel per set"
+          hint={t('targetPerSet')}
           value={exercise.target}
           min={1}
           preset={exercise.metric === 'reps' ? 'reps' : exercise.metric === 'distance' ? 'distance' : 'rest'}
           onChange={(v) => patch({ target: v })}
         />
         <NumberField
-          label="Gewicht (kg)"
-          hint="0 = lichaamsgewicht"
+          label={t('weightLabel')}
+          hint={t('weightHint')}
           value={exercise.weightKg}
           min={0}
           preset="weight"
@@ -223,8 +229,8 @@ export function ExerciseBlock({
         />
         {!circuitMode && (
           <NumberField
-            label="Rust (s)"
-            hint="Pauze voor volgende oefening"
+            label={t('restLabel')}
+            hint={t('restHint')}
             value={exercise.restSeconds}
             min={0}
             preset="rest"
@@ -234,7 +240,7 @@ export function ExerciseBlock({
       </div>
 
       <div className="mt-3">
-        <p className="label-mono mb-2 text-faint">Materiaal</p>
+        <p className="label-mono mb-2 text-faint">{t('equipmentLabel')}</p>
         <div className="flex flex-wrap gap-2">
           {EQUIPMENT_CATALOG.filter((e) => e.category !== 'other').map((e) => (
             <button
@@ -255,7 +261,7 @@ export function ExerciseBlock({
       </div>
 
       <div className="mt-3">
-        <Field label="Uitleg" hint="Markdown — zichtbaar in prep en sessie">
+        <Field label={t('instructionsLabel')} hint={t('instructionsHint')}>
           <MarkdownField
             value={exercise.description ?? ''}
             onChange={(description) =>
@@ -294,18 +300,20 @@ function IconPickerDialog({
   onAuto: () => void
   onClose: () => void
 }) {
+  const { t } = useTranslation(['workouts', 'common'])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Icoon kiezen"
+      aria-label={t('iconPick')}
     >
-      <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Sluiten" />
+      <button type="button" className="absolute inset-0" onClick={onClose} aria-label={t('common:close')} />
       <div className="relative z-10 w-full max-w-sm rounded-card border border-line bg-surface p-4">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-semibold">Icoon kiezen</p>
-          <button type="button" onClick={onClose} className="grid size-9 place-items-center rounded-lg">
+          <p className="text-sm font-semibold">{t('iconPick')}</p>
+          <button type="button" onClick={onClose} className="grid size-9 place-items-center rounded-lg" aria-label={t('common:close')}>
             <X className="size-5" />
           </button>
         </div>
@@ -314,7 +322,7 @@ function IconPickerDialog({
           onClick={onAuto}
           className="mb-3 w-full rounded-xl border border-line py-2 text-sm text-solo-400 active:bg-surface-2"
         >
-          Automatisch (op basis van materiaal)
+          {t('iconAuto')}
         </button>
         <div className="flex flex-wrap gap-2">
           {EQUIPMENT_CATALOG.map((e) => (

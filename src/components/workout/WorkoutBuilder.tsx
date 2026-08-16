@@ -7,12 +7,10 @@ import { recalcWorkoutDuration } from '@/lib/workout/overloadPlanner'
 import { getWorkoutStructure, type WorkoutStructure } from '@/lib/workout/workoutStructure'
 import { PageStickyHeader, StickyHeaderIconButton } from '@/components/layout/PageStickyHeader'
 import { TouchNumberField } from '@/components/ui/TouchNumberField'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 import { ExerciseBlock } from './ExerciseBlock'
 import { WgerBrowser } from './WgerBrowser'
-
-const DISCARD_CONFIRM =
-  'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt annuleren?'
 
 type WorkoutBuilderProps = {
   title: string
@@ -31,6 +29,7 @@ export function WorkoutBuilder({
   onCancel,
   onDelete,
 }: WorkoutBuilderProps) {
+  const { t } = useTranslation(['workouts', 'common'])
   const navigate = useNavigate()
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
@@ -75,7 +74,7 @@ export function WorkoutBuilder({
   }, [focusExerciseId])
 
   function requestLeave(action: () => void) {
-    if (!isDirty || confirm(DISCARD_CONFIRM)) action()
+    if (!isDirty || confirm(t('discardConfirm'))) action()
   }
 
   function setStructureMode(next: WorkoutStructure) {
@@ -165,16 +164,16 @@ export function WorkoutBuilder({
         onBack={() => requestLeave(() => navigate(backTo))}
         actions={
           <>
-            <StickyHeaderIconButton icon={Search} label="Zoeken in Wger" onClick={() => setWgerOpen(true)} />
-            <StickyHeaderIconButton icon={Plus} label="Oefening toevoegen" onClick={addExercise} />
-            <StickyHeaderIconButton icon={X} label="Annuleren" onClick={() => requestLeave(onCancel)} />
-            <StickyHeaderIconButton icon={Check} label="Opslaan" onClick={handleSave} variant="primary" />
+            <StickyHeaderIconButton icon={Search} label={t('searchWger')} onClick={() => setWgerOpen(true)} />
+            <StickyHeaderIconButton icon={Plus} label={t('addExercise')} onClick={addExercise} />
+            <StickyHeaderIconButton icon={X} label={t('common:cancel')} onClick={() => requestLeave(onCancel)} />
+            <StickyHeaderIconButton icon={Check} label={t('common:save')} onClick={handleSave} variant="primary" />
           </>
         }
       />
 
       <label className="flex flex-col gap-1">
-        <span className="label-mono text-[9px] text-faint">Workout naam</span>
+        <span className="label-mono text-[9px] text-faint">{t('nameLabel')}</span>
         <input
           ref={nameInputRef}
           value={name}
@@ -182,31 +181,31 @@ export function WorkoutBuilder({
             setName(e.target.value)
             if (nameError && e.target.value.trim()) setNameError(false)
           }}
-          placeholder="Bijv. Upper Push of Hyrox Circuit"
+          placeholder={t('namePlaceholder')}
           className={cn(inputClass, nameError && 'border-danger focus:border-danger')}
           required
         />
-        {nameError && <span className="text-xs text-danger">Naam is verplicht</span>}
+        {nameError && <span className="text-xs text-danger">{t('nameRequired')}</span>}
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="label-mono text-[9px] text-faint">Beschrijving</span>
+        <span className="label-mono text-[9px] text-faint">{t('descriptionLabel')}</span>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
           className={inputClass}
-          placeholder="Optioneel"
+          placeholder={t('optional')}
         />
       </label>
 
       <div className="flex flex-col gap-1.5">
-        <span className="label-mono text-[9px] text-faint">Type</span>
+        <span className="label-mono text-[9px] text-faint">{t('typeLabel')}</span>
         <div className="flex gap-1.5">
           {(
             [
-              { id: 'strength' as const, label: 'Kracht' },
-              { id: 'circuit' as const, label: 'Circuit' },
+              { id: 'strength' as const, labelKey: 'typeStrength' as const },
+              { id: 'circuit' as const, labelKey: 'typeCircuit' as const },
             ] as const
           ).map((opt) => (
             <button
@@ -220,7 +219,7 @@ export function WorkoutBuilder({
                   : 'border-line text-muted active:bg-surface-2',
               )}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           ))}
         </div>
@@ -228,9 +227,9 @@ export function WorkoutBuilder({
 
       {structure === 'strength' ? (
         <div className="grid grid-cols-2 gap-2">
-          <TouchNumberField label="Sets" value={sets} min={1} preset="sets" onChange={setSets} />
+          <TouchNumberField label={t('sets')} value={sets} min={1} preset="sets" onChange={setSets} />
           <TouchNumberField
-            label="Rust tussen sets (s)"
+            label={t('restBetweenSetsLabel')}
             value={restBetweenSets}
             min={0}
             preset="rest"
@@ -238,14 +237,14 @@ export function WorkoutBuilder({
           />
         </div>
       ) : (
-        <TouchNumberField label="Rondes" value={circuitRounds} min={2} preset="sets" onChange={setCircuitRounds} />
+        <TouchNumberField label={t('roundsLabel')} value={circuitRounds} min={2} preset="sets" onChange={setCircuitRounds} />
       )}
 
       {structure === 'strength' && exercises.length > 0 && (
         <div className="flex items-end gap-2 rounded-card border border-line bg-surface p-3">
           <TouchNumberField
-            label="Rust na alle oefeningen (s)"
-            hint="Zet rust voor elke oefening in één keer"
+            label={t('bulkRestLabel')}
+            hint={t('bulkRestHint')}
             value={bulkRestSeconds}
             min={0}
             preset="rest"
@@ -257,13 +256,13 @@ export function WorkoutBuilder({
             onClick={applyBulkRest}
             className="mb-5 shrink-0 rounded-xl border border-solo-400/40 bg-solo-400/10 px-3 py-2.5 text-xs font-semibold text-solo-300 active:bg-solo-400/20"
           >
-            Toepassen
+            {t('apply')}
           </button>
         </div>
       )}
 
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold">Oefeningen</p>
+        <p className="text-sm font-semibold">{t('exercisesHeading')}</p>
         {exercises.map((ex, i) => (
           <ExerciseBlock
             key={ex.id}
@@ -297,7 +296,7 @@ export function WorkoutBuilder({
 
       <div className="flex flex-col gap-2 pb-4">
         {nameError && (
-          <p className="text-center text-xs text-danger">Geef de workout eerst een naam om op te slaan.</p>
+          <p className="text-center text-xs text-danger">{t('nameRequiredSave')}</p>
         )}
         {onDelete && (
           <button
@@ -305,7 +304,7 @@ export function WorkoutBuilder({
             onClick={onDelete}
             className="w-full rounded-xl border border-danger/25 px-4 py-2.5 text-sm font-medium text-danger active:bg-danger/10"
           >
-            Workout verwijderen
+            {t('deleteWorkout')}
           </button>
         )}
       </div>

@@ -2,6 +2,7 @@ import type { EquipmentCategory } from '@/types/locker'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
 import { equipmentLabel } from '@/lib/locker/equipmentLabel'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type ExerciseIconPickerProps = {
@@ -10,20 +11,22 @@ type ExerciseIconPickerProps = {
 }
 
 export function ExerciseIconPicker({ value, onChange }: ExerciseIconPickerProps) {
+  const { t } = useTranslation('workouts')
+
   return (
     <div className="mt-3">
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <p className="label-mono text-faint">Icoon</p>
+        <p className="label-mono text-faint">{t('iconLabel')}</p>
         {value ? (
           <button
             type="button"
             onClick={() => onChange(undefined)}
             className="text-[10px] text-solo-400 active:opacity-70"
           >
-            Automatisch
+            {t('iconAuto')}
           </button>
         ) : (
-          <span className="text-[10px] text-muted">Afgeleid van materiaal</span>
+          <span className="text-[10px] text-muted">{t('iconAuto')}</span>
         )}
       </div>
       <div className="flex flex-wrap gap-1.5">

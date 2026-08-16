@@ -1,4 +1,5 @@
 import type { PlateConfig } from '@/types/workout'
+import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
 
 type WeightAssistantProps = {
@@ -9,12 +10,14 @@ type WeightAssistantProps = {
 
 /** Brutalist vector plate configuration using actual locker inventory. */
 export function WeightAssistant({ exerciseName, config, className }: WeightAssistantProps) {
+  const { t } = useTranslation('workouts')
+
   return (
     <div className={cn('rounded-xl border border-line bg-surface-2 p-3', className)}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="truncate text-xs font-semibold">{exerciseName}</p>
         <p className="shrink-0 font-mono text-sm font-bold tabular-nums text-solo-300">
-          {config.totalKg > 0 ? `${config.totalKg} kg` : 'Lichaamsgewicht'}
+          {config.totalKg > 0 ? `${config.totalKg} kg` : t('bodyweight')}
         </p>
       </div>
 
@@ -22,7 +25,7 @@ export function WeightAssistant({ exerciseName, config, className }: WeightAssis
       {config.mode === 'dumbbell' && <DumbbellDiagram config={config} />}
       {config.mode === 'kettlebell' && <KettlebellDiagram config={config} />}
       {config.mode === 'bodyweight' && (
-        <p className="text-center text-xs text-muted">Lichaamsgewicht — geen gewicht nodig</p>
+        <p className="text-center text-xs text-muted">{t('bodyweight')}</p>
       )}
 
       {config.itemsUsed.length > 0 && (
@@ -46,12 +49,13 @@ export function WeightAssistant({ exerciseName, config, className }: WeightAssis
 }
 
 function BarbellDiagram({ config }: { config: PlateConfig }) {
+  const { t } = useTranslation('workouts')
   const left = [...config.platesPerSide].reverse()
   const right = config.platesPerSide
 
   return (
     <div className="flex flex-col gap-2">
-      <svg viewBox="0 0 320 80" className="w-full text-solo-400" aria-label="Barbell plate configuratie">
+      <svg viewBox="0 0 320 80" className="w-full text-solo-400" aria-label="Barbell plate configuration">
         <rect x="8" y="30" width="12" height="20" fill="currentColor" opacity="0.8" />
         {left.map((w, i) => (
           <PlateRect key={`l-${i}`} x={22 + i * 14} weight={w} side="left" />
@@ -63,11 +67,13 @@ function BarbellDiagram({ config }: { config: PlateConfig }) {
         <rect x="300" y="30" width="12" height="20" fill="currentColor" opacity="0.8" />
       </svg>
       <div className="flex justify-between font-mono text-[10px] text-muted">
-        <span>Stang {config.barWeightKg} kg</span>
+        <span>
+          {t('bar')} {config.barWeightKg} kg
+        </span>
         <span>
           {config.platesPerSide.length > 0
-            ? `Per kant: ${config.platesPerSide.join(' + ')} kg`
-            : 'Geen schijven'}
+            ? `${t('perSide')}: ${config.platesPerSide.join(' + ')} kg`
+            : t('noPlates')}
         </span>
       </div>
     </div>
@@ -104,15 +110,16 @@ function PlateRect({ x, weight, side }: { x: number; weight: number; side: 'left
 }
 
 function DumbbellDiagram({ config }: { config: PlateConfig }) {
+  const { t } = useTranslation('workouts')
   const item = config.itemsUsed[0]
   const label = item ? item.label : `${config.targetKg} kg`
   return (
-    <svg viewBox="0 0 200 60" className="w-full text-solo-400" aria-label="Dumbbell configuratie">
+    <svg viewBox="0 0 200 60" className="w-full text-solo-400" aria-label="Dumbbell configuration">
       <rect x="10" y="20" width="20" height="20" fill="currentColor" />
       <line x1="30" y1="30" x2="170" y2="30" stroke="currentColor" strokeWidth="3" />
       <rect x="170" y="20" width="20" height="20" fill="currentColor" />
       <text x="100" y="55" textAnchor="middle" className="fill-fg" fontSize="10" fontFamily="monospace">
-        {label} per hand
+        {label} {t('perHand')}
       </text>
     </svg>
   )
