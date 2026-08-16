@@ -1,14 +1,19 @@
 import { ChevronRight, Trash2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { PageBackButton } from '@/components/layout/PageBackButton'
+import { AiSessionReport } from '@/components/session/AiSessionReport'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { useHistory } from '@/hooks/useHistory'
 import { useSessionActions } from '@/hooks/useSessionActions'
 import { useTheme } from '@/hooks/useTheme'
 import { getAppLocale } from '@/i18n'
 import { useTranslation } from '@/i18n/hooks'
-import { getSessionRecord } from '@/lib/storage/historyStore'
+import {
+  getSessionRecord,
+  updateLatestMatchingSummary,
+  updateSessionRecordSummary,
+} from '@/lib/storage/historyStore'
 import { buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle } from '@/lib/tv/transport'
 import { loadWorkoutQueue, popNextQueuedWorkout } from '@/lib/workout/sessionPrep'
@@ -17,6 +22,7 @@ import {
   formatDuration,
   loadLastSummary,
   normalizeSummary,
+  saveLastSummary,
   type SessionSummary,
 } from '@/lib/workout/sessionSummary'
 
@@ -39,16 +45,24 @@ export function SessionSummaryPage() {
   const state = location.state as SummaryLocationState | null
   const stored = loadLastSummary()
   const historyRecord = sessionId ? getSessionRecord(sessionId) : undefined
-  const summary = isHistoryView
+  const initialSummary = isHistoryView
     ? historyRecord
       ? normalizeSummary(historyRecord.summary)
       : undefined
     : state?.summary
       ? normalizeSummary(state.summary)
       : stored?.summary
+        ? normalizeSummary(stored.summary)
+        : undefined
+
+  const [summary, setSummary] = useState<SessionSummary | undefined>(initialSummary)
   const hasNextWorkout =
     !isHistoryView &&
     (state?.hasNextWorkout ?? stored?.hasNextWorkout ?? loadWorkoutQueue().length > 0)
+
+  useEffect(() => {
+    setSummary(initialSummary)
+  }, [sessionId, isHistoryView, historyRecord?.id, state?.summary?.completedAt])
 
   useEffect(() => {
     if (!summary || isHistoryView) return
@@ -85,6 +99,17 @@ export function SessionSummaryPage() {
     clearLastSummary()
     startNextWorkout(next)
     navigate('/session')
+  }
+
+  function handleAiReport(next: SessionSummary) {
+    setSummary(next)
+    if (isHistoryView && sessionId) {
+      updateSessionRecordSummary(sessionId, next)
+      return
+    }
+    saveLastSummary(next, hasNextWorkout)
+    updateLatestMatchingSummary(next.completedAt, next)
+    publishToTvTransport(buildSummaryTvState(next, theme), { theme })
   }
 
   if (!summary) {
@@ -143,8 +168,9 @@ export function SessionSummaryPage() {
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pb-2">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-2">
         <WorkoutSummary summary={summary} showHeader={false} />
+        <AiSessionReport summary={summary} locale={locale} onReport={handleAiReport} />
       </div>
 
       <div className="flex shrink-0 flex-col gap-2">
