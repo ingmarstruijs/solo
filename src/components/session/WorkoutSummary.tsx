@@ -47,27 +47,28 @@ function DurationPlot({
 }) {
   const max = Math.max(...values, 1)
   const isTv = variant === 'tv'
+  const barMaxPx = isTv ? 28 : 24
 
   return (
     <div className={cn('mt-2', isTv ? 'mt-[1vh]' : '')}>
       <div
         className={cn(
-          'flex items-end rounded-lg bg-surface-2/80 px-1',
-          isTv ? 'h-[5vh] gap-[0.5vh] py-[0.8vh]' : 'h-10 gap-1 py-1.5',
+          'flex items-end rounded-lg bg-surface-2/80',
+          isTv ? 'h-[5.5vh] gap-[0.5vh] px-[0.6vh] py-[0.6vh]' : 'h-11 gap-1 px-1.5 py-1',
         )}
         aria-hidden
       >
         {values.map((value, index) => {
-          const heightPct = value > 0 ? Math.max(14, Math.round((value / max) * 100)) : 8
+          const px = value > 0 ? Math.max(6, Math.round((value / max) * barMaxPx)) : 3
           return (
-            <div key={index} className="flex flex-1 flex-col items-center justify-end gap-0.5">
+            <div key={index} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-0.5">
               <div
                 className={cn(
                   'w-full rounded-sm transition-colors',
                   value > 0 ? 'bg-solo-400' : 'bg-line',
                   value === max && max > 0 && value > 0 && 'bg-solo-300',
                 )}
-                style={{ height: `${heightPct}%` }}
+                style={{ height: `${px}px` }}
                 title={`${phaseLabel} ${index + 1}: ${formatDuration(value)}`}
               />
               <span className={cn('font-mono text-faint', isTv ? 'text-[1.1vh]' : 'text-[8px]')}>
@@ -150,14 +151,6 @@ export function WorkoutSummary({
             value={formatDuration(stats.avgExercisePerSetSeconds)}
           />
         )}
-        {stats.avgRpe != null && (
-          <StatCard
-            variant={variant}
-            label={t('summaryAvgRpe')}
-            value={String(stats.avgRpe)}
-            sub={t('summaryRpeScale')}
-          />
-        )}
       </section>
 
       {multiSet && (
@@ -171,39 +164,19 @@ export function WorkoutSummary({
             phaseLabel={stats.phaseLabel}
             variant={variant}
           />
-          {summary.sets.some((set) => set.rpe != null) && (
-            <ul className={cn('mt-2 flex flex-wrap gap-x-3 gap-y-1', isTv ? 'text-[1.6vh]' : 'text-[11px]')}>
-              {summary.sets.map((set) =>
-                set.rpe != null ? (
-                  <li key={set.setNumber} className="text-muted">
-                    <span className="font-medium text-fg">{set.label}</span>
-                    {' · '}
-                    {t('summaryRpeValue', { value: set.rpe })}
-                  </li>
-                ) : null,
-              )}
-            </ul>
-          )}
         </div>
       )}
 
-      {!multiSet &&
-        summary.sets.some((set) => set.rpe != null) && (
-          <div className={cn('rounded-xl border border-line bg-surface', isTv ? 'p-[2vh]' : 'p-3')}>
-            <p className={cn('font-semibold', isTv ? 'text-[2vh]' : 'text-sm')}>{t('summaryRpe')}</p>
-            <ul className={cn('mt-1.5 flex flex-col', isTv ? 'gap-[0.8vh] text-[1.8vh]' : 'gap-1 text-xs')}>
-              {summary.sets.map((set) =>
-                set.rpe != null ? (
-                  <li key={set.setNumber} className="text-muted">
-                    <span className="font-medium text-fg">{set.label}</span>
-                    {' · '}
-                    {t('summaryRpeValue', { value: set.rpe })}
-                  </li>
-                ) : null,
-              )}
-            </ul>
-          </div>
-        )}
+      {!multiSet && summary.sets.length === 1 && (
+        <div className={cn('rounded-xl border border-line bg-surface', isTv ? 'p-[2vh]' : 'p-3')}>
+          <p className={cn('font-semibold', isTv ? 'text-[2vh]' : 'text-sm')}>{t('summaryPace')}</p>
+          <DurationPlot
+            values={summary.sets.map((set) => set.durationSeconds)}
+            phaseLabel={stats.phaseLabel}
+            variant={variant}
+          />
+        </div>
+      )}
 
       <section>
         <h3 className={cn('mb-2 font-semibold', isTv ? 'text-[2.2vh]' : 'text-sm')}>
@@ -212,7 +185,7 @@ export function WorkoutSummary({
         <ol className={cn('flex flex-col', isTv ? 'gap-[1.2vh]' : 'gap-2')}>
           {summary.exercises.map((ex, i) => {
             const tracksTime = ex.metric !== 'reps'
-            const hasPlot = multiSet && tracksTime && ex.durationsBySet.some((value) => value > 0)
+            const hasPlot = tracksTime && ex.durationsBySet.some((value) => value > 0)
             const trend = hasPlot ? trendMeta(ex.trend, ex.trendPercent, t) : null
             const TrendIcon = trend?.icon
 

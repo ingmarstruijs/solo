@@ -24,7 +24,6 @@
     "@ffmpeg/util": "^0.12.2",
     "@garmin/fitsdk": "^21.212.0",
     "@mediapipe/tasks-vision": "^1.0.1",
-    "@mlc-ai/web-llm": "^0.2.84",
     "clsx": "^2.1.1",
     "i18next": "^26.3.6",
     "lucide-react": "^1.30.0",

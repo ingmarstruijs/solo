@@ -50,10 +50,8 @@ export function ProofReelPanel({ summary, className, autoFocus }: ProofReelPanel
           titleHint: t('proofExercises'),
           durationLabel: t('summaryTotalTime'),
           paceLabel: t('summaryPace'),
-          rpeLabel: t('summaryAvgRpe'),
           setsLabel: t('proofSets'),
           proofLabel: t('proofLabel'),
-          peakRpeLabel: t('proofPeakRpe'),
           momentLabel: t('proofMoment'),
         },
         (p) => {
@@ -120,7 +118,7 @@ export function ProofReelPanel({ summary, className, autoFocus }: ProofReelPanel
         <p className="mt-1 text-[11px] text-faint">{t('proofMomentsHint')}</p>
       )}
 
-      <dl className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] sm:grid-cols-4">
+      <dl className="mt-3 grid grid-cols-3 gap-1.5 text-[11px]">
         <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
           <dt className="text-faint">{t('summaryTotalTime')}</dt>
           <dd className="mt-0.5 font-semibold tabular-nums">{facts.durationLabel}</dd>
@@ -132,15 +130,6 @@ export function ProofReelPanel({ summary, className, autoFocus }: ProofReelPanel
         <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
           <dt className="text-faint">{t('summaryPace')}</dt>
           <dd className="mt-0.5 truncate font-semibold">{facts.paceLabel || '—'}</dd>
-        </div>
-        <div className="rounded-lg border border-line bg-surface-2/70 px-2 py-1.5">
-          <dt className="text-faint">{t('summaryAvgRpe')}</dt>
-          <dd className="mt-0.5 font-semibold tabular-nums text-warn">
-            {facts.avgRpe != null ? facts.avgRpe : '—'}
-            {facts.peakRpe != null && facts.avgRpe != null && facts.peakRpe !== facts.avgRpe
-              ? ` · ${t('proofPeakRpe')} ${facts.peakRpe}`
-              : ''}
-          </dd>
         </div>
       </dl>
 

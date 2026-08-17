@@ -84,25 +84,24 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Session summary (times, trends, sparklines) | **Shipped** | `[sessionSummary.ts](src/lib/workout/sessionSummary.ts)` |
 | Logboek with full summary replay | **Shipped** | `[/history](src/pages/HistoryPage.tsx)` — nav label **Logboek** |
 | Home weekly stats + recent sessions | **Shipped** | Resume active session card when live |
-| Google Gemma 3 via WebLLM (WebGPU) | **Shipped** | Optional on-device report on summary/logbook via `gemma3-1b-it` (`[sessionReport.ts](src/lib/ai/sessionReport.ts)`); degrades without WebGPU |
-| RPE slider after each set | **Shipped** | Optional 1–10 prompt after set/round; stored in session + summary/logbook |
-| FFmpeg Wasm — 15 s proof reel | **Shipped** | Stats slides + selected on-device camera moments (Done snaps in IndexedDB); logbook film CTA |
+| Google Gemma 3 via WebLLM (WebGPU) | **Removed** | Dropped from product UX (did not add enough value) |
+| RPE slider after each set | **Removed** | Dropped from product UX (did not add enough value) |
+| FFmpeg Wasm — 15 s proof reel | **Shipped** | Session camera records short clips per exercise; reel selects clips + burns stats overlays |
 | AI form deviation aggregation in report | **Next** | Depends on pose pipeline |
 
-### Planned flow — post-workout TinyLLM analytics & export
+### Planned flow — proof reel export
 
 ```mermaid
 graph TD
-  A[Athlete ends full workout] --> B[Load WebLLM engine with Google Gemma 3 from browser cache]
-  B --> C[Collect session data: HR peaks + form deviations + RPE logs]
-  C --> D[On-device TinyLLM processes locally via WebGPU]
-  D --> E[Report renders in SOLO. AI_ANALYSIS console]
-  E --> F[Athlete taps GENERATE_PROOF]
-  F --> G[FFmpeg Wasm compiles 15s MP4 reel + burns analytics overlay]
-  G --> H[Web Share API pushes video to Strava / social]
+  A[Athlete trains with session camera on] --> B[Rolling video buffer per exercise]
+  B --> C[Done saves short clip to IndexedDB]
+  C --> D[Athlete taps GENERATE_PROOF]
+  D --> E[System selects clips + builds stats segments]
+  E --> F[FFmpeg Wasm compiles ~15s MP4 with overlays]
+  F --> G[Web Share API or download]
 ```
 
-> Depends on Pillar 2 (sensor data), Pillar 3 (pose/form), and RPE logging. The shipped session summary is the first step toward the full TinyLLM report.
+> Depends on Pillar 3 (camera). Older history without clips still exports a stats-only reel.
 
 ---
 
@@ -171,9 +170,8 @@ Current integrated lab slices:
 
 ### Phase D — Intelligence & share (Pillar 5)
 
-- [x] WebLLM post-workout analysis (Gemma 3 1B, on-demand)
-- [x] RPE logging
-- [x] Proof reel export (FFmpeg Wasm, ~15s)
+- [x] Proof reel export (FFmpeg Wasm, ~15s video clips + stats)
+- [ ] Optional form-deviation insights in summary (depends on pose pipeline)
 
 ### Phase E — Multi-language
 
