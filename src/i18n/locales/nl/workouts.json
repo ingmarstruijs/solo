@@ -79,6 +79,8 @@
   "bulkRestHint": "Zet rust voor elke oefening in één keer",
   "apply": "Toepassen",
   "exercisesHeading": "Oefeningen",
+  "expandExercise": "Oefening uitklappen",
+  "collapseExercise": "Oefening inklappen",
   "deleteWorkout": "Workout verwijderen",
   "discardConfirm": "Niet-opgeslagen wijzigingen verwerpen?",
   "exerciseNamePlaceholder": "Oefening naam",

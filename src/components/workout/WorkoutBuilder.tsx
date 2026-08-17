@@ -39,10 +39,20 @@ export function WorkoutBuilder({
   const [sets, setSets] = useState(initial?.sets ?? 3)
   const [restBetweenSets, setRestBetweenSets] = useState(initial?.restBetweenSets ?? 60)
   const [circuitRounds, setCircuitRounds] = useState(initial?.circuitRounds ?? 3)
+  const seedExercisesRef = useRef<WorkoutExercise[] | null>(null)
+  if (seedExercisesRef.current === null) {
+    seedExercisesRef.current =
+      initial?.exercises && initial.exercises.length > 0
+        ? initial.exercises
+        : [emptyExercise()]
+  }
   const [exercises, setExercises] = useState<WorkoutExercise[]>(
-    initial?.exercises ?? [emptyExercise()],
+    () => seedExercisesRef.current!,
   )
   const [focusExerciseId, setFocusExerciseId] = useState<string | null>(null)
+  const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(
+    () => seedExercisesRef.current![0]?.id ?? null,
+  )
   const [nameError, setNameError] = useState(false)
   const [wgerOpen, setWgerOpen] = useState(false)
   const [bulkRestSeconds, setBulkRestSeconds] = useState(60)
@@ -89,7 +99,16 @@ export function WorkoutBuilder({
   }
 
   function removeExercise(idx: number) {
-    setExercises((prev) => prev.filter((_, i) => i !== idx))
+    setExercises((prev) => {
+      const removed = prev[idx]
+      const next = prev.filter((_, i) => i !== idx)
+      setExpandedExerciseId((current) => {
+        if (removed && current === removed.id) return next[0]?.id ?? null
+        if (current && next.some((ex) => ex.id === current)) return current
+        return next[0]?.id ?? null
+      })
+      return next
+    })
   }
 
   function addExercise() {
@@ -97,6 +116,11 @@ export function WorkoutBuilder({
       structure === 'circuit' ? { ...emptyExercise(), restSeconds: 0 } : emptyExercise()
     setExercises((prev) => [...prev, next])
     setFocusExerciseId(next.id)
+    setExpandedExerciseId(next.id)
+  }
+
+  function toggleExerciseExpanded(id: string) {
+    setExpandedExerciseId((current) => (current === id ? null : id))
   }
 
   function reorderExercise(from: number, to: number) {
@@ -241,7 +265,7 @@ export function WorkoutBuilder({
       )}
 
       {structure === 'strength' && exercises.length > 0 && (
-        <div className="flex items-end gap-2 rounded-card border border-line bg-surface p-3">
+        <div className="flex flex-col gap-2 rounded-card border border-line bg-surface p-3 sm:flex-row sm:items-end">
           <TouchNumberField
             label={t('bulkRestLabel')}
             hint={t('bulkRestHint')}
@@ -249,12 +273,12 @@ export function WorkoutBuilder({
             min={0}
             preset="rest"
             onChange={setBulkRestSeconds}
-            className="flex-1"
+            className="min-w-0 w-full sm:flex-1"
           />
           <button
             type="button"
             onClick={applyBulkRest}
-            className="mb-5 shrink-0 rounded-xl border border-solo-400/40 bg-solo-400/10 px-3 py-2.5 text-xs font-semibold text-solo-300 active:bg-solo-400/20"
+            className="w-full shrink-0 rounded-xl border border-solo-400/40 bg-solo-400/10 px-3 py-2.5 text-xs font-semibold text-solo-300 active:bg-solo-400/20 sm:mb-5 sm:w-auto"
           >
             {t('apply')}
           </button>
@@ -270,6 +294,8 @@ export function WorkoutBuilder({
             index={i}
             canMoveUp={i > 0}
             canMoveDown={i < exercises.length - 1}
+            expanded={expandedExerciseId === ex.id}
+            onToggleExpanded={() => toggleExerciseExpanded(ex.id)}
             circuitMode={structure === 'circuit'}
             autoFocusName={focusExerciseId === ex.id}
             onChange={(updated) => updateExercise(i, updated)}
@@ -285,12 +311,11 @@ export function WorkoutBuilder({
         open={wgerOpen}
         onClose={() => setWgerOpen(false)}
         onAddExercises={(imported) => {
-          setExercises((prev) => [
-            ...prev,
-            ...imported.map((ex) =>
-              structure === 'circuit' ? { ...ex, restSeconds: 0 } : ex,
-            ),
-          ])
+          const mapped = imported.map((ex) =>
+            structure === 'circuit' ? { ...ex, restSeconds: 0 } : ex,
+          )
+          setExercises((prev) => [...prev, ...mapped])
+          if (mapped[0]) setExpandedExerciseId(mapped[0].id)
         }}
       />
 

@@ -94,8 +94,14 @@ export function WorkoutPrepFlow({
                         {t.adjustedWeightKg !== t.originalWeightKg && (
                           <span className="ml-1 text-solo-300">→ {t.adjustedWeightKg} kg</span>
                         )}
-                        {t.tutBonusSeconds != null && t.tutBonusSeconds > 0 && (
-                          <span className="ml-1 text-warn">+{t.tutBonusSeconds}s TUT</span>
+                        {t.tutBonusSeconds != null &&
+                          t.tutBonusSeconds > 0 &&
+                          (ex.metric === 'reps' || ex.metric === 'time') && (
+                          <span className="ml-1 text-warn">
+                            {ex.metric === 'time'
+                              ? `→ ${(t.adjustedTarget ?? ex.target)}s`
+                              : `+${t.tutBonusSeconds}s TUT`}
+                          </span>
                         )}
                       </>
                     ) : (

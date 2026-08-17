@@ -79,6 +79,8 @@
   "bulkRestHint": "Pause für jede Übung auf einmal setzen",
   "apply": "Anwenden",
   "exercisesHeading": "Übungen",
+  "expandExercise": "Übung ausklappen",
+  "collapseExercise": "Übung einklappen",
   "deleteWorkout": "Workout löschen",
   "discardConfirm": "Ungespeicherte Änderungen verwerfen?",
   "exerciseNamePlaceholder": "Übungsname",

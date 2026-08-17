@@ -79,6 +79,8 @@
   "bulkRestHint": "Définir le repos pour chaque exercice d’un coup",
   "apply": "Appliquer",
   "exercisesHeading": "Exercices",
+  "expandExercise": "Développer l'exercice",
+  "collapseExercise": "Réduire l'exercice",
   "deleteWorkout": "Supprimer la séance",
   "discardConfirm": "Abandonner les modifications non enregistrées ?",
   "exerciseNamePlaceholder": "Nom de l’exercice",
