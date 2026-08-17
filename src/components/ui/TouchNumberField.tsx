@@ -106,7 +106,7 @@ export function TouchNumberField({
 
   return (
     <label className={cn('flex flex-col gap-1', className)}>
-      <span className="label-mono text-[9px] text-faint">{label}</span>
+      <span className="label-mono text-[9px] leading-tight text-faint break-words">{label}</span>
       <div
         className={cn(
           'flex items-stretch overflow-hidden rounded-xl border border-line bg-surface-2',

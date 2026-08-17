@@ -4,7 +4,7 @@ import type { EquipmentCategory } from '@/types/locker'
 import type { ExerciseKind, SetMetric, WorkoutExercise } from '@/types/workout'
 import { EQUIPMENT_CATALOG } from '@/lib/locker/equipmentCatalog'
 import { equipmentLabel } from '@/lib/locker/equipmentLabel'
-import { ExerciseIcon } from '@/components/workout/ExerciseIcon'
+import { ExerciseIcon, equipmentSummary } from '@/components/workout/ExerciseIcon'
 import { EquipmentIcon } from '@/components/locker/EquipmentIcon'
 import { MarkdownField } from '@/components/MarkdownField'
 import { TouchNumberField } from '@/components/ui/TouchNumberField'
@@ -16,6 +16,8 @@ type ExerciseBlockProps = {
   index: number
   canMoveUp: boolean
   canMoveDown: boolean
+  expanded: boolean
+  onToggleExpanded: () => void
   onChange: (exercise: WorkoutExercise) => void
   onRemove: () => void
   onMoveUp: () => void
@@ -39,6 +41,8 @@ export function ExerciseBlock({
   index,
   canMoveUp,
   canMoveDown,
+  expanded,
+  onToggleExpanded,
   onChange,
   onRemove,
   onMoveUp,
@@ -54,10 +58,10 @@ export function ExerciseBlock({
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (!autoFocusName) return
+    if (!autoFocusName || !expanded) return
     rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     nameInputRef.current?.focus({ preventScroll: true })
-  }, [autoFocusName])
+  }, [autoFocusName, expanded])
 
   function patch(partial: Partial<WorkoutExercise>) {
     const next = { ...exercise, ...partial }
@@ -81,6 +85,25 @@ export function ExerciseBlock({
         ? t('metricTime')
         : t('metricDistance')
 
+  const targetSummary =
+    exercise.metric === 'reps'
+      ? `${exercise.target} ${t('common:reps')}`
+      : exercise.metric === 'time'
+        ? `${exercise.target}${t('common:secondsShort')}`
+        : `${exercise.target}${t('common:metersShort')}`
+
+  const summaryParts = [targetSummary]
+  if (exercise.metric !== 'distance' && exercise.weightKg > 0) {
+    summaryParts.push(`${exercise.weightKg} ${t('common:kg')}`)
+  }
+  if (!circuitMode && exercise.restSeconds > 0) {
+    summaryParts.push(`${t('common:rest')} ${exercise.restSeconds}${t('common:secondsShort')}`)
+  }
+  const gear = equipmentSummary(exercise.equipment)
+  if (gear) summaryParts.push(gear)
+
+  const displayName = exercise.name.trim() || t('exerciseNamePlaceholder')
+
   return (
     <div
       ref={rootRef}
@@ -100,7 +123,7 @@ export function ExerciseBlock({
         if (!Number.isNaN(from)) onReorder(from, index)
       }}
     >
-      <div className="mb-3 flex items-center gap-2">
+      <div className="flex items-start gap-2">
         <button
           type="button"
           draggable
@@ -108,12 +131,12 @@ export function ExerciseBlock({
             e.dataTransfer.setData(DRAG_MIME, String(index))
             e.dataTransfer.effectAllowed = 'move'
           }}
-          className="cursor-grab touch-none text-faint active:cursor-grabbing"
+          className="mt-0.5 cursor-grab touch-none text-faint active:cursor-grabbing"
           aria-label="Reorder"
         >
           <GripVertical className="size-4" />
         </button>
-        <div className="flex shrink-0 flex-col gap-0.5">
+        <div className="mt-0.5 flex shrink-0 flex-col gap-0.5">
           <button
             type="button"
             onClick={onMoveUp}
@@ -133,143 +156,194 @@ export function ExerciseBlock({
             <ChevronDown className="size-4" />
           </button>
         </div>
+
+        {expanded ? (
+          <button
+            type="button"
+            onClick={() => setIconPickerOpen(true)}
+            className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 active:bg-surface-3"
+            aria-label={t('iconPick')}
+            title={t('iconPick')}
+          >
+            <ExerciseIcon
+              metric={exercise.metric}
+              kind={exercise.kind}
+              equipment={exercise.equipment}
+              icon={exercise.icon}
+              size={24}
+            />
+          </button>
+        ) : (
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-surface-2">
+            <ExerciseIcon
+              metric={exercise.metric}
+              kind={exercise.kind}
+              equipment={exercise.equipment}
+              icon={exercise.icon}
+              size={24}
+            />
+          </span>
+        )}
+
+        <div className="min-w-0 flex-1">
+          {expanded ? (
+            <input
+              ref={nameInputRef}
+              value={exercise.name}
+              onChange={(e) => patch({ name: e.target.value })}
+              placeholder={t('exerciseNamePlaceholder')}
+              className="w-full bg-transparent text-sm font-semibold outline-none"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={onToggleExpanded}
+              className="flex w-full flex-col items-start gap-0.5 text-left active:opacity-80"
+              aria-expanded={false}
+              aria-label={t('expandExercise')}
+            >
+              <span className="truncate text-sm font-semibold">{displayName}</span>
+              <span className="truncate text-xs text-muted">{summaryParts.join(' · ')}</span>
+            </button>
+          )}
+        </div>
+
         <button
           type="button"
-          onClick={() => setIconPickerOpen(true)}
-          className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 active:bg-surface-3"
-          aria-label={t('iconPick')}
-          title={t('iconPick')}
+          onClick={onToggleExpanded}
+          className="grid size-10 shrink-0 place-items-center rounded-lg text-faint active:bg-surface-2"
+          aria-expanded={expanded}
+          aria-label={expanded ? t('collapseExercise') : t('expandExercise')}
         >
-          <ExerciseIcon
-            metric={exercise.metric}
-            kind={exercise.kind}
-            equipment={exercise.equipment}
-            icon={exercise.icon}
-            size={24}
+          <ChevronDown
+            className={cn('size-5 transition-transform', expanded && 'rotate-180')}
           />
         </button>
-        <input
-          ref={nameInputRef}
-          value={exercise.name}
-          onChange={(e) => patch({ name: e.target.value })}
-          placeholder={t('exerciseNamePlaceholder')}
-          className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none"
-        />
         <button
           type="button"
           onClick={onRemove}
-          className="grid size-10 place-items-center text-danger active:opacity-70"
+          className="grid size-10 shrink-0 place-items-center text-danger active:opacity-70"
           aria-label={t('common:delete')}
         >
           <Trash2 className="size-5" />
         </button>
       </div>
 
-      <div className="mb-2 flex gap-1.5">
-        {(['strength', 'cardio', 'mobility'] as ExerciseKind[]).map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => patch({ kind: k })}
-            className={cn(
-              'rounded-lg border px-2.5 py-1.5 text-xs',
-              exercise.kind === k || (!exercise.kind && k === inferKind(exercise.metric))
-                ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
-                : 'border-line text-faint',
-            )}
-          >
-            {t(KIND_KEYS[k])}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Field label={t('typeLabel')}>
-          <div className="flex overflow-hidden rounded-xl border border-line bg-surface-2">
-            {(
-              [
-                { id: 'reps' as const, labelKey: 'metricReps' as const },
-                { id: 'time' as const, labelKey: 'metricTime' as const },
-                { id: 'distance' as const, labelKey: 'metricDistance' as const },
-              ] as const
-            ).map((opt, index, list) => (
+      {expanded && (
+        <>
+          <div className="mb-2 mt-3 flex gap-1.5">
+            {(['strength', 'cardio', 'mobility'] as ExerciseKind[]).map((k) => (
               <button
-                key={opt.id}
+                key={k}
                 type="button"
-                onClick={() => patch({ metric: opt.id })}
+                onClick={() => patch({ kind: k })}
                 className={cn(
-                  'min-h-11 flex-1 px-1 text-sm font-semibold transition-colors',
-                  exercise.metric === opt.id
-                    ? 'bg-solo-400/10 text-solo-300'
-                    : 'text-muted active:bg-surface-3',
-                  index < list.length - 1 && 'border-r border-line',
+                  'rounded-lg border px-2.5 py-1.5 text-xs',
+                  exercise.kind === k || (!exercise.kind && k === inferKind(exercise.metric))
+                    ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
+                    : 'border-line text-faint',
                 )}
               >
-                {t(opt.labelKey)}
+                {t(KIND_KEYS[k])}
               </button>
             ))}
           </div>
-        </Field>
-        <NumberField
-          label={targetLabel}
-          hint={t('targetPerSet')}
-          value={exercise.target}
-          min={1}
-          preset={exercise.metric === 'reps' ? 'reps' : exercise.metric === 'distance' ? 'distance' : 'rest'}
-          onChange={(v) => patch({ target: v })}
-        />
-        <NumberField
-          label={t('weightLabel')}
-          hint={t('weightHint')}
-          value={exercise.weightKg}
-          min={0}
-          preset="weight"
-          disabled={exercise.metric === 'distance'}
-          onChange={(v) => patch({ weightKg: v })}
-        />
-        {!circuitMode && (
-          <NumberField
-            label={t('restLabel')}
-            hint={t('restHint')}
-            value={exercise.restSeconds}
-            min={0}
-            preset="rest"
-            onChange={(v) => patch({ restSeconds: v })}
-          />
-        )}
-      </div>
 
-      <div className="mt-3">
-        <p className="label-mono mb-2 text-faint">{t('equipmentLabel')}</p>
-        <div className="flex flex-wrap gap-2">
-          {EQUIPMENT_CATALOG.filter((e) => e.category !== 'other').map((e) => (
-            <button
-              key={e.category}
-              type="button"
-              onClick={() => toggleEquipment(e.category)}
-              className={cn(
-                'rounded-xl border px-3 py-2 text-xs font-medium',
-                exercise.equipment.includes(e.category)
-                  ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
-                  : 'border-line text-faint active:bg-surface-2',
-              )}
-            >
-              {equipmentLabel(e.category)}
-            </button>
-          ))}
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Field label={t('typeLabel')}>
+              <div className="flex overflow-hidden rounded-xl border border-line bg-surface-2">
+                {(
+                  [
+                    { id: 'reps' as const, labelKey: 'metricReps' as const },
+                    { id: 'time' as const, labelKey: 'metricTime' as const },
+                    { id: 'distance' as const, labelKey: 'metricDistance' as const },
+                  ] as const
+                ).map((opt, optionIndex, list) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => patch({ metric: opt.id })}
+                    className={cn(
+                      'min-h-11 flex-1 px-1 text-sm font-semibold transition-colors',
+                      exercise.metric === opt.id
+                        ? 'bg-solo-400/10 text-solo-300'
+                        : 'text-muted active:bg-surface-3',
+                      optionIndex < list.length - 1 && 'border-r border-line',
+                    )}
+                  >
+                    {t(opt.labelKey)}
+                  </button>
+                ))}
+              </div>
+            </Field>
+            <NumberField
+              label={targetLabel}
+              hint={t('targetPerSet')}
+              value={exercise.target}
+              min={1}
+              preset={
+                exercise.metric === 'reps'
+                  ? 'reps'
+                  : exercise.metric === 'distance'
+                    ? 'distance'
+                    : 'rest'
+              }
+              onChange={(v) => patch({ target: v })}
+            />
+            <NumberField
+              label={t('weightLabel')}
+              hint={t('weightHint')}
+              value={exercise.weightKg}
+              min={0}
+              preset="weight"
+              disabled={exercise.metric === 'distance'}
+              onChange={(v) => patch({ weightKg: v })}
+            />
+            {!circuitMode && (
+              <NumberField
+                label={t('restLabel')}
+                hint={t('restHint')}
+                value={exercise.restSeconds}
+                min={0}
+                preset="rest"
+                onChange={(v) => patch({ restSeconds: v })}
+              />
+            )}
+          </div>
 
-      <div className="mt-3">
-        <Field label={t('instructionsLabel')} hint={t('instructionsHint')}>
-          <MarkdownField
-            value={exercise.description ?? ''}
-            onChange={(description) =>
-              patch({ description: description.trim() ? description : undefined })
-            }
-          />
-        </Field>
-      </div>
+          <div className="mt-3">
+            <p className="label-mono mb-2 text-faint">{t('equipmentLabel')}</p>
+            <div className="flex flex-wrap gap-2">
+              {EQUIPMENT_CATALOG.filter((e) => e.category !== 'other').map((e) => (
+                <button
+                  key={e.category}
+                  type="button"
+                  onClick={() => toggleEquipment(e.category)}
+                  className={cn(
+                    'rounded-xl border px-3 py-2 text-xs font-medium',
+                    exercise.equipment.includes(e.category)
+                      ? 'border-solo-400/50 bg-solo-400/10 text-solo-300'
+                      : 'border-line text-faint active:bg-surface-2',
+                  )}
+                >
+                  {equipmentLabel(e.category)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <Field label={t('instructionsLabel')} hint={t('instructionsHint')}>
+              <MarkdownField
+                value={exercise.description ?? ''}
+                onChange={(description) =>
+                  patch({ description: description.trim() ? description : undefined })
+                }
+              />
+            </Field>
+          </div>
+        </>
+      )}
 
       {iconPickerOpen && (
         <IconPickerDialog
@@ -320,7 +394,7 @@ function IconPickerDialog({
         <button
           type="button"
           onClick={onAuto}
-          className="mb-3 w-full rounded-xl border border-line py-2 text-sm text-solo-400 active:bg-surface-2"
+          className="w-full rounded-xl border border-line py-2 text-sm text-solo-400 active:bg-surface-2"
         >
           {t('iconAuto')}
         </button>

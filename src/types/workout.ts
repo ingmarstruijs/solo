@@ -103,7 +103,10 @@ export type OverloadTarget = {
   plateConfig?: PlateConfig
   /** Locker cannot go heavier than the adjusted weight. */
   atWeightCeiling?: boolean
-  /** Extra seconds of time-under-tension when at the home weight ceiling. */
+  /**
+   * Extra seconds of time-under-tension when at the home weight ceiling.
+   * Used for reps (tempo cue) and time (added into adjustedTarget). Never for distance.
+   */
   tutBonusSeconds?: number
   /** For time-metric work, target seconds including TUT bonus. */
   adjustedTarget?: number

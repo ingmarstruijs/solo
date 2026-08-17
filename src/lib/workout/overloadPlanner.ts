@@ -24,6 +24,7 @@ function recoveryReductionPercent(score: number): number {
 /**
  * When prescribed load is at/above the heaviest home weight, progress via
  * time-under-tension instead of adding plates you do not own.
+ * Only meaningful for reps (tempo) and time (longer hold) — not distance.
  */
 export function computeTutBonusSeconds(desiredKg: number, maxKg: number): number {
   if (desiredKg < maxKg) return 0
@@ -58,8 +59,11 @@ export function planOverloadTargets(
     const adjustmentPercent =
       ex.weightKg > 0 ? Math.round(((adjusted - ex.weightKg) / ex.weightKg) * 100) : 0
 
-    // Ceiling TUT only when still training at the heaviest home load (not during recovery deload).
+    // Ceiling TUT only for weighted reps/time work at the heaviest home load
+    // (not during recovery deload). Distance sets progress via meters, not TUT.
+    const supportsTut = ex.metric === 'reps' || ex.metric === 'time'
     const atWeightCeiling =
+      supportsTut &&
       !critical &&
       maxKg != null &&
       maxKg > 0 &&
@@ -67,6 +71,7 @@ export function planOverloadTargets(
       ex.weightKg >= maxKg
 
     const tutBonusSeconds = atWeightCeiling ? computeTutBonusSeconds(ex.weightKg, maxKg!) : 0
+    // Time: lengthen the hold/work interval. Reps: keep count, cue slower TUT tempo.
     const adjustedTarget =
       tutBonusSeconds > 0 && ex.metric === 'time' ? ex.target + tutBonusSeconds : undefined
 

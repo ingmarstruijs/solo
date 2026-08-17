@@ -79,6 +79,8 @@
   "bulkRestHint": "Set rest for every exercise at once",
   "apply": "Apply",
   "exercisesHeading": "Exercises",
+  "expandExercise": "Expand exercise",
+  "collapseExercise": "Collapse exercise",
   "deleteWorkout": "Delete workout",
   "discardConfirm": "Discard unsaved changes?",
   "exerciseNamePlaceholder": "Exercise name",
