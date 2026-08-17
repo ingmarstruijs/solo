@@ -5,7 +5,6 @@ import {
   Dumbbell,
   Film,
   Flame,
-  Sparkles,
   Trash2,
   TrendingUp,
 } from 'lucide-react'
@@ -110,22 +109,14 @@ function SessionCard({
                 value={facts.totalSets > 0 ? String(facts.totalSets) : '—'}
               />
               <FactChip
-                label={t('factRpe')}
-                value={facts.avgRpe != null ? String(facts.avgRpe) : '—'}
-                accent={facts.avgRpe != null}
+                label={t('factExercises')}
+                value={String(record.exerciseCount)}
               />
             </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-faint">
-              <span className="flex items-center gap-1">
-                <Dumbbell className="size-3" />
-                {t('exercises', { count: record.exerciseCount })}
-              </span>
               {facts.paceLabel && (
                 <span className="truncate text-muted">{facts.paceLabel}</span>
-              )}
-              {facts.peakRpe != null && facts.avgRpe != null && facts.peakRpe !== facts.avgRpe && (
-                <span>{t('peakRpe', { value: facts.peakRpe })}</span>
               )}
             </div>
 
@@ -145,12 +136,6 @@ function SessionCard({
               {facts.momentCount > 0 && (
                 <span className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted">
                   {t('momentsBadge', { count: facts.momentCount })}
-                </span>
-              )}
-              {facts.hasAiReport && (
-                <span className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted">
-                  <Sparkles className="size-3" />
-                  {t('aiReportBadge')}
                 </span>
               )}
             </div>
@@ -184,22 +169,13 @@ function SessionCard({
 function FactChip({
   label,
   value,
-  accent,
 }: {
   label: string
   value: string
-  accent?: boolean
 }) {
   return (
     <div className="rounded-lg border border-line bg-surface-2/80 px-1.5 py-1.5 text-center">
-      <p
-        className={cn(
-          'text-sm font-bold tabular-nums leading-none',
-          accent ? 'text-warn' : 'text-fg',
-        )}
-      >
-        {value}
-      </p>
+      <p className="text-sm font-bold tabular-nums leading-none text-fg">{value}</p>
       <p className="mt-1 label-mono text-[8px] text-faint">{label}</p>
     </div>
   )
@@ -249,15 +225,7 @@ export function HistoryPage() {
           <StatPill icon={Flame} label={t('thisWeek')} value={String(stats.sessionsThisWeek)} />
           <StatPill icon={TrendingUp} label={t('sessions')} value={String(stats.totalSessions)} />
           <StatPill icon={Clock} label={t('minutes')} value={String(stats.totalMinutes)} />
-          <StatPill
-            icon={Dumbbell}
-            label={stats.avgRpeThisWeek != null ? t('weekRpe') : t('weekSets')}
-            value={
-              stats.avgRpeThisWeek != null
-                ? String(stats.avgRpeThisWeek)
-                : String(stats.setsThisWeek)
-            }
-          />
+          <StatPill icon={Dumbbell} label={t('weekSets')} value={String(stats.setsThisWeek)} />
         </div>
 
         {history.length > 0 && (

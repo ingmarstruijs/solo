@@ -1,16 +1,105 @@
-/** Live session camera stream registry — used to grab proof moments without prop drilling. */
+/** Live session camera stream + short rolling video clips for proof reels. */
 
 let liveStream: MediaStream | null = null
 
+type RecorderState = {
+  recorder: MediaRecorder
+  chunks: Blob[]
+  mimeType: string
+}
+
+let recorderState: RecorderState | null = null
+
 export function setLiveSessionCameraStream(stream: MediaStream | null): void {
   liveStream = stream
+  if (!stream) discardLiveCameraRecording()
 }
 
 export function getLiveSessionCameraStream(): MediaStream | null {
   return liveStream
 }
 
-/** Capture a JPEG still from the live session camera, or null if unavailable. */
+function pickRecorderMimeType(): string | null {
+  if (typeof MediaRecorder === 'undefined') return null
+  const candidates = [
+    'video/webm;codecs=vp8',
+    'video/webm;codecs=vp9',
+    'video/webm',
+    'video/mp4',
+  ]
+  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? null
+}
+
+/** Start (or restart) a rolling ~4s buffer from the live session camera. */
+export function startLiveCameraRecording(): boolean {
+  discardLiveCameraRecording()
+  const stream = liveStream
+  const mimeType = pickRecorderMimeType()
+  if (!stream || stream.getVideoTracks().length === 0 || !mimeType) return false
+
+  try {
+    const chunks: Blob[] = []
+    const recorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: 1_200_000,
+    })
+    recorder.ondataavailable = (event) => {
+      if (!event.data || event.data.size <= 0) return
+      chunks.push(event.data)
+      // Keep roughly the last 4 seconds (1s timeslice).
+      while (chunks.length > 4) chunks.shift()
+    }
+    recorder.start(1000)
+    recorderState = { recorder, chunks, mimeType }
+    return true
+  } catch {
+    recorderState = null
+    return false
+  }
+}
+
+/** Stop the rolling recorder and return the buffered clip (or null). */
+export function stopLiveCameraRecording(): Promise<Blob | null> {
+  const current = recorderState
+  if (!current) return Promise.resolve(null)
+  recorderState = null
+
+  const { recorder, chunks, mimeType } = current
+  return new Promise((resolve) => {
+    const finish = () => {
+      const blob = new Blob(chunks, { type: mimeType.split(';')[0] || mimeType })
+      resolve(blob.size > 500 ? blob : null)
+    }
+
+    if (recorder.state === 'inactive') {
+      finish()
+      return
+    }
+
+    recorder.onstop = () => finish()
+    try {
+      if (recorder.state === 'recording') recorder.requestData()
+      recorder.stop()
+    } catch {
+      finish()
+    }
+  })
+}
+
+export function discardLiveCameraRecording(): void {
+  const current = recorderState
+  if (!current) return
+  recorderState = null
+  try {
+    current.recorder.ondataavailable = null
+    current.recorder.onstop = null
+    if (current.recorder.state !== 'inactive') current.recorder.stop()
+  } catch {
+    // ignore
+  }
+}
+
+/** JPEG fallback when MediaRecorder is unavailable. */
 export async function captureLiveCameraJpeg(
   maxSide = 1080,
   quality = 0.72,
@@ -42,10 +131,9 @@ export async function captureLiveCameraJpeg(
     if (!ctx) return null
     ctx.drawImage(video, 0, 0, w, h)
 
-    const blob = await new Promise<Blob | null>((resolve) =>
+    return await new Promise<Blob | null>((resolve) =>
       canvas.toBlob((b) => resolve(b), 'image/jpeg', quality),
     )
-    return blob
   } catch {
     return null
   } finally {
@@ -56,18 +144,13 @@ export async function captureLiveCameraJpeg(
 
 function waitForVideoFrame(video: HTMLVideoElement): Promise<void> {
   if (video.readyState >= 2 && video.videoWidth > 0) return Promise.resolve()
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const onReady = () => {
       cleanup()
       resolve()
     }
-    const onError = () => {
-      cleanup()
-      reject(new Error('Camera frame unavailable'))
-    }
     const cleanup = () => {
       video.removeEventListener('loadeddata', onReady)
-      video.removeEventListener('error', onError)
       window.clearTimeout(timeout)
     }
     const timeout = window.setTimeout(() => {
@@ -75,6 +158,5 @@ function waitForVideoFrame(video: HTMLVideoElement): Promise<void> {
       resolve()
     }, 800)
     video.addEventListener('loadeddata', onReady)
-    video.addEventListener('error', onError)
   })
 }

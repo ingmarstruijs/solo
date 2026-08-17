@@ -123,9 +123,6 @@ export function getHistoryStats() {
   const now = Date.now()
   const weekAgo = now - 7 * 24 * 60 * 60 * 1000
   const thisWeek = history.filter((h) => new Date(h.completedAt).getTime() >= weekAgo)
-  const weekRpe = thisWeek
-    .map((h) => h.summary.stats.avgRpe)
-    .filter((value): value is number => value != null)
   const weekSets = thisWeek.reduce((sum, h) => sum + (h.summary.stats.totalSets ?? 0), 0)
 
   return {
@@ -133,10 +130,6 @@ export function getHistoryStats() {
     sessionsThisWeek: thisWeek.length,
     totalMinutes: history.reduce((s, h) => s + h.durationMinutes, 0),
     setsThisWeek: weekSets,
-    avgRpeThisWeek:
-      weekRpe.length > 0
-        ? Math.round((weekRpe.reduce((sum, value) => sum + value, 0) / weekRpe.length) * 10) / 10
-        : null,
     lastSession: history[0] ?? null,
   }
 }

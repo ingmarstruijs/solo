@@ -2,7 +2,6 @@ import { ChevronRight, Film, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { PageBackButton } from '@/components/layout/PageBackButton'
-import { AiSessionReport } from '@/components/session/AiSessionReport'
 import { ProofReelPanel } from '@/components/session/ProofReelPanel'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { useHistory } from '@/hooks/useHistory'
@@ -10,11 +9,7 @@ import { useSessionActions } from '@/hooks/useSessionActions'
 import { useTheme } from '@/hooks/useTheme'
 import { getAppLocale } from '@/i18n'
 import { useTranslation } from '@/i18n/hooks'
-import {
-  getSessionRecord,
-  updateLatestMatchingSummary,
-  updateSessionRecordSummary,
-} from '@/lib/storage/historyStore'
+import { getSessionRecord } from '@/lib/storage/historyStore'
 import { buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle } from '@/lib/tv/transport'
 import { loadWorkoutQueue, popNextQueuedWorkout } from '@/lib/workout/sessionPrep'
@@ -23,7 +18,6 @@ import {
   formatDuration,
   loadLastSummary,
   normalizeSummary,
-  saveLastSummary,
   type SessionSummary,
 } from '@/lib/workout/sessionSummary'
 
@@ -115,17 +109,6 @@ export function SessionSummaryPage() {
     navigate('/session')
   }
 
-  function handleAiReport(next: SessionSummary) {
-    setSummary(next)
-    if (isHistoryView && sessionId) {
-      updateSessionRecordSummary(sessionId, next)
-      return
-    }
-    saveLastSummary(next, hasNextWorkout)
-    updateLatestMatchingSummary(next.completedAt, next)
-    publishToTvTransport(buildSummaryTvState(next, theme), { theme })
-  }
-
   if (!summary) {
     return (
       <section className="flex flex-col gap-4 py-2">
@@ -212,12 +195,10 @@ export function SessionSummaryPage() {
           <>
             <ProofReelPanel summary={summary} autoFocus />
             <WorkoutSummary summary={summary} showHeader={false} />
-            <AiSessionReport summary={summary} locale={locale} onReport={handleAiReport} />
           </>
         ) : (
           <>
             <WorkoutSummary summary={summary} showHeader={false} />
-            <AiSessionReport summary={summary} locale={locale} onReport={handleAiReport} />
             <ProofReelPanel summary={summary} />
           </>
         )}

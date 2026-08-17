@@ -25,13 +25,17 @@ import { SessionControlBar } from '@/components/session/SessionControlBar'
 import { SessionMaterialsChecklist } from '@/components/session/SessionMaterialsChecklist'
 import { RestTimerBar } from '@/components/session/RestTimerBar'
 import { StrainEdgeFeedback } from '@/components/session/StrainEdgeFeedback'
-import { RpePrompt } from '@/components/session/RpePrompt'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
 import { buildSessionTvState, buildSetupTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
 import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
 import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
-import { advanceToNextSet, getActiveSession, saveActiveSession, setSessionRpe, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
-import { captureLiveCameraJpeg } from '@/lib/session/sessionCamera'
+import { advanceToNextSet, getActiveSession, saveActiveSession, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
+import {
+  captureLiveCameraJpeg,
+  discardLiveCameraRecording,
+  startLiveCameraRecording,
+  stopLiveCameraRecording,
+} from '@/lib/session/sessionCamera'
 import { saveSessionMoment } from '@/lib/storage/sessionMomentsStore'
 import {
   buildCompletionAnnouncement,
@@ -102,9 +106,9 @@ export function SessionPage() {
     key: string
   } | null>(null)
   const [restTimer, setRestTimer] = useState<RestTimer | null>(null)
-  const [rpePromptSet, setRpePromptSet] = useState<number | null>(null)
   /** Prevents accidental double-tap when the next exercise's Done replaces the previous. */
   const [doneArmed, setDoneArmed] = useState(true)
+  const [advanceBanner, setAdvanceBanner] = useState<string | null>(null)
   const doneGuardUntilRef = useRef(0)
   const restCountdown = useRestCountdown(restTimer)
   useRestCoach(restCountdown, restTimer && restCountdown.active ? restTimer : null, coachEnabled)
@@ -289,6 +293,12 @@ export function SessionPage() {
     return () => window.clearTimeout(timer)
   }, [activeExerciseIdForGuard, exerciseRestActiveForGuard])
 
+  useEffect(() => {
+    if (!advanceBanner) return
+    const timer = window.setTimeout(() => setAdvanceBanner(null), 1400)
+    return () => window.clearTimeout(timer)
+  }, [advanceBanner])
+
   if (!session) {
     return (
       <section className="flex flex-col gap-5 py-2">
@@ -383,6 +393,10 @@ export function SessionPage() {
     doneGuardUntilRef.current = now + 900
     setDoneArmed(false)
 
+    // Stop the rolling camera buffer before React swaps the active exercise
+    // (effect cleanup must not discard the clip we are about to save).
+    const clipPromise = stopLiveCameraRecording()
+
     const ex = workout.exercises.find((e) => e.id === exerciseId)
     const projectedDoneCount = completedExerciseIds.length + 1
     const willBeAllDone = projectedDoneCount === workout.exercises.length
@@ -396,13 +410,6 @@ export function SessionPage() {
       skipDuration: ex?.metric === 'reps',
     })
 
-    void captureProofMoment({
-      sessionKey: activeSession.startedAt,
-      setNumber: currentSet,
-      exerciseId,
-      exerciseName: ex?.name,
-    })
-
     const projected: ActiveSession = {
       ...activeSession,
       completedExerciseIds: [...completedExerciseIds, exerciseId],
@@ -413,9 +420,18 @@ export function SessionPage() {
     const awaitingNextSet = willBeAllDone && !isLastPhase
     const nextExercise = workout.exercises.find((e) => !projected.completedExerciseIds.includes(e.id))
 
-    if (willBeAllDone) {
-      setRpePromptSet(currentSet)
+    if (nextExercise && !startsPhaseRest) {
+      setAdvanceBanner(nextExercise.name)
+    } else if (awaitingNextSet) {
+      setAdvanceBanner(t('session:nextSetBanner', { number: currentSet + 1, phase: phase.label }))
     }
+
+    void finalizeProofClip(clipPromise, {
+      sessionKey: activeSession.startedAt,
+      setNumber: currentSet,
+      exerciseId,
+      exerciseName: ex?.name,
+    })
 
     if (startsPhaseRest) {
       startPhaseRest()
@@ -453,14 +469,18 @@ export function SessionPage() {
     }
   }
 
-  async function captureProofMoment(input: {
-    sessionKey: string
-    setNumber: number
-    exerciseId: string
-    exerciseName?: string
-  }) {
+  async function finalizeProofClip(
+    clipPromise: Promise<Blob | null>,
+    input: {
+      sessionKey: string
+      setNumber: number
+      exerciseId: string
+      exerciseName?: string
+    },
+  ) {
     try {
-      const blob = await captureLiveCameraJpeg()
+      let blob = await clipPromise
+      if (!blob) blob = await captureLiveCameraJpeg()
       if (!blob) return
       const meta = await saveSessionMoment({
         sessionKey: input.sessionKey,
@@ -507,33 +527,18 @@ export function SessionPage() {
 
   function handleUndo(exerciseId: string) {
     if (!completedExerciseIds.includes(exerciseId)) return
-    const wasSetComplete = completedExerciseIds.length === workout.exercises.length
     toggleComplete(exerciseId)
     pendingCoachAfterRestRef.current = null
     setRestTimer(null)
-    if (wasSetComplete) {
-      setRpePromptSet(null)
-      setSessionRpe(currentSet, null)
-    }
-  }
-
-  function handleRpeSelect(rpe: number) {
-    if (rpePromptSet == null) return
-    setSessionRpe(rpePromptSet, rpe)
-    setRpePromptSet(null)
-  }
-
-  function handleRpeSkip() {
-    setRpePromptSet(null)
   }
 
   function handleNextSet() {
     if (!allDone) return
     setRestTimer(null)
-    setRpePromptSet(null)
     pendingCoachAfterRestRef.current = null
     const nextSet = currentSet + 1
     advanceToNextSet()
+    setAdvanceBanner(t('session:nextSetBanner', { number: nextSet, phase: phase.label }))
     if (coachEnabled) {
       const text = buildCompletionAnnouncement({
         ...activeSession,
@@ -547,7 +552,7 @@ export function SessionPage() {
   }
 
   function handleFinish() {
-    setRpePromptSet(null)
+    discardLiveCameraRecording()
     const latest = getActiveSession() ?? activeSession
     const summary = buildSessionSummary(latest)
     saveLastSummary(summary, false)
@@ -557,7 +562,7 @@ export function SessionPage() {
   }
 
   function handleNextWorkout() {
-    setRpePromptSet(null)
+    discardLiveCameraRecording()
     const latest = getActiveSession() ?? activeSession
     const summary = buildSessionSummary(latest)
     completeSession(summary)
@@ -586,6 +591,23 @@ export function SessionPage() {
   const showActiveSticky =
     exercisesStarted && activeExercise && !allDone && !completedExerciseIds.includes(activeExercise.id)
   const exerciseRestActive = restCountdown.active && restCountdown.kind === 'exercise'
+
+  useEffect(() => {
+    if (!exercisesStarted || !activeExercise || allDone || exerciseRestActive || !cameraEnabled) {
+      discardLiveCameraRecording()
+      return
+    }
+    startLiveCameraRecording()
+    return () => {
+      discardLiveCameraRecording()
+    }
+  }, [
+    exercisesStarted,
+    activeExercise?.id,
+    allDone,
+    exerciseRestActive,
+    cameraEnabled,
+  ])
 
   return (
     <section className="flex h-[calc(100dvh-var(--header-h)-var(--bottomnav-h)-env(safe-area-inset-top)-env(safe-area-inset-bottom)-0.5rem)] flex-col gap-2">
@@ -641,8 +663,22 @@ export function SessionPage() {
         </div>
       )}
 
+      {advanceBanner && (
+        <div
+          key={advanceBanner}
+          className="solo-exercise-advance shrink-0 rounded-xl border border-solo-400/45 bg-solo-400/15 px-3 py-2.5 text-center"
+          role="status"
+        >
+          <p className="label-mono text-[9px] text-solo-300">{t('session:nextUp')}</p>
+          <p className="truncate text-sm font-bold text-solo-200">{advanceBanner}</p>
+        </div>
+      )}
+
       {showActiveSticky && (
-        <div className="shrink-0 rounded-card border-2 border-solo-400 bg-solo-400/[0.08] p-3 shadow-lg shadow-solo-400/10">
+        <div
+          key={activeExercise.id}
+          className="solo-exercise-advance shrink-0 rounded-card border-2 border-solo-400 bg-solo-400/[0.08] p-3 shadow-lg shadow-solo-400/10"
+        >
           <SessionExerciseRow
             ex={activeExercise}
             index={activeIndex}
@@ -756,14 +792,6 @@ export function SessionPage() {
       </ol>
 
       <RestTimerBar countdown={restCountdown} onSkip={handleSkipRest} />
-      {rpePromptSet != null && (
-        <RpePrompt
-          setNumber={rpePromptSet}
-          phaseLabel={phase.label}
-          onSelect={handleRpeSelect}
-          onSkip={handleRpeSkip}
-        />
-      )}
       <StrainEdgeFeedback active={strainActive} />
     </section>
   )

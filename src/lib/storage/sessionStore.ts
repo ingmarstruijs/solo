@@ -126,19 +126,6 @@ export function setExerciseNote(exerciseId: string, note: { audioNote?: string; 
   })
 }
 
-/** Persist or clear RPE (1–10) for a completed set/round. */
-export function setSessionRpe(setNumber: number, rpe: number | null): void {
-  const session = getActiveSession()
-  if (!session || setNumber < 1) return
-  const rpeBySet = { ...(session.rpeBySet ?? {}) }
-  if (rpe == null) {
-    delete rpeBySet[setNumber]
-  } else {
-    rpeBySet[setNumber] = Math.min(10, Math.max(1, Math.round(rpe)))
-  }
-  saveActiveSession({ ...session, rpeBySet })
-}
-
 export function startSessionExercises(): void {
   const session = getActiveSession()
   if (!session || session.exercisesStarted) return

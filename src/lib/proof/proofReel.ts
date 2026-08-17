@@ -10,6 +10,7 @@ import { formatDuration } from '@/lib/workout/sessionSummary'
 export const PROOF_REEL_SECONDS = 15
 export const PROOF_SLIDE_COUNT = 5
 export const PROOF_SLIDE_SECONDS = PROOF_REEL_SECONDS / PROOF_SLIDE_COUNT
+export const PROOF_CLIP_SECONDS = 3
 
 const W = 1080
 const H = 1920
@@ -19,10 +20,8 @@ type SlideCopy = {
   titleHint: string
   durationLabel: string
   paceLabel: string
-  rpeLabel: string
   setsLabel: string
   proofLabel: string
-  peakRpeLabel?: string
   momentLabel?: string
 }
 
@@ -33,18 +32,13 @@ export type ProofReelFacts = {
   totalSets: number
   paceLabel: string
   paceChangePercent: number
-  avgRpe: number | null
-  peakRpe: number | null
   exerciseNames: string[]
   exerciseLines: string[]
-  hasAiReport: boolean
   momentCount: number
   setDurations: number[]
 }
 
 export function getProofReelFacts(summary: SessionSummary): ProofReelFacts {
-  const rpeValues = Object.values(summary.rpeBySet ?? {}).filter((v) => v >= 1 && v <= 10)
-  const peakRpe = rpeValues.length > 0 ? Math.max(...rpeValues) : null
   const top = summary.exercises.slice(0, 4)
 
   return {
@@ -53,13 +47,10 @@ export function getProofReelFacts(summary: SessionSummary): ProofReelFacts {
     totalSets: summary.stats.totalSets,
     paceLabel: summary.stats.paceLabel,
     paceChangePercent: summary.stats.paceChangePercent,
-    avgRpe: summary.stats.avgRpe,
-    peakRpe,
     exerciseNames: top.map((ex) => ex.name),
     exerciseLines: top.map((ex) =>
       ex.durationSeconds > 0 ? `${ex.name} · ${formatDuration(ex.durationSeconds)}` : ex.name,
     ),
-    hasAiReport: Boolean(summary.aiReport?.trim()),
     momentCount: summary.momentIds?.length ?? 0,
     setDurations: summary.sets.map((set) => set.durationSeconds),
   }
@@ -68,7 +59,6 @@ export function getProofReelFacts(summary: SessionSummary): ProofReelFacts {
 type SlideKind =
   | { type: 'title' }
   | { type: 'sets' }
-  | { type: 'rpe' }
   | { type: 'exercises' }
   | { type: 'outro' }
   | { type: 'moment'; moment: SessionMoment }
@@ -76,14 +66,14 @@ type SlideKind =
 function planSlides(moments: SessionMoment[]): SlideKind[] {
   const selected = selectProofMoments(moments, 3)
   if (selected.length === 0) {
-    return [{ type: 'title' }, { type: 'sets' }, { type: 'rpe' }, { type: 'exercises' }, { type: 'outro' }]
+    return [{ type: 'title' }, { type: 'sets' }, { type: 'exercises' }, { type: 'sets' }, { type: 'outro' }]
   }
   if (selected.length === 1) {
     return [
       { type: 'title' },
       { type: 'moment', moment: selected[0]! },
       { type: 'sets' },
-      { type: 'rpe' },
+      { type: 'exercises' },
       { type: 'outro' },
     ]
   }
@@ -139,70 +129,13 @@ function drawCenteredBlock(
   }
 }
 
-function drawCoverImage(ctx: CanvasRenderingContext2D, image: CanvasImageSource, iw: number, ih: number) {
-  const scale = Math.max(W / iw, H / ih)
-  const dw = iw * scale
-  const dh = ih * scale
-  const dx = (W - dw) / 2
-  const dy = (H - dh) / 2
-  ctx.drawImage(image, dx, dy, dw, dh)
-
-  const top = ctx.createLinearGradient(0, 0, 0, 420)
-  top.addColorStop(0, 'rgba(11, 14, 17, 0.72)')
-  top.addColorStop(1, 'rgba(11, 14, 17, 0)')
-  ctx.fillStyle = top
-  ctx.fillRect(0, 0, W, 420)
-
-  const bottom = ctx.createLinearGradient(0, H - 720, 0, H)
-  bottom.addColorStop(0, 'rgba(11, 14, 17, 0)')
-  bottom.addColorStop(1, 'rgba(11, 14, 17, 0.88)')
-  ctx.fillStyle = bottom
-  ctx.fillRect(0, H - 720, W, 720)
-}
-
-async function loadImageBitmap(blob: Blob): Promise<ImageBitmap> {
-  return createImageBitmap(blob)
-}
-
-async function renderMomentSlide(
-  summary: SessionSummary,
-  moment: SessionMoment,
-  copy: SlideCopy,
-): Promise<Blob> {
-  const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas unavailable')
-
-  const bitmap = await loadImageBitmap(moment.blob)
-  try {
-    drawCoverImage(ctx, bitmap, bitmap.width, bitmap.height)
-  } finally {
-    bitmap.close()
-  }
-
-  drawBrand(ctx, copy.brand)
-  const label = moment.exerciseName?.trim() || copy.momentLabel || copy.proofLabel
-  const setLine = `Set ${moment.setNumber}`
-  const facts = getProofReelFacts(summary)
-
-  drawCenteredBlock(
-    ctx,
-    [
-      { text: copy.momentLabel ?? copy.proofLabel, size: 32, color: '#a9cbf5', weight: '500' },
-      { text: label, size: 64, color: '#e8edf2', weight: '800' },
-      { text: setLine, size: 36, color: '#8a97a6', weight: '600' },
-      {
-        text: `${facts.durationLabel} · ${facts.totalSets} sets`,
-        size: 32,
-        color: '#8a97a6',
-      },
-    ],
-    H - 520,
-  )
-
-  return canvasToPng(canvas)
+function canvasToPng(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) reject(new Error('Failed to encode slide'))
+      else resolve(blob)
+    }, 'image/png')
+  })
 }
 
 async function renderStatsSlide(
@@ -220,7 +153,6 @@ async function renderStatsSlide(
   drawBrand(ctx, copy.brand)
 
   const facts = getProofReelFacts(summary)
-  const avgRpe = facts.avgRpe != null ? String(facts.avgRpe) : '—'
   const sets = String(facts.totalSets)
   const paceDelta =
     facts.paceChangePercent !== 0
@@ -252,21 +184,6 @@ async function renderStatsSlide(
       ],
       520,
     )
-  } else if (kind === 'rpe') {
-    const peakLine =
-      facts.peakRpe != null && facts.avgRpe != null && facts.peakRpe !== facts.avgRpe
-        ? `${copy.peakRpeLabel ?? 'Peak'} ${facts.peakRpe}`
-        : null
-    drawCenteredBlock(
-      ctx,
-      [
-        { text: copy.rpeLabel, size: 36, color: '#8a97a6' },
-        { text: avgRpe, size: 160, color: '#ff8a3d', weight: '800' },
-        { text: '1–10', size: 36, color: '#5a6573' },
-        ...(peakLine ? [{ text: peakLine, size: 36, color: '#a9cbf5', weight: '600' as const }] : []),
-      ],
-      560,
-    )
   } else if (kind === 'exercises') {
     drawCenteredBlock(
       ctx,
@@ -288,11 +205,7 @@ async function renderStatsSlide(
         { text: copy.brand, size: 64, color: '#7cb3f0', weight: '800' },
         { text: facts.workoutName, size: 56, color: '#e8edf2', weight: '700' },
         { text: facts.durationLabel, size: 72, color: '#a9cbf5', weight: '800' },
-        {
-          text: `${sets} · ${facts.avgRpe != null ? `RPE ${facts.avgRpe}` : facts.paceLabel}`,
-          size: 36,
-          color: '#8a97a6',
-        },
+        { text: `${sets} · ${facts.paceLabel}`, size: 36, color: '#8a97a6' },
         { text: copy.proofLabel, size: 32, color: '#8a97a6' },
       ],
       560,
@@ -302,29 +215,75 @@ async function renderStatsSlide(
   return canvasToPng(canvas)
 }
 
-function canvasToPng(canvas: HTMLCanvasElement): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) reject(new Error('Failed to encode slide'))
-      else resolve(blob)
-    }, 'image/png')
-  })
-}
-
-/** Render one proof-reel slide (9:16) as a PNG blob. Stats-only path for tests/tools. */
-export async function renderProofSlide(
+async function renderMomentOverlay(
   summary: SessionSummary,
-  index: number,
+  moment: SessionMoment,
   copy: SlideCopy,
 ): Promise<Blob> {
-  const kinds: Array<Exclude<SlideKind['type'], 'moment'>> = [
-    'title',
-    'sets',
-    'rpe',
-    'exercises',
-    'outro',
-  ]
-  return renderStatsSlide(summary, kinds[Math.min(index, kinds.length - 1)]!, copy)
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas unavailable')
+
+  ctx.clearRect(0, 0, W, H)
+  const bottom = ctx.createLinearGradient(0, H - 720, 0, H)
+  bottom.addColorStop(0, 'rgba(11, 14, 17, 0)')
+  bottom.addColorStop(1, 'rgba(11, 14, 17, 0.9)')
+  ctx.fillStyle = bottom
+  ctx.fillRect(0, H - 720, W, 720)
+
+  const top = ctx.createLinearGradient(0, 0, 0, 280)
+  top.addColorStop(0, 'rgba(11, 14, 17, 0.55)')
+  top.addColorStop(1, 'rgba(11, 14, 17, 0)')
+  ctx.fillStyle = top
+  ctx.fillRect(0, 0, W, 280)
+
+  drawBrand(ctx, copy.brand)
+  const facts = getProofReelFacts(summary)
+  const label = moment.exerciseName?.trim() || copy.momentLabel || copy.proofLabel
+  drawCenteredBlock(
+    ctx,
+    [
+      { text: copy.momentLabel ?? copy.proofLabel, size: 32, color: '#a9cbf5', weight: '500' },
+      { text: label, size: 60, color: '#e8edf2', weight: '800' },
+      { text: `Set ${moment.setNumber}`, size: 34, color: '#8a97a6', weight: '600' },
+      { text: `${facts.durationLabel} · ${facts.totalSets} sets`, size: 30, color: '#8a97a6' },
+    ],
+    H - 480,
+  )
+
+  return canvasToPng(canvas)
+}
+
+async function renderMomentStill(
+  summary: SessionSummary,
+  moment: SessionMoment,
+  copy: SlideCopy,
+): Promise<Blob> {
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas unavailable')
+
+  fillBackground(ctx)
+  try {
+    const bitmap = await createImageBitmap(moment.blob)
+    const scale = Math.max(W / bitmap.width, H / bitmap.height)
+    const dw = bitmap.width * scale
+    const dh = bitmap.height * scale
+    ctx.drawImage(bitmap, (W - dw) / 2, (H - dh) / 2, dw, dh)
+    bitmap.close()
+  } catch {
+    // keep gradient background
+  }
+
+  const overlay = await renderMomentOverlay(summary, moment, copy)
+  const overlayBitmap = await createImageBitmap(overlay)
+  ctx.drawImage(overlayBitmap, 0, 0)
+  overlayBitmap.close()
+  return canvasToPng(canvas)
 }
 
 export type ProofReelProgress = {
@@ -375,7 +334,65 @@ async function getFfmpeg(
   }
 }
 
-/** Build a ~15s vertical MP4 proof reel from stats + selected workout moments. */
+function isVideoMoment(moment: SessionMoment): boolean {
+  return moment.mimeType.startsWith('video/') || moment.blob.type.startsWith('video/')
+}
+
+async function encodeStillSegment(
+  ffmpeg: import('@ffmpeg/ffmpeg').FFmpeg,
+  fetchFile: (data: Blob) => Promise<Uint8Array>,
+  png: Blob,
+  outName: string,
+): Promise<void> {
+  await ffmpeg.writeFile('still.png', await fetchFile(png))
+  await ffmpeg.exec([
+    '-loop',
+    '1',
+    '-i',
+    'still.png',
+    '-t',
+    String(PROOF_SLIDE_SECONDS),
+    '-vf',
+    `scale=${W}:${H},fps=30,format=yuv420p`,
+    '-c:v',
+    'libx264',
+    '-pix_fmt',
+    'yuv420p',
+    '-an',
+    outName,
+  ])
+}
+
+async function encodeVideoMomentSegment(
+  ffmpeg: import('@ffmpeg/ffmpeg').FFmpeg,
+  fetchFile: (data: Blob) => Promise<Uint8Array>,
+  moment: SessionMoment,
+  overlayPng: Blob,
+  outName: string,
+): Promise<void> {
+  const ext = moment.mimeType.includes('mp4') ? 'mp4' : 'webm'
+  const clipName = `clip.${ext}`
+  await ffmpeg.writeFile(clipName, await fetchFile(moment.blob))
+  await ffmpeg.writeFile('overlay.png', await fetchFile(overlayPng))
+  await ffmpeg.exec([
+    '-i',
+    clipName,
+    '-i',
+    'overlay.png',
+    '-filter_complex',
+    `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,fps=30[v0];[1:v]format=rgba[ov];[v0][ov]overlay=0:0:format=auto,format=yuv420p`,
+    '-t',
+    String(PROOF_CLIP_SECONDS),
+    '-c:v',
+    'libx264',
+    '-pix_fmt',
+    'yuv420p',
+    '-an',
+    outName,
+  ])
+}
+
+/** Build a ~15s vertical MP4 proof reel from stats + selected workout video clips. */
 export async function buildProofReel(
   summary: SessionSummary,
   copy: SlideCopy,
@@ -394,39 +411,50 @@ export async function buildProofReel(
   moments.sort((a, b) => a.capturedAt.localeCompare(b.capturedAt))
   const plan = planSlides(moments)
 
-  const slides: Blob[] = []
+  const ffmpeg = await getFfmpeg(onProgress)
+  const segmentNames: string[] = []
+
   for (let i = 0; i < plan.length; i += 1) {
     onProgress?.({
       phase: 'slides',
       progress: (i + 1) / plan.length,
-      text: `Slide ${i + 1}/${plan.length}`,
+      text: `Segment ${i + 1}/${plan.length}`,
     })
     const slide = plan[i]!
-    slides.push(
-      slide.type === 'moment'
-        ? await renderMomentSlide(summary, slide.moment, copy)
-        : await renderStatsSlide(summary, slide.type, copy),
-    )
+    const outName = `seg${i}.mp4`
+    if (slide.type === 'moment') {
+      if (isVideoMoment(slide.moment)) {
+        const overlay = await renderMomentOverlay(summary, slide.moment, copy)
+        try {
+          await encodeVideoMomentSegment(ffmpeg, fetchFile, slide.moment, overlay, outName)
+        } catch {
+          const still = await renderMomentStill(summary, slide.moment, copy)
+          await encodeStillSegment(ffmpeg, fetchFile, still, outName)
+        }
+      } else {
+        const still = await renderMomentStill(summary, slide.moment, copy)
+        await encodeStillSegment(ffmpeg, fetchFile, still, outName)
+      }
+    } else {
+      const png = await renderStatsSlide(summary, slide.type, copy)
+      await encodeStillSegment(ffmpeg, fetchFile, png, outName)
+    }
+    segmentNames.push(outName)
   }
 
-  const ffmpeg = await getFfmpeg(onProgress)
-  for (let i = 0; i < slides.length; i += 1) {
-    await ffmpeg.writeFile(`slide${i}.png`, await fetchFile(slides[i]!))
-  }
+  const listBody = segmentNames.map((name) => `file '${name}'`).join('\n')
+  await ffmpeg.writeFile('list.txt', new TextEncoder().encode(listBody))
 
-  // 1/3 fps → each still lasts 3 seconds; 5 slides = 15s.
-  onProgress?.({ phase: 'encode', progress: 0.1, text: 'Encoding MP4…' })
+  onProgress?.({ phase: 'encode', progress: 0.2, text: 'Encoding MP4…' })
   await ffmpeg.exec([
-    '-framerate',
-    String(1 / PROOF_SLIDE_SECONDS),
+    '-f',
+    'concat',
+    '-safe',
+    '0',
     '-i',
-    'slide%d.png',
-    '-c:v',
-    'libx264',
-    '-pix_fmt',
-    'yuv420p',
-    '-t',
-    String(PROOF_REEL_SECONDS),
+    'list.txt',
+    '-c',
+    'copy',
     '-movflags',
     '+faststart',
     'proof.mp4',
