@@ -1,8 +1,8 @@
 # Security — SOLO.
 
-SOLO is a client-side PWA: no backend, no accounts, no secrets in the repository. User data stays in the browser (`localStorage` / `sessionStorage`).
+SOLO is a client-side PWA (Kotlin/Compose Android APK planned): no SOLO backend, no accounts, no secrets in the repository. User data stays on-device (`localStorage` / `sessionStorage` / future app storage).
 
-This document describes what is already in place and which GitHub settings are worth enabling.
+This document describes what is already in place and which GitHub settings are worth enabling. Release channels: [docs/RELEASING.md](docs/RELEASING.md).
 
 ## What the repo already does
 
@@ -11,6 +11,12 @@ This document describes what is already in place and which GitHub settings are w
 - **Deploy only from `main`** — GitHub Pages via `.github/workflows/deploy.yml`
 - **CI on pull requests** — `.github/workflows/ci.yml` runs `npm ci` + `npm run build`
 - **Dependabot config** — `.github/dependabot.yml` for npm and GitHub Actions (enable alerts in GitHub settings; see below)
+
+## Android signing (when APK CI lands)
+
+- **GitHub Releases** use the project keystore (CI secrets: `ANDROID_KEYSTORE_*`). Never commit `*.jks` / `key.properties`.
+- **F-Droid** rebuilds from source and **re-signs** with the F-Droid key — different certificate fingerprint than GitHub APKs.
+- Ship `sha256.txt` next to APKs; document both file hash and cert fingerprint in release notes (see Kinetic pattern in [docs/RELEASING.md](docs/RELEASING.md)).
 
 ## Reporting vulnerabilities
 
@@ -60,9 +66,13 @@ Confirm Pages uses **GitHub Actions** (not “Deploy from branch”):
 
 ### 5. What you do not need for SOLO
 
-- Repository secrets for deploy (OIDC + `GITHUB_TOKEN` is enough)
+- Repository secrets for **Pages** deploy (OIDC + `GITHUB_TOKEN` is enough)
 - Private repo (unless you want hidden source code)
 - Server-side auth or API keys in the frontend
+
+### 6. Android keystore secrets (later)
+
+When APK release CI is added, store only in GitHub Actions secrets (base64 keystore + passwords + alias). Rotate if leaked. F-Droid does not need your keystore.
 
 ## Local hygiene
 

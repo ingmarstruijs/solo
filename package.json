@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SOLO. — Solo training. Zero noise.",
+  "description": "SOLO Home training — Zero noise. Privacy-first home workouts.",
   "engines": {
     "node": ">=22.22.0"
   },

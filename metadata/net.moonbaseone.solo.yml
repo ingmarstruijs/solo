@@ -1,0 +1,46 @@
+# Draft F-Droid build metadata for SOLO
+# Application ID: net.moonbaseone.solo
+#
+# STATUS: Placeholder until Kotlin/Compose + Byte-RB verified.
+# Do NOT open an fdroiddata MR until:
+#   - ./tool/fdroid_build.sh succeeds
+#   - ./tool/verify_reproducible.sh passes against the GitHub foss APK
+# Byte-RB is required (not deferred).
+#
+# Prefer no npm/Vite in this recipe — Compose TV, not web assets in foss APK.
+
+Categories:
+  - Sports & Health
+License: MIT
+AuthorName: Ingmar Struijs
+WebSite: https://github.com/ingmarstruijs/solo
+SourceCode: https://github.com/ingmarstruijs/solo
+IssueTracker: https://github.com/ingmarstruijs/solo/issues
+
+Name: SOLO Home training
+AutoName: SOLO Home training
+
+RepoType: git
+Repo: https://github.com/ingmarstruijs/solo.git
+
+# Builds: []  # uncomment and fill after first Android tag
+#
+# Example shape (edit paths after Compose scaffold):
+#
+# Builds:
+#   - versionName: 0.1.0
+#     versionCode: 1
+#     commit: REPLACE_WITH_FULL_SHA_OF_v0.1.0
+#     subdir: apps/android
+#     sudo:
+#       - apt-get update || apt-get update
+#     # No prebuild npm — Byte-RB.
+#     gradle:
+#       - foss
+#     output: app/build/outputs/apk/foss/release/app-foss-release-unsigned.apk
+#     # Add Binaries: / RB fields per current fdroiddata practice when listing.
+
+AutoUpdateMode: None
+UpdateCheckMode: None
+CurrentVersion: 0.1.0
+CurrentVersionCode: 1

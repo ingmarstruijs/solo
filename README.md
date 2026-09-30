@@ -5,17 +5,17 @@
 <h1 align="center">SOLO.</h1>
 
 <p align="center">
-  <strong>Solo training. Zero noise.</strong><br/>
-  Privacy-first home workouts — your phone controls the session, your TV shows the board.
+  <strong>SOLO Home training</strong><br/>
+  Zero noise. Privacy-first workouts — your phone controls the session, your TV shows the board.
 </p>
 
 <p align="center">
-  React 19 · TypeScript · Vite PWA · localStorage · BroadcastChannel TV sync · Offline-first · No account · No cloud
+  React 19 · TypeScript · Vite PWA (reference + TV assets) · Kotlin/Compose Android planned · Offline-first · No account · No cloud
 </p>
 
 ---
 
-SOLO. is an open-source Progressive Web App for autonomous home training. Build workouts, match weights to your home locker, run live sessions with an optional TV dashboard, and review detailed summaries — all on-device. No subscriptions, no vendor backend.
+SOLO. (**SOLO Home training**) is an open-source home training app (React/Vite reference + Kotlin/Compose Android planned). Build workouts, match weights to your home locker, run live sessions with an optional Android TV board, and review summaries — all on-device. No subscriptions, no vendor backend.
 
 For planned features (Connect IQ reps/velocity, MediaPipe pose, canvas cast pipeline), see **[ROADMAP.md](ROADMAP.md)**.
 
@@ -72,9 +72,10 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 | Coach voice | Web Speech API |
 | Exercise data | [Wger API](https://wger.de) (`/exerciseinfo/`, `name__search`) |
 | FIT import | `@garmin/fitsdk` |
-| BLE HR | Web Bluetooth API — product HR band + Garmin lab probe |
+| BLE HR | Web Bluetooth API — product HR band + Garmin lab probe (Android native BLE planned) |
 | Pose / form cues | `@mediapipe/tasks-vision` Pose Landmarker (lite), local wasm + model via `postinstall` |
 | Proof reel | `@ffmpeg/ffmpeg` Wasm → ~15s vertical MP4 from camera clips + stats; Web Share API |
+| Android (planned) | Kotlin + Jetpack Compose `foss`/`full` — see [docs/native-android-stack.md](docs/native-android-stack.md) |
 
 ## Getting Started
 
@@ -99,9 +100,24 @@ No server required — all data stays in the browser.
 
 User flows, system diagrams, data stores, and project layout: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
+## Privacy & security
+
+- [PRIVACY.md](PRIVACY.md) — local-first policy (linked from F-Droid Fastlane copy)
+- [SECURITY.md](SECURITY.md) — reporting + GitHub hardening
+- [CHANGELOG.md](CHANGELOG.md) — Keep a Changelog + store notes
+
+## Android / F-Droid (planned)
+
+Kotlin + Jetpack Compose on **Android phone + Android TV** (phone controls TV on LAN). GitHub Releases + F-Droid (`foss`). **iOS dropped.** React/Vite is reference only.
+
+- Stack research: **[docs/native-android-stack.md](docs/native-android-stack.md)**
+- Release process: **[docs/RELEASING.md](docs/RELEASING.md)**
+- F-Droid kit: **[metadata/FDROID_SUBMISSION.md](metadata/FDROID_SUBMISSION.md)**
+- Agents: **[AGENTS.md](AGENTS.md)**
+
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [LICENSE](LICENSE).
 
 ---
 

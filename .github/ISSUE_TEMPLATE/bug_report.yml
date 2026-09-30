@@ -1,0 +1,72 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. Do not paste secrets or private workout exports you care about keeping private.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Phone (Android)
+        - TV `/tv`
+        - Desktop browser (dev / reference)
+        - Unsure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App / OS / browser
+      description: e.g. SOLO 0.1.0 · Android 15, or desktop Chrome for /tv
+      placeholder: 0.1.0 · Android …
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Workouts / prep
+        - Live session
+        - TV sync
+        - BLE / HR
+        - Camera / pose / proof reel
+        - Locker / overload
+        - Settings / i18n / theme
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Extra notes
+      description: Screenshots, console logs (redact secrets), related issues
+    validations:
+      required: false

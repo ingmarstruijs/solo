@@ -1,0 +1,11 @@
+SOLO Home training is an open-source, privacy-first home workout app for Android. Your phone runs the session; an optional Android TV app shows the live board, controlled over your Wi‑Fi. No account, no cloud backend, no subscriptions.
+
+Build workouts and match weights to your home locker. Run live sessions with rest timers and spoken coach cues. Connect a Bluetooth heart-rate band and (later) use the camera for advisory form cues. After training, review your logbook — all on-device.
+
+The F-Droid build is the foss flavor: no Google Play Services and no Chromecast SDK. Phone and TV talk on the local network only. Optional exercise search may contact the public Wger API.
+
+Brand mark: SOLO. — Zero noise.
+iOS is not supported.
+
+Privacy: https://raw.githubusercontent.com/ingmarstruijs/solo/main/PRIVACY.md
+Source: https://github.com/ingmarstruijs/solo
