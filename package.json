@@ -22,7 +22,7 @@
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
-    "@garmin/fitsdk": "^21.212.0",
+    "@garmin/fitsdk": "^21.213.0",
     "@mediapipe/tasks-vision": "^1.0.1",
     "clsx": "^2.1.1",
     "i18next": "^26.3.6",
