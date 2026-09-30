@@ -1,0 +1,50 @@
+name: Feature request
+description: Propose an improvement that fits SOLO’s local-first model
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        SOLO stays **no account, no SOLO cloud, on-device data**. See ROADMAP.md for planned pillars.
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: Pillar / area
+      options:
+        - Gear / locker / overload
+        - Sensors / Garmin / HR
+        - Form / camera / TV / cast
+        - Coach voice
+        - Proof / history
+        - Platform / F-Droid / Android
+        - Docs / tooling
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What friction or gap are you hitting?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change? Keep it concrete.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy fit
+      options:
+        - label: This does not require a SOLO cloud account or sending workout/camera data to a third-party AI by default
+          required: true
