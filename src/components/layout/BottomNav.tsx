@@ -12,7 +12,6 @@ import { useWorkoutSelection } from '@/hooks/useWorkoutSelection'
 import { prepareWorkouts } from '@/lib/workout/sessionPrep'
 import { startSessionFromPrep } from '@/lib/workout/startSessionFromPrep'
 import { clearLastSummary } from '@/lib/workout/sessionSummary'
-import { publishTvIdle } from '@/lib/tv/transport'
 import { bottomNav } from '@/config/nav'
 import { resolveCenterNav } from '@/components/layout/centerNavState'
 import { useTranslation } from '@/i18n/hooks'
@@ -83,7 +82,6 @@ export function BottomNav() {
 
     if (location.pathname === '/session/summary') {
       clearLastSummary()
-      publishTvIdle(theme)
       navigate('/workouts')
       return
     }
@@ -91,7 +89,6 @@ export function BottomNav() {
     if (active && session) {
       if (location.pathname === '/session') {
         if (!confirm(t('common:abortSessionConfirm'))) return
-        publishTvIdle(theme)
         cancelSession()
         navigate('/workouts')
         return

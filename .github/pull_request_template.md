@@ -10,7 +10,7 @@
 
 - [ ] `npm run lint`
 - [ ] `npm run build`
-- [ ] Manual check on phone / TV if session or `/tv` changed
+- [ ] Manual check on phone session flows if UX changed
 - [ ] Locale catalogs updated together if copy changed (`docs/i18n.md`)
 
 ## Notes

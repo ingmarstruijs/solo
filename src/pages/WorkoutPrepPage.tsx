@@ -9,10 +9,6 @@ import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLiveHeartRate } from '@/hooks/useLiveHeartRate'
 import { useLocker } from '@/hooks/useLocker'
 import { useRecoveryScore } from '@/hooks/useRecoveryScore'
-import { useTheme } from '@/hooks/useTheme'
-import { useTvConnection } from '@/hooks/useTvConnection'
-import { getTvTransportState, reconnectTv, disconnectTv, publishTvIdle } from '@/lib/tv/transport'
-import { buildPrepTvState } from '@/lib/tv/broadcast'
 import { prepareWorkouts } from '@/lib/workout/sessionPrep'
 import { structureSummary } from '@/lib/workout/workoutStructure'
 import { PrepInsightsPanel } from '@/components/workout/PrepInsightsPanel'
@@ -30,10 +26,8 @@ export function WorkoutPrepPage() {
   const { score: recoveryScore, setScore: setRecoveryScore } = useRecoveryScore()
   const { connected: garminConnected } = useGarminConnected()
   const heartRate = useLiveHeartRate()
-  const { theme } = useTheme()
   const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
   const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
-  const { status: tvStatus } = useTvConnection()
 
   const ids = useMemo(() => {
     const raw = params.get('ids') ?? params.get('id') ?? ''
@@ -65,23 +59,6 @@ export function WorkoutPrepPage() {
   const isMulti = sessionPrep.workouts.length > 1
   const primaryWorkout = sessionPrep.workouts[0]
 
-  function buildTvState() {
-    return buildPrepTvState(
-      sessionPrep.workouts.map((p) => p.workout),
-      recoveryScore,
-      theme,
-    )
-  }
-
-  function handleConnectTv() {
-    void reconnectTv(buildTvState(), { theme })
-  }
-
-  function handleDisconnectTv() {
-    publishTvIdle(theme)
-    disconnectTv()
-  }
-
   return (
     <div className="flex flex-col gap-3 py-1 pb-20">
       <PageStickyHeader
@@ -110,9 +87,6 @@ export function WorkoutPrepPage() {
         onCameraChange={setCameraEnabled}
         coachEnabled={coachEnabled}
         onCoachToggle={toggleCoach}
-        tvStatus={tvStatus}
-        onConnectTv={handleConnectTv}
-        onDisconnectTv={handleDisconnectTv}
         hrEnabled={garminConnected}
         hrConnecting={heartRate.status === 'connecting'}
         hrLive={heartRate.live}
@@ -153,10 +127,6 @@ export function WorkoutPrepPage() {
           </ul>
         </section>
       ))}
-
-      <p className="text-center text-[10px] text-faint">
-        TV: {getTvTransportState().receiverUrl}
-      </p>
     </div>
   )
 }

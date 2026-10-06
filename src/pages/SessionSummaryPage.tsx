@@ -6,12 +6,9 @@ import { ProofReelPanel } from '@/components/session/ProofReelPanel'
 import { WorkoutSummary } from '@/components/session/WorkoutSummary'
 import { useHistory } from '@/hooks/useHistory'
 import { useSessionActions } from '@/hooks/useSessionActions'
-import { useTheme } from '@/hooks/useTheme'
 import { getAppLocale } from '@/i18n'
 import { useTranslation } from '@/i18n/hooks'
 import { getSessionRecord } from '@/lib/storage/historyStore'
-import { buildSummaryTvState } from '@/lib/tv/broadcast'
-import { publishToTvTransport, publishTvIdle } from '@/lib/tv/transport'
 import { loadWorkoutQueue, popNextQueuedWorkout } from '@/lib/workout/sessionPrep'
 import {
   clearLastSummary,
@@ -32,7 +29,6 @@ export function SessionSummaryPage() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const { sessionId } = useParams<{ sessionId?: string }>()
-  const { theme } = useTheme()
   const { startNextWorkout } = useSessionActions()
   const { remove: removeHistory } = useHistory()
   const isHistoryView = Boolean(sessionId)
@@ -65,11 +61,6 @@ export function SessionSummaryPage() {
   }, [sessionId, isHistoryView, historyRecord?.id, state?.summary?.completedAt])
 
   useEffect(() => {
-    if (!summary || isHistoryView) return
-    publishToTvTransport(buildSummaryTvState(summary, theme), { theme })
-  }, [summary, theme, isHistoryView])
-
-  useEffect(() => {
     if (!summary || !focusProof) return
     const frame = window.requestAnimationFrame(() => {
       document.getElementById('proof-reel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -79,7 +70,6 @@ export function SessionSummaryPage() {
 
   function leaveSummary() {
     clearLastSummary()
-    publishTvIdle(theme)
   }
 
   function handleDeleteHistory() {

@@ -1,41 +1,34 @@
 # User Flows & Architecture
 
-How SOLO. is structured today — controller vs TV receiver, session lifecycle, navigation, and on-device storage. Product pillars and **Now / Next** scope: **[README.md](README.md#the-5-pillars-of-solo)**. Planned phases: **[ROADMAP.md](ROADMAP.md)**.
+How SOLO. is structured today — phone session lifecycle, navigation, and on-device storage. Product pillars: **[README.md](README.md#the-5-pillars-of-solo)**. Android phone + Android TV direction: **[docs/native-android-stack.md](docs/native-android-stack.md)** · **[docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md)**.
 
 ---
 
 ## System overview
 
-The phone is the **controller**; the TV is an optional **receiver**. Persistent state lives in `localStorage` (with a few `sessionStorage` keys for ephemeral prep/queue/summary). The TV page subscribes to a `BroadcastChannel` and renders the latest message — no backend, no account.
+The **phone** runs the product UX (React reference today; Kotlin/Compose planned). Persistent state lives in `localStorage` (with a few `sessionStorage` keys for ephemeral prep/queue/summary). There is no backend and no account.
+
+The former web `/tv` BroadcastChannel receiver has been **removed**. The living-room board will be a separate **Android TV** app controlled over LAN (see the Android development plan).
 
 ```mermaid
 graph LR
-  subgraph Phone["Phone (controller)"]
+  subgraph Phone["Phone"]
     A[Home / Workouts / Locker / Logboek]
     B[Prep + Session]
     C[sessionStore + historyStore]
-    D[BroadcastChannel publish]
     E[Bottom nav center action]
-  end
-  subgraph TV["TV browser (/tv)"]
-    F[BroadcastChannel subscribe]
-    G[Session / Prep / Summary / Idle UI]
   end
   A --> B
   B --> C
-  C --> D
-  D --> F
-  F --> G
   E --> B
 ```
 
 | Surface | Route | Role |
 |---|---|---|
-| Mobile shell | `/`, `/workouts`, `/locker`, `/history` | Controller — home, templates, locker, logbook |
-| Workout prep | `/workouts/prep?ids=…` | Targets, insights, TV connect, queue |
+| Mobile shell | `/`, `/workouts`, `/locker`, `/history` | Home, templates, locker, logbook |
+| Workout prep | `/workouts/prep?ids=…` | Targets, insights, queue |
 | Live session | `/session` | Active workout controller |
 | Summary | `/session/summary` or `/history/:id` | Post-workout or historical recap |
-| TV receiver | `/tv` | Passive display — open on TV or cast this tab |
 | Labs | `/lab/*` | Architecture experiments (not main flow) |
 
 ---
@@ -94,7 +87,7 @@ graph TD
   J --> M
   L --> N[Prep insights: all exercises across queue]
   M --> N
-  N --> O[Optional: TV connect + camera/coach toggles]
+  N --> O[Optional: camera/coach toggles]
   O --> P[Center: Voorbereiden]
   P --> Q[Session setup phase on /session]
 ```
@@ -109,9 +102,9 @@ Prep shows per-exercise targets, optional weight-assistant plates, and tappable 
 
 ```mermaid
 graph TD
-  A[Session created — exercisesStarted false] --> B[Setup: materials checklist + camera/coach/TV]
+  A[Session created — exercisesStarted false] --> B[Setup: materials checklist + camera/coach]
   B --> C{Leave /session?}
-  C -- Yes --> D[Cancel session + TV idle]
+  C -- Yes --> D[Cancel session]
   C -- No --> E[User: Klaar — start workout]
   E --> F[exercisesStarted true — header Live, center Stop/Live]
   F --> G[Sticky active exercise row + list]
@@ -144,7 +137,7 @@ graph TD
 
 - Back arrow returns to prep and cancels the session (no confirm dialog).
 - Navigating away from `/session` while still in setup also cancels (`useCancelSetupOnLeave` in `MobileShell`).
-- Camera, coach, and TV controls are available before the workout starts.
+- Camera and coach controls are available before the workout starts.
 
 ### Exercise progression
 
@@ -152,12 +145,12 @@ graph TD
 - The current exercise is pinned in a sticky card; the list below hides the duplicate row.
 - During **exercise rest**, the active badge reads **Volgende oefening**, the per-exercise timer pauses, and **Klaar** / **Pauze** are disabled until rest ends or is skipped.
 - Rest starts automatically after **Klaar** when `restSeconds` is configured — there are no manual “start rest” buttons.
-- During rest, phone and TV show a **full-screen overlay** with the rust / set rust title, countdown, and the **exercise coming next** (name + target). Phase rest labels the next set/ronde and shows the first exercise of that phase.
+- During rest, the phone shows a **full-screen overlay** with the rust / set rust title, countdown, and the **exercise coming next** (name + target). Phase rest labels the next set/ronde and shows the first exercise of that phase. (Android TV will mirror this once the companion app lands.)
 
 ### Set / phase transitions
 
 - When every exercise in the current set is done, **phase rest** starts automatically if configured (`getPhaseRestSeconds`).
-- Set rest is visually distinct from exercise rest: **Set rust** / **Ronde rust** title, SOLO accent colours on phone and TV.
+- Set rest is visually distinct from exercise rest: **Set rust** / **Ronde rust** title and SOLO accent colours.
 - While phase rest runs, the **Volgende set** button is hidden; it appears when rest ends or is skipped.
 - **Overslaan** on the rest overlay ends the timer early and triggers the same post-rest behaviour.
 
@@ -185,26 +178,9 @@ Next-exercise announcements are queued in `pendingCoachAfterRestRef` so they nev
 
 ---
 
-## TV connect flow
+## Android TV (planned)
 
-```mermaid
-graph TD
-  A[User taps TV in prep or session] --> B[Ping open receivers]
-  B --> C{Receiver answers?}
-  C -- Yes --> D[Mark connected + publish current state]
-  C -- No --> E[Open named /tv window once]
-  E --> D
-  D --> F[TV shows live HUD]
-  F --> G{User disconnects?}
-  G -- Yes --> H[Publish idle — manual TV tab may stay open]
-  G -- No --> I[Periodic ping detects closed receiver]
-```
-
-HR / recovery on the TV sensor strip is gated on **Garmin connected** (settings toggle). Live BLE HR (standard 0x180D) streams via `hrConnection` into `computeSessionSensor`; without a band the strip falls back to a mock zone %. Coach and camera flags travel with session TV state.
-
-Before exercises start, TV shows a **Voorbereiden** page with the materials checklist (instead of the live session HUD). Timed exercises broadcast `exerciseStartedAt` so the TV can count up locally in a large timer.
-
-Rest on TV mirrors the phone: a full-screen overlay with countdown. Exercise rest uses calm/teal styling; **set rust** / **ronde rust** uses SOLO accent styling. Both show the upcoming exercise (and for phase rest, which set/ronde comes next).
+Not implemented in the React tree. Target: phone pairs to an Android TV Compose app over LAN WebSocket with versioned JSON contracts. See [docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md).
 
 ---
 
@@ -251,20 +227,11 @@ graph TD
 | `solo-workout-queue` | Remaining workouts in multi-session |
 | `solo-last-summary` | Transient summary after finish |
 
-### TV transport
-
-| Channel | Role |
-|---|---|
-| `solo-tv-sync` | Session / prep / summary / idle payloads |
-| Control ping/pong | Receiver handshake + connection status |
-
----
-
 ## Project layout
 
 ```
 src/
-  pages/              # Route screens (Home, Workouts, Prep, Session, Logboek, TV, labs)
+  pages/              # Route screens (Home, Workouts, Prep, Session, Logboek, labs)
   components/
     layout/           # BottomNav, centerNavState, PageStickyHeader, MobileShell
     session/          # SessionControlBar, RestTimerBar, materials checklist, summary
@@ -277,7 +244,8 @@ src/
     useCancelSetupOnLeave               # Drop setup session when leaving /session
   lib/
     storage/          # localStore + domain stores (incl. duplicateWorkout)
-    tv/               # broadcast, transport, coachEngine, exerciseMedia
+    coach/            # coachEngine, coachVoice
+    exercise/         # exerciseMedia helpers
     workout/          # overload planner, session prep/queue, summary, Wger import
     wger/
   config/             # nav, labs registry

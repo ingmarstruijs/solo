@@ -13,12 +13,9 @@ import { useCameraEnabled } from '@/hooks/useCameraEnabled'
 import { useCoachEnabled } from '@/hooks/useCoachEnabled'
 import { useGarminConnected } from '@/hooks/useGarminConnected'
 import { useLiveHeartRate } from '@/hooks/useLiveHeartRate'
-import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useSessionActions } from '@/hooks/useSessionActions'
-import { useTheme } from '@/hooks/useTheme'
 import { useWakeLock } from '@/hooks/useWakeLock'
 import { loadWorkoutQueue, popNextQueuedWorkout } from '@/lib/workout/sessionPrep'
-import { useTvConnection } from '@/hooks/useTvConnection'
 import { useCoachAnnouncement } from '@/hooks/useCoachVoice'
 import { useRestCountdown, type RestTimer } from '@/hooks/useRestCountdown'
 import { SessionControlBar } from '@/components/session/SessionControlBar'
@@ -26,8 +23,6 @@ import { SessionMaterialsChecklist } from '@/components/session/SessionMaterials
 import { RestTimerBar } from '@/components/session/RestTimerBar'
 import { StrainEdgeFeedback } from '@/components/session/StrainEdgeFeedback'
 import { ExerciseInfoModal } from '@/components/workout/ExerciseInfoModal'
-import { buildSessionTvState, buildSetupTvState, buildSummaryTvState } from '@/lib/tv/broadcast'
-import { publishToTvTransport, publishTvIdle, reconnectTv, disconnectTv } from '@/lib/tv/transport'
 import { buildSessionSummary, saveLastSummary } from '@/lib/workout/sessionSummary'
 import { advanceToNextSet, getActiveSession, saveActiveSession, startCurrentExerciseTimer } from '@/lib/storage/sessionStore'
 import {
@@ -45,7 +40,7 @@ import {
   buildStrainAnnouncement,
   formatExerciseTargetLine,
   getExerciseWeight,
-} from '@/lib/tv/coachEngine'
+} from '@/lib/coach/coachEngine'
 import { getPhaseInfo, getPhaseRestSeconds } from '@/lib/workout/workoutStructure'
 import { useTranslation } from '@/i18n/hooks'
 import { collectWorkoutMaterials } from '@/lib/workout/sessionMaterials'
@@ -90,13 +85,10 @@ export function SessionPage() {
     togglePause,
     cancelSession,
   } = useSessionActions()
-  const { score: recoveryScore } = useRecoveryScore()
   const { connected: garminConnected } = useGarminConnected()
   const heartRate = useLiveHeartRate()
-  const { theme } = useTheme()
   const { enabled: coachEnabled, toggleEnabled: toggleCoach } = useCoachEnabled()
   const { enabled: cameraEnabled, setEnabled: setCameraEnabled } = useCameraEnabled()
-  const { status: tvStatus } = useTvConnection()
   const listRef = useRef<HTMLOListElement>(null)
   const announcedSessionStartRef = useRef<string | null>(null)
   const pendingCoachAfterRestRef = useRef<{ text: string; key: string } | null>(null)
@@ -161,72 +153,6 @@ export function SessionPage() {
     return [...pending, ...completed]
   }, [session])
 
-  const sessionTv = useMemo(() => {
-    if (!session) return null
-
-    if (!exercisesStarted) {
-      return buildSetupTvState(session.workout, sessionMaterials, recoveryScore, theme)
-    }
-
-    const rest =
-      restTimer && restCountdown.active
-        ? {
-            active: true,
-            endsAt: new Date(restTimer.endsAt).toISOString(),
-            totalSeconds: restTimer.totalSeconds,
-            afterExerciseName: restTimer.afterExerciseName,
-            kind: restTimer.kind,
-            phaseLabel: restTimer.phaseLabel,
-            completedPhase: restTimer.completedPhase,
-            nextExerciseName: restTimer.nextExerciseName,
-            nextExerciseTarget: restTimer.nextExerciseTarget,
-          }
-        : { active: false, endsAt: null, totalSeconds: 0 }
-
-    const activeEx = session.workout.exercises[activeIndex]
-    const isTimed = activeEx?.metric === 'time'
-    const isPaused = Boolean(
-      activeEx && (session.pausedExerciseIds ?? []).includes(activeEx.id),
-    )
-    const exerciseDone = activeEx
-      ? session.completedExerciseIds.includes(activeEx.id)
-      : true
-    const exerciseTimerActive =
-      Boolean(isTimed && activeEx) && !exerciseDone && !isPaused && !rest.active
-
-    return buildSessionTvState(
-      session.workout,
-      session.targets,
-      activeIndex,
-      session.currentSet - 1,
-      recoveryScore,
-      theme,
-      {
-        cameraEnabled,
-        sessionStartedAt: session.startedAt,
-        completedExerciseIds: session.completedExerciseIds,
-        coachEnabled,
-        rest,
-        exerciseStartedAt: session.currentExerciseStartedAt ?? session.startedAt,
-        exerciseTimerActive,
-      },
-    )
-  }, [
-    session,
-    exercisesStarted,
-    sessionMaterials,
-    activeIndex,
-    recoveryScore,
-    theme,
-    cameraEnabled,
-    coachEnabled,
-    restTimer,
-    restCountdown.active,
-    garminConnected,
-    heartRate.bpm,
-    heartRate.status,
-  ])
-
   useCoachAnnouncement(
     coachAnnouncement?.text ?? null,
     coachAnnouncement?.key ?? '',
@@ -264,11 +190,6 @@ export function SessionPage() {
     if (!text) return
     setCoachAnnouncement({ text, key: `session-start-${announceKey}` })
   }, [session, coachEnabled, exercisesStarted])
-
-  useEffect(() => {
-    if (!sessionTv) return
-    publishToTvTransport(sessionTv, { theme })
-  }, [sessionTv, theme])
 
   useEffect(() => {
     const wasActive = restWasActiveRef.current
@@ -520,7 +441,6 @@ export function SessionPage() {
   }
 
   function handleBackFromSetup() {
-    publishTvIdle(theme)
     cancelSession()
     navigate(buildPrepBackUrl(workout.id))
   }
@@ -556,7 +476,6 @@ export function SessionPage() {
     const latest = getActiveSession() ?? activeSession
     const summary = buildSessionSummary(latest)
     saveLastSummary(summary, false)
-    publishToTvTransport(buildSummaryTvState(summary, theme), { theme })
     completeSession(summary)
     navigate('/session/summary', { state: { summary, hasNextWorkout: false } })
   }
@@ -569,23 +488,12 @@ export function SessionPage() {
     const next = popNextQueuedWorkout()
     if (!next) {
       saveLastSummary(summary, false)
-      publishToTvTransport(buildSummaryTvState(summary, theme), { theme })
       navigate('/session/summary', { state: { summary, hasNextWorkout: false } })
       return
     }
     setRestTimer(null)
     announcedSessionStartRef.current = null
     startNextWorkout(next)
-  }
-
-  function handleConnectTv() {
-    if (!sessionTv) return
-    void reconnectTv(sessionTv, { theme })
-  }
-
-  function handleDisconnectTv() {
-    publishTvIdle(theme)
-    disconnectTv()
   }
 
   const showActiveSticky =
@@ -630,9 +538,6 @@ export function SessionPage() {
         onCameraChange={setCameraEnabled}
         coachEnabled={coachEnabled}
         onCoachToggle={handleCoachToggle}
-        tvStatus={tvStatus}
-        onConnectTv={handleConnectTv}
-        onDisconnectTv={handleDisconnectTv}
         hrEnabled={garminConnected}
         hrConnecting={heartRate.status === 'connecting'}
         hrLive={heartRate.live}

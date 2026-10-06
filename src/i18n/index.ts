@@ -21,7 +21,6 @@ import enHome from './locales/en/home.json'
 import enHistory from './locales/en/history.json'
 import enThemes from './locales/en/themes.json'
 import enAbout from './locales/en/about.json'
-import enTv from './locales/en/tv.json'
 
 import nlCommon from './locales/nl/common.json'
 import nlNav from './locales/nl/nav.json'
@@ -35,7 +34,6 @@ import nlHome from './locales/nl/home.json'
 import nlHistory from './locales/nl/history.json'
 import nlThemes from './locales/nl/themes.json'
 import nlAbout from './locales/nl/about.json'
-import nlTv from './locales/nl/tv.json'
 
 import deCommon from './locales/de/common.json'
 import deNav from './locales/de/nav.json'
@@ -49,7 +47,6 @@ import deHome from './locales/de/home.json'
 import deHistory from './locales/de/history.json'
 import deThemes from './locales/de/themes.json'
 import deAbout from './locales/de/about.json'
-import deTv from './locales/de/tv.json'
 
 import frCommon from './locales/fr/common.json'
 import frNav from './locales/fr/nav.json'
@@ -63,7 +60,6 @@ import frHome from './locales/fr/home.json'
 import frHistory from './locales/fr/history.json'
 import frThemes from './locales/fr/themes.json'
 import frAbout from './locales/fr/about.json'
-import frTv from './locales/fr/tv.json'
 
 export const I18N_NAMESPACES = [
   'common',
@@ -78,7 +74,6 @@ export const I18N_NAMESPACES = [
   'history',
   'themes',
   'about',
-  'tv',
 ] as const
 
 export type I18nNamespace = (typeof I18N_NAMESPACES)[number]
@@ -97,7 +92,6 @@ const resources = {
     history: enHistory,
     themes: enThemes,
     about: enAbout,
-    tv: enTv,
   },
   nl: {
     common: nlCommon,
@@ -112,7 +106,6 @@ const resources = {
     history: nlHistory,
     themes: nlThemes,
     about: nlAbout,
-    tv: nlTv,
   },
   de: {
     common: deCommon,
@@ -127,7 +120,6 @@ const resources = {
     history: deHistory,
     themes: deThemes,
     about: deAbout,
-    tv: deTv,
   },
   fr: {
     common: frCommon,
@@ -142,7 +134,6 @@ const resources = {
     history: frHistory,
     themes: frThemes,
     about: frAbout,
-    tv: frTv,
   },
 } as const
 

@@ -12,8 +12,9 @@ body:
     attributes:
       label: Surface
       options:
-        - Phone (Android)
-        - TV `/tv`
+        - Phone (web reference)
+        - Phone (Android APK)
+        - Android TV app
         - Desktop browser (dev / reference)
         - Unsure
     validations:
@@ -22,7 +23,7 @@ body:
     id: version
     attributes:
       label: App / OS / browser
-      description: e.g. SOLO 0.1.0 · Android 15, or desktop Chrome for /tv
+      description: e.g. SOLO 0.1.0 · Android 15, or desktop Chrome (web reference)
       placeholder: 0.1.0 · Android …
     validations:
       required: true
@@ -33,7 +34,7 @@ body:
       options:
         - Workouts / prep
         - Live session
-        - TV sync
+        - Android TV / pairing
         - BLE / HR
         - Camera / pose / proof reel
         - Locker / overload
