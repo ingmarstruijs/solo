@@ -1,7 +1,6 @@
-import { Camera, Heart, Mic, Tv } from 'lucide-react'
+import { Camera, Heart, Mic } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { TvConnectionStatus } from '@/lib/tv/transport'
 import { CameraPreviewOverlay } from '@/components/session/CameraPreviewOverlay'
 import { useTranslation } from '@/i18n/hooks'
 import { cn } from '@/lib/cn'
@@ -12,9 +11,6 @@ type SessionControlBarProps = {
   onCameraChange: (enabled: boolean) => void
   coachEnabled: boolean
   onCoachToggle: () => void
-  tvStatus?: TvConnectionStatus
-  onConnectTv?: () => void
-  onDisconnectTv?: () => void
   /** Live BLE heart rate — optional until Garmin features are on. */
   hrEnabled?: boolean
   hrConnecting?: boolean
@@ -24,15 +20,12 @@ type SessionControlBarProps = {
   onHrDisconnect?: () => void
 }
 
-/** Compact controls: camera, coach, HR and TV status always fit one row. */
+/** Compact controls: camera, coach and HR always fit one row. */
 export function SessionControlBar({
   cameraEnabled,
   onCameraChange,
   coachEnabled,
   onCoachToggle,
-  tvStatus = 'disconnected',
-  onConnectTv,
-  onDisconnectTv,
   hrEnabled = false,
   hrConnecting = false,
   hrLive = false,
@@ -45,9 +38,7 @@ export function SessionControlBar({
   const [live, setLive] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
 
-  const tvConnected = tvStatus === 'connected'
-  const tvConnecting = tvStatus === 'connecting'
-  const showPhonePreview = cameraEnabled && live && !tvConnected
+  const showPhonePreview = cameraEnabled && live
   const showHr = hrEnabled && Boolean(onHrConnect || onHrDisconnect)
 
   useEffect(() => {
@@ -84,20 +75,13 @@ export function SessionControlBar({
     }
   }, [cameraEnabled, onCameraChange])
 
-  useEffect(() => {
-    if (tvConnected) setPreviewOpen(false)
-  }, [tvConnected])
-
   function handleCameraClick() {
     if (!cameraEnabled) {
       onCameraChange(true)
       return
     }
-    if (tvConnected) {
-      onCameraChange(false)
-      return
-    }
     if (live) setPreviewOpen(true)
+    else onCameraChange(false)
   }
 
   function handleDisableCamera() {
@@ -152,15 +136,6 @@ export function SessionControlBar({
               <Heart className="size-4" />
             </IconToggle>
           )}
-
-          <IconToggle
-            label={tvConnected ? t('tvLive') : tvConnecting ? t('tvLoading') : t('tv')}
-            active={tvConnected}
-            activeClass="border-success/40 bg-success/10 text-success"
-            onClick={tvConnected ? onDisconnectTv : onConnectTv}
-          >
-            <Tv className="size-4" />
-          </IconToggle>
         </div>
       </section>
 

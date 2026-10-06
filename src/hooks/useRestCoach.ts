@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { buildRestStartAnnouncement, restCountdownWord } from '@/lib/tv/coachEngine'
-import { speakCoachLine, speakCoachTick } from '@/lib/tv/coachVoice'
+import { buildRestStartAnnouncement, restCountdownWord } from '@/lib/coach/coachEngine'
+import { speakCoachLine, speakCoachTick } from '@/lib/coach/coachVoice'
 import type { RestCountdown, RestTimer } from '@/hooks/useRestCountdown'
 
 /** Announces rest start and counts down the last five seconds. */

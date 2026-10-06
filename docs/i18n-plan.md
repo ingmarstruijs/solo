@@ -127,8 +127,8 @@ Extract hardcoded copy into catalogs, priority order:
 | P0 | Session + Prep + sticky headers | Live workout UX |
 | P1 | Wger browser/preview, workout builder, locker | Import + gear |
 | P1 | History / summary | Post-workout |
-| P2 | TV idle/session chrome (non-coach) | Receiver UI |
 | P2 | Labs / about / integrations | Lower traffic |
+| — | Web TV chrome | Removed with `/tv`; Android TV i18n is Compose-side |
 | P2 | Themes labels, equipment `label`/`labelNl` → `t()` or per-locale map | Collapse dual labels into i18n |
 
 **Patterns:**
@@ -178,7 +178,7 @@ type WorkoutExercise = {
 }
 ```
 
-**Resolution order** for active locale `L` (used by exercise info UI, TV copy if any):
+**Resolution order** for active locale `L` (used by exercise info UI):
 
 1. `descriptionByLocale[L]` if present.
 2. Else native Wger translation for `L` if `externalId` known → fetch/pick → store in `descriptionByLocale[L]`.
@@ -274,7 +274,7 @@ Phases 1 and 3 can overlap after the registry and `getLocale()` exist.
 | Exercise MT | `src/lib/translate/client.ts`, `cache.ts`, `wgerLanguages.ts` |
 | Import / Wger | `src/lib/wger/importExercise.ts`, `pickTranslation.ts`, `client.ts`, Wger UI components |
 | Types / storage | `src/types/workout.ts`, workout store write paths |
-| High-churn UI | `nav.ts`, `centerNavState.ts`, session/prep/TV, `coachEngine.ts`, `coachVoice.ts` |
+| High-churn UI | `nav.ts`, `centerNavState.ts`, session/prep, `coachEngine.ts`, `coachVoice.ts` |
 | Docs | `ARCHITECTURE.md`, `README.md`, this plan → `docs/i18n.md` when shipped |
 
 ---

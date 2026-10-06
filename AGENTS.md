@@ -4,7 +4,7 @@ Instructions for AI agents and maintainers working in this repo.
 
 ## Product
 
-SOLO. (**SOLO Home training**) is a privacy-first home workout product. **Android** (Kotlin/Compose, planned) is the phone target; optional Android TV via a companion app on LAN. The React/Vite tree remains as UX reference. **iOS is out of scope.** No accounts, no cloud backend. Data stays on-device.
+SOLO. (**SOLO Home training**) is a privacy-first home workout product. **Android** (Kotlin/Compose, planned) is the phone target; **Android TV** companion on LAN is the only TV surface (web `/tv` removed). The React/Vite tree remains as phone UX reference. **iOS is out of scope.** No accounts, no cloud backend. Data stays on-device.
 
 Read first: [README.md](README.md), [ARCHITECTURE.md](ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md).
 
@@ -60,6 +60,7 @@ CI: `.github/workflows/ci.yml` (`npm ci` + build). Deploy Pages: `.github/workfl
 | [ROADMAP.md](ROADMAP.md) | Pillars / next work |
 | [docs/i18n.md](docs/i18n.md) | Locales |
 | [docs/native-android-stack.md](docs/native-android-stack.md) | Compose Android / F-Droid research |
+| [docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md) | Phased build plan + testing / E2E |
 | [docs/RELEASING.md](docs/RELEASING.md) | Tags, GitHub, F-Droid checklist |
 | [PRIVACY.md](PRIVACY.md) | Store / F-Droid privacy text |
 | [SECURITY.md](SECURITY.md) | Reporting + GitHub hardening |

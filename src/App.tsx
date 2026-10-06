@@ -15,7 +15,6 @@ import { PoseLabPage } from '@/pages/PoseLabPage'
 import { SessionPage } from '@/pages/SessionPage'
 import { SessionSummaryPage } from '@/pages/SessionSummaryPage'
 import { SettingsPage } from '@/pages/SettingsPage'
-import { TvPage } from '@/pages/TvPage'
 import { WorkoutEditorPage } from '@/pages/WorkoutEditorPage'
 import { WorkoutPrepPage } from '@/pages/WorkoutPrepPage'
 import { WorkoutSharePage } from '@/pages/WorkoutSharePage'
@@ -29,10 +28,6 @@ export function App() {
   return (
     <BrowserRouter basename={routerBasename}>
       <Routes>
-        {/* TV: passive 4K surface, rendered without the mobile shell */}
-        <Route path="/tv" element={<TvPage />} />
-
-        {/* Mobile app: controller shell with header, drawer and bottom nav */}
         <Route element={<MobileShell />}>
           <Route index element={<HomePage />} />
           <Route path="workouts" element={<WorkoutsPage />} />

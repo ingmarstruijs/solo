@@ -10,7 +10,7 @@ import { useRecoveryScore } from '@/hooks/useRecoveryScore'
 import { useTheme } from '@/hooks/useTheme'
 import { useLocale, useTranslation } from '@/i18n/hooks'
 import type { AppLocale } from '@/i18n/registry'
-import { describeCoachVoice, isCoachVoiceSupported, previewCoachVoice } from '@/lib/tv/coachVoice'
+import { describeCoachVoice, isCoachVoiceSupported, previewCoachVoice } from '@/lib/coach/coachVoice'
 import { cn } from '@/lib/cn'
 
 export function SettingsPage() {

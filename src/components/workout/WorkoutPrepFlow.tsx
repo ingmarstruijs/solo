@@ -1,4 +1,4 @@
-import { Cast, ChevronRight, Heart, Scale, Tv } from 'lucide-react'
+import { Cast, ChevronRight, Heart, Scale } from 'lucide-react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import type { OverloadTarget, WorkoutTemplate } from '@/types/workout'
@@ -135,24 +135,18 @@ export function WorkoutPrepFlow({
 
         <PipelineStage
           step="4"
-          title="Cast naar TV"
-          description="16:9 canvas feed via AirPlay of Chromecast."
+          title="Cast lab"
+          description="Legacy canvas.captureStream experiment (not a product TV path)."
           status="idle"
         >
-          <div className="flex gap-2">
-            <LabActionButton variant="secondary" onClick={() => navigate('/tv')} className="gap-1.5">
-              <Tv className="size-4" />
-              TV verbinden
-            </LabActionButton>
-            <LabActionButton
-              variant="secondary"
-              onClick={() => navigate('/lab/cast-stream')}
-              className="gap-1.5"
-            >
-              <Cast className="size-4" />
-              Cast lab
-            </LabActionButton>
-          </div>
+          <LabActionButton
+            variant="secondary"
+            onClick={() => navigate('/lab/cast-stream')}
+            className="gap-1.5"
+          >
+            <Cast className="size-4" />
+            Cast lab
+          </LabActionButton>
         </PipelineStage>
       </ol>
 

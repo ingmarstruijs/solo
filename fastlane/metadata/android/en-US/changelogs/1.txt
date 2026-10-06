@@ -1,1 +1,1 @@
-Privacy-first home training: locker-aware prep, live session + optional Android TV board, BLE HR, form cues, on-device logbook.
+Privacy-first home training: locker-aware prep, live session, BLE HR, form cues, on-device logbook.

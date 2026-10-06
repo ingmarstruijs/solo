@@ -30,11 +30,11 @@ Features and architecture phases that are **not yet in the product app**, plus p
 |---|---|---|
 | Garmin connected toggle (settings) | **Shipped** | `[garminStore.ts](src/lib/storage/garminStore.ts)` — gates recovery UI |
 | Recovery card on Home | **Shipped** | Shown only when Garmin toggle on; manual slider edits score |
-| Recovery in prep insights + TV strip | **Shipped** | Hidden when Garmin toggle off; slider in prep + settings |
-| Garmin BLE HR (standard 0x180D) | **Shipped** | Product path via `[hrConnection.ts](src/lib/ble/hrConnection.ts)`; lab probe remains |
+| Recovery in prep insights | **Shipped** | Hidden when Garmin toggle off; slider in prep + settings |
+| Garmin BLE HR (standard 0x180D) | **Shipped** | Product path via `[hrConnection.ts](src/lib/ble/hrConnection.ts)`; lab probe remains; native Android BLE planned |
 | Connect IQ companion bridge (reps, velocity) | **Next** | Requires native companion or CIQ data channel |
-| Live HR in session UI | **Shipped** | BLE BPM on session/prep control bar + TV strip; mock % fallback without band |
-| Live rep counter on TV | **Next** | Oversized rep HUD in canvas composite |
+| Live HR in session UI | **Shipped** | BLE BPM on session/prep control bar; mock % fallback without band |
+| Live HR + rep counter on Android TV | **Next** | HUD driven by phone↔TV contracts ([ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md)) |
 | Velocity-based fatigue detection | **Next** | >35% velocity drop trigger |
 
 ---
@@ -45,19 +45,17 @@ Features and architecture phases that are **not yet in the product app**, plus p
 
 | Item | Status | Notes |
 |---|---|---|
-| Passive TV receiver (`/tv`) via BroadcastChannel | **Shipped** | Session, prep, summary, idle modes |
-| TV connect / disconnect with receiver handshake | **Shipped** | Ping/pong over control channel |
-| Exercise icons + gradient visuals on TV | **Shipped** | `[exerciseMedia.ts](src/lib/tv/exerciseMedia.ts)` |
-| Exercise info modal on phone (prep + session) | **Shipped** | `[ExerciseVisualMobile](src/components/workout/ExerciseVisualMobile.tsx)` — same asset logic as TV |
+| Web `/tv` + BroadcastChannel receiver | **Removed** | Replaced by planned Android TV Compose app |
+| Exercise icons on phone | **Shipped** | `[exerciseMedia.ts](src/lib/exercise/exerciseMedia.ts)` |
+| Exercise info modal on phone (prep + session) | **Shipped** | `[ExerciseVisualMobile](src/components/workout/ExerciseVisualMobile.tsx)` |
 | Front-camera preview in session | **Shipped** | Toggle in session; preference in `[sessionUiStore](src/lib/storage/sessionUiStore.ts)` |
-| Cast tab to TV (AirPlay / Chromecast) | Partial | User opens `/tv` and casts browser tab manually |
+| Android TV companion (phone-controlled LAN) | **Next** | See [docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md) |
 | MediaPipe Pose Landmarker (Wasm/GPU) | **Shipped** | Session camera preview + `/lab/pose`; lite model via `[poseEngine.ts](src/lib/pose/poseEngine.ts)` |
 | Form deviation cues (knee valgus, lumbar flexion) | **Shipped** | Advisory cues in camera preview; toggleable; not diagnosis |
 | Curated licensed exercise video loops | **Next** | Verify CC-BY / project-owned assets; Wger media where license metadata allows |
 | Velocity overlay on barbell/dumbbell | **Next** | Canvas vector tracking |
 | 16:9 canvas compositor (loop + skeleton + HUD) | Lab | `[/lab/canvas-composite](src/pages/CanvasCompositeLabPage.tsx)` |
-| `canvas.captureStream` pipeline | Lab | `[/lab/cast-stream](src/pages/CastStreamLabPage.tsx)` |
-| Guaranteed low-latency cast | Research | Browser and device dependent |
+| `canvas.captureStream` pipeline | Lab | `[/lab/cast-stream](src/pages/CastStreamLabPage.tsx)` — not a product TV path |
 
 ---
 
@@ -71,7 +69,7 @@ Features and architecture phases that are **not yet in the product app**, plus p
 | Rest countdown voice (last 5 s) | **Shipped** | `[useRestCoach](src/hooks/useRestCoach.ts)` |
 | Coach style matrix (Screamer / Mid-Line / Ambient) | Out of scope | Single calm coach for now |
 | Strain-triggered coach (velocity drop + HR threshold) | Partial | Live HR ≥85% max triggers calm coach line (90s cooldown); velocity still needs Connect IQ |
-| Screen edge visual feedback on strain | **Shipped** | Warn edge pulse on phone session + TV when HR strain is active |
+| Screen edge visual feedback on strain | **Shipped** | Warn edge pulse on phone session when HR strain is active; Android TV parity later |
 
 ---
 
@@ -153,20 +151,22 @@ Current integrated lab slices:
 ### Phase A — Sensors (Garmin + recovery)
 
 - [x] Manual recovery slider (Home / Settings / Prep)
-- [x] Live BLE HR in session control bar and on TV
-- [x] Sensor strip prefers live BPM (mock % fallback; velocity still mock)
-- [ ] Health API recovery ingestion (Apple Health / Health Connect)
+- [x] Live BLE HR in session control bar (web reference)
+- [ ] Native BLE HR on Android phone + optional push to Android TV HUD
+- [ ] Health Connect recovery ingestion (`full` / FOSS-check later)
 
 ### Phase B — Vision (pose + loops)
 
 - [x] MediaPipe in session camera preview (lite model, graceful degrade)
 - [x] Form cue overlay (knee valgus + forward collapse; advisory)
-- Licensed exercise loops on TV (beyond icon placeholders)
+- [ ] Licensed exercise loops on Android TV (beyond icon placeholders)
 
-### Phase C — Cast composite (Pillar 3)
+### Phase C — Android TV companion (Pillar 3)
 
-- Promote canvas compositor from lab to optional TV mode
-- Evaluate AirPlay/Chromecast latency on target devices
+- [ ] Pairing + WebSocket contracts (phone dials, TV listens)
+- [ ] Compose TV HUD (session / rest / summary)
+- Labs cast/canvas pages stay experiments — not a product TV path
+- Cast/`full` flavor only if needed later; not required for `foss`
 
 ### Phase D — Intelligence & share (Pillar 5)
 
@@ -179,6 +179,6 @@ See **[docs/i18n.md](docs/i18n.md)** and **[docs/i18n-plan.md](docs/i18n-plan.md
 
 - [x] Locale foundation (`i18next`, `solo-locale`, Settings switcher; EN default)
 - [x] Exercise translation service: target app locale; `descriptionByLocale` + re-resolve on switch
-- [x] UI string extraction (nav, session/prep, settings, Wger, coach/TTS, locker, home, history, themes, TV, labs hub, workout editor)
+- [x] UI string extraction (nav, session/prep, settings, Wger, coach/TTS, locker, home, history, themes, labs hub, workout editor)
 - [x] Contribution path for future locales (`registry.ts` + JSON catalogs)
 - [x] Labs stay English-only (hub + lab pages; not localized)

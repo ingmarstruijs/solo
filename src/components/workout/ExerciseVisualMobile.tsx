@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { WorkoutExercise } from '@/types/workout'
-import { resolveExerciseVisual } from '@/lib/tv/exerciseMedia'
+import { resolveExerciseVisual } from '@/lib/exercise/exerciseMedia'
 import { cn } from '@/lib/cn'
 
 type ExerciseVisualMobileProps = {
