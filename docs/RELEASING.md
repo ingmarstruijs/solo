@@ -18,7 +18,7 @@ Both phone and TV APKs share the same `versionName` / `versionCode` for a given 
 
 | Channel | GitHub tag | `versionName` | `versionCode` | GitHub Release |
 | --- | --- | --- | --- | --- |
-| **Preview** (early) | floating `preview` | `0.1.0-dev.<N>` | `N` = Actions `run_number` | Pre-release; APK names stay `solo-preview-foss.apk` / `solo-tv-preview-foss.apk` |
+| **Preview** (early) | floating `preview` (recreated each build) | `0.1.0-dev.<N>` | `N` = Actions `run_number` | Pre-release; APKs `solo-0.1.0-dev.<N>-foss.apk` / `solo-tv-0.1.0-dev.<N>-foss.apk` |
 | **Milestone** | `v0.1.0-android.N` (or `vX.Y.Z-rc.N`) | tag without `v` | Actions `run_number` | Pre-release (`v*-phone` / `v*-tv`) |
 | **Production** | `vX.Y.Z` (no `-` suffix) | `X.Y.Z` | Actions `run_number` | Full release (`v*-phone` / `v*-tv`) |
 
@@ -36,21 +36,21 @@ Manual dispatch may pass a custom `version` input as `versionName`; channel stay
 Workflow: [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml).
 
 1. Merge Android work to `main` (or run **Build & Sign Android** → `workflow_dispatch`).
-2. CI publishes / updates the floating pre-release tag **`preview`** with:
-   - `solo-preview-foss.apk` — phone (`net.moonbaseone.solo`)
-   - `solo-tv-preview-foss.apk` — Android TV (`net.moonbaseone.solo.tv`)
+2. CI **deletes and recreates** the floating pre-release **`preview`** (new GitHub release id + `publishedAt`) with versioned APKs:
+   - `solo-0.1.0-dev.<N>-foss.apk` — phone (`net.moonbaseone.solo`)
+   - `solo-tv-0.1.0-dev.<N>-foss.apk` — Android TV (`net.moonbaseone.solo.tv`)
    - `sha256.txt`
-   - APK metadata: `versionName=0.1.0-dev.<run_number>`, `versionCode=<run_number>`
+   - APK metadata: `versionName=0.1.0-dev.<N>`, `versionCode=<N>` (`N` = Actions `run_number`)
 3. On the phone (and TV box), add the repo in Obtainium:
 
 | Setting | Value |
 | --- | --- |
 | Source | `https://github.com/ingmarstruijs/SOLO` (this repo) |
 | Include pre-releases | **On** (required for `preview`) |
-| APK filter (phone) | `solo-preview-foss\.apk` |
-| APK filter (TV) | `solo-tv-preview-foss\.apk` |
+| APK filter (phone) | `^solo-[0-9].*-foss\.apk$` |
+| APK filter (TV) | `^solo-tv-[0-9].*-foss\.apk$` |
 
-Use **two** Obtainium entries (one phone, one TV) so each app tracks the matching APK.
+Use **two** Obtainium entries (one phone, one TV) so each app tracks the matching APK. Overwriting the same asset on one long-lived release does **not** notify Obtainium — that is why preview recreates the release and versions the filename.
 
 Milestone early builds can also use annotated tags like `v0.1.0-android.1` (GitHub **pre-release** because of the `-` suffix). Obtainium still needs “include pre-releases”.
 
@@ -97,8 +97,8 @@ Only after Android `foss` APKs + Byte-RB tooling are real:
 ## Verify release APKs
 
 ```bash
-sha256sum solo-preview-foss.apk
-keytool -printcert -jarfile solo-preview-foss.apk
+sha256sum solo-0.1.0-dev.*.apk
+keytool -printcert -jarfile solo-0.1.0-dev.*.apk
 ```
 
 F-Droid APKs (when they exist) use a **different** certificate than GitHub Releases.
