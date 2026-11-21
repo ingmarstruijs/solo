@@ -105,6 +105,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":contracts"))
+
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)

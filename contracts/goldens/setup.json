@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "mode": "setup",
+  "theme": "midnight",
+  "workoutName": "Push A",
+  "exerciseCount": 6,
+  "materials": [
+    { "id": "m1", "category": "barbell", "label": "Barbell + 40 kg" },
+    { "id": "m2", "category": "dumbbell", "label": "Dumbbells 16 kg" }
+  ],
+  "garminConnected": true,
+  "recoveryScore": 72,
+  "updatedAt": "2026-11-21T12:02:00.000Z"
+}
