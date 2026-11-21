@@ -12,6 +12,25 @@
 
 Agents: follow this file. Stack: [`docs/native-android-stack.md`](native-android-stack.md). Android plan: [`docs/ANDROID_DEVELOPMENT_PLAN.md`](ANDROID_DEVELOPMENT_PLAN.md).
 
+## Version numbering (SemVer + Android)
+
+Both phone and TV APKs share the same `versionName` / `versionCode` for a given build (injected via `-PsoloVersionName` / `-PsoloVersionCode`; see `apps/versioning.gradle.kts`).
+
+| Channel | GitHub tag | `versionName` | `versionCode` | GitHub Release |
+| --- | --- | --- | --- | --- |
+| **Preview** (early) | floating `preview` | `0.1.0-dev.<N>` | `N` = Actions `run_number` | Pre-release; APK names stay `solo-preview-foss.apk` / `solo-tv-preview-foss.apk` |
+| **Milestone** | `v0.1.0-android.N` (or `vX.Y.Z-rc.N`) | tag without `v` | Actions `run_number` | Pre-release (`v*-phone` / `v*-tv`) |
+| **Production** | `vX.Y.Z` (no `-` suffix) | `X.Y.Z` | Actions `run_number` | Full release (`v*-phone` / `v*-tv`) |
+
+Rules:
+
+- **`versionCode` always increases** (CI run number) so Obtainium and PackageManager treat the build as newer.
+- **`versionName` is SemVer**: anything after the first `-` is a pre-release (`0.1.0-dev.12` < `0.1.0` < `1.0.0`).
+- Local builds without `-P` default to `versionName=0.1.0-dev.0`, `versionCode=1`.
+- First public/F-Droid line: prefer `v1.0.0` (or `v0.9.0` if you want to signal “not 1.0 yet”).
+
+Manual dispatch may pass a custom `version` input as `versionName`; channel stays `preview` and `versionCode` is still the run number.
+
 ## Early Android installs (Obtainium) — preferred while building PR B→H
 
 Workflow: [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml).
@@ -21,6 +40,7 @@ Workflow: [`.github/workflows/build-release.yml`](../.github/workflows/build-rel
    - `solo-preview-foss.apk` — phone (`net.moonbaseone.solo`)
    - `solo-tv-preview-foss.apk` — Android TV (`net.moonbaseone.solo.tv`)
    - `sha256.txt`
+   - APK metadata: `versionName=0.1.0-dev.<run_number>`, `versionCode=<run_number>`
 3. On the phone (and TV box), add the repo in Obtainium:
 
 | Setting | Value |

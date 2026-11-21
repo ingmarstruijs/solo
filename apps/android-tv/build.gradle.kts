@@ -6,6 +6,11 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+apply(from = rootProject.file("versioning.gradle.kts"))
+
+val soloVersionCode: Int by extra
+val soloVersionName: String by extra
+
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 if (keystorePropertiesFile.exists()) {
@@ -30,8 +35,8 @@ android {
         applicationId = "net.moonbaseone.solo.tv"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0-android.0"
+        versionCode = soloVersionCode
+        versionName = soloVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

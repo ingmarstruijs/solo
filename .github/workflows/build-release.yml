@@ -36,6 +36,8 @@ jobs:
         working-directory: apps
     outputs:
       version: ${{ steps.version.outputs.version }}
+      version_code: ${{ steps.version.outputs.version_code }}
+      version_name: ${{ steps.version.outputs.version_name }}
       channel: ${{ steps.version.outputs.channel }}
       signed: ${{ steps.keystore.outputs.signed }}
       phone_apk: ${{ steps.stage.outputs.phone_apk }}
@@ -73,24 +75,33 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           set -euo pipefail
+          # versionCode is always the monotonically increasing Actions run number
+          # so Obtainium / PackageManager always see a newer APK.
+          VERSION_CODE="${{ github.run_number }}"
+
           if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
+            # Manual dispatch: optional SemVer-ish label; still preview channel.
+            VERSION_NAME="${{ github.event.inputs.version }}"
             CHANNEL="preview"
           elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/v}"
-            # SemVer pre-release (contains '-') → GitHub pre-release for Obtainium early track
-            if [[ "$VERSION" == *-* ]]; then
+            VERSION_NAME="${GITHUB_REF#refs/tags/v}"
+            # SemVer pre-release (contains '-') → GitHub pre-release (milestone)
+            if [[ "$VERSION_NAME" == *-* ]]; then
               CHANNEL="prerelease"
             else
               CHANNEL="stable"
             fi
           else
-            VERSION="preview-${GITHUB_SHA::7}"
+            # Floating preview on main: 0.1.0-dev.<run_number>
+            VERSION_NAME="0.1.0-dev.${VERSION_CODE}"
             CHANNEL="preview"
           fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          echo "version=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
-          echo "Resolved version=$VERSION channel=$CHANNEL"
+          echo "Resolved versionName=$VERSION_NAME versionCode=$VERSION_CODE channel=$CHANNEL"
 
       - name: Decode keystore
         id: keystore
@@ -133,7 +144,11 @@ jobs:
             > apps/keystore.properties
 
       - name: Assemble fossRelease (phone + TV)
-        run: ./gradlew :android:assembleFossRelease :android-tv:assembleFossRelease --stacktrace
+        run: >
+          ./gradlew :android:assembleFossRelease :android-tv:assembleFossRelease
+          -PsoloVersionCode=${{ steps.version.outputs.version_code }}
+          -PsoloVersionName=${{ steps.version.outputs.version_name }}
+          --stacktrace
 
       - name: Stage versioned APKs
         working-directory: ${{ github.workspace }}
@@ -229,7 +244,8 @@ jobs:
 
       - name: Build release notes
         env:
-          VERSION: ${{ needs.build.outputs.version }}
+          VERSION: ${{ needs.build.outputs.version_name }}
+          VERSION_CODE: ${{ needs.build.outputs.version_code }}
           CHANNEL: ${{ needs.build.outputs.channel }}
           PHONE_APK: ${{ needs.build.outputs.phone_apk }}
           TV_APK: ${{ needs.build.outputs.tv_apk }}
@@ -241,16 +257,18 @@ jobs:
               echo "## SOLO preview (early Android)"
               echo
               echo "Rolling pre-release for device testing via **Obtainium**."
-              echo "Build label: \`${VERSION}\`. Not an F-Droid build."
+              echo "\`versionName=${VERSION}\` · \`versionCode=${VERSION_CODE}\`. Not an F-Droid build."
               echo "Asset names stay stable so Obtainium can overwrite-update."
             elif [ "$CHANNEL" = "prerelease" ]; then
               echo "## SOLO ${VERSION} (pre-release)"
               echo
               echo "Milestone Android build for Obtainium (enable Include pre-releases)."
+              echo "\`versionName=${VERSION}\` · \`versionCode=${VERSION_CODE}\`."
             else
               echo "## SOLO ${VERSION}"
               echo
-              echo "GitHub Release APKs for phone + Android TV (\`foss\`)."
+              echo "Production GitHub Release APKs for phone + Android TV (\`foss\`)."
+              echo "\`versionName=${VERSION}\` · \`versionCode=${VERSION_CODE}\`."
             fi
             echo
             echo "### APKs"
@@ -293,7 +311,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}-phone
-          name: SOLO ${{ needs.build.outputs.version }} (phone)
+          name: SOLO ${{ needs.build.outputs.version_name }} (phone)
           prerelease: ${{ needs.build.outputs.channel == 'prerelease' }}
           body_path: release-notes.md
           files: |
@@ -307,7 +325,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}-tv
-          name: SOLO ${{ needs.build.outputs.version }} (TV)
+          name: SOLO ${{ needs.build.outputs.version_name }} (TV)
           prerelease: ${{ needs.build.outputs.channel == 'prerelease' }}
           body_path: release-notes.md
           files: |
