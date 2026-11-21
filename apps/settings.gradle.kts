@@ -19,7 +19,9 @@ rootProject.name = "solo"
 include(":android")
 include(":android-tv")
 include(":contracts")
+include(":transport")
 
 project(":android").projectDir = file("android")
 project(":android-tv").projectDir = file("android-tv")
 project(":contracts").projectDir = file("contracts")
+project(":transport").projectDir = file("transport")

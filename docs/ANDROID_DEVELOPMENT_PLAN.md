@@ -88,7 +88,7 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 **Gate:** assemble both apps; no GMS on `foss` classpath; preview APKs installable via Obtainium.
 
-### Phase 2 — Contracts + codecs
+### Phase 2 — Contracts + codecs — **Done** (PR C)
 
 - Author `contracts/tv-messages.schema.json` + goldens (`idle`, `prep`, `setup`, `session`, `summary`, `rest`).
 - Kotlin codecs in `apps/contracts` (`schemaVersion`, reject unknowns); phone + TV depend on `:contracts`.
@@ -98,11 +98,12 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 ### Phase 3 — Transport + pairing (slice A)
 
-- TV listens (WebSocket); phone dials; QR/code payload `{host,port,nonce,schemaVersion}`.
+- `apps/transport`: pair payload `{host,port,nonce,schemaVersion}`, hello/welcome handshake, fake duplex + OkHttp/Java-WebSocket.
+- TV listens (WebSocket); phone dials; on-screen pair code + payload JSON (QR later).
 - mDNS optional later.
 - Phone UX: pair sheet only (no web fallback).
 
-**Gate:** fake-socket unit tests; emulator pair smoke E2E.
+**Gate:** fake-socket unit tests; emulator pair smoke E2E (PR E).
 
 ### Phase 4 — BLE HR (phone)
 
@@ -186,8 +187,8 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 | --- | --- | --- | --- |
 | A | Docs + web `/tv` removal | 0 | **Done** |
 | B | Android Gradle skeleton + GitHub/`preview` Obtainium releases | 1 | **Done** |
-| C | Contracts + codecs | 2 | **This PR** |
-| D | Pairing + WebSocket | 3 | |
+| C | Contracts + codecs | 2 | **Done** (stack parent) |
+| D | Pairing + WebSocket | 3 | **This PR** |
 | E | E2E pair smoke | 3 | |
 | F | BLE + fakes | 4 | |
 | G | TV HUD | 5 | |
@@ -199,4 +200,4 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 ## Immediate next step
 
-After PR C merges: **PR D** — TV listens / phone dials (WebSocket pairing + schemaVersion in pair payload).
+After PR D merges: **PR E** — emulator pair smoke E2E (phone dials TV, idle message lands).

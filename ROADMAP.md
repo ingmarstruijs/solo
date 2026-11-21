@@ -163,7 +163,7 @@ Current integrated lab slices:
 
 ### Phase C — Android TV companion (Pillar 3)
 
-- [ ] Pairing + WebSocket contracts (phone dials, TV listens)
+- [ ] Pairing + WebSocket (phone dials, TV listens) — in progress (PR D)
 - [ ] Compose TV HUD (session / rest / summary)
 - Labs cast/canvas pages stay experiments — not a product TV path
 - Cast/`full` flavor only if needed later; not required for `foss`
