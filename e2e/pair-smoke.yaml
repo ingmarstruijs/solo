@@ -1,0 +1,15 @@
+# Local Maestro scaffold — phone pair sheet smoke.
+# Full phone↔TV handshake stays manual / future dual-AVD CI.
+appId: net.moonbaseone.solo.debug
+---
+- launchApp
+- assertVisible:
+    id: pair_host
+- assertVisible:
+    id: pair_port
+- assertVisible:
+    id: pair_code
+- assertVisible:
+    id: pair_connect
+- assertVisible:
+    id: pair_status

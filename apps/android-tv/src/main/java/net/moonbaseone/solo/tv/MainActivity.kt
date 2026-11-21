@@ -16,6 +16,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -144,21 +147,34 @@ fun SoloTvShell(
                 text = pairCode,
                 style = MaterialTheme.typography.displayLarge,
                 color = Color(0xFFE8EEF5),
+                modifier =
+                    Modifier
+                        .testTag("tv_pair_code")
+                        .semantics { contentDescription = "Pair code $pairCode" },
             )
             Text(
                 text = "$host:$DEFAULT_TV_WS_PORT",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color(0xFF9AA7B5),
+                modifier = Modifier.testTag("tv_host_port"),
             )
             Text(
                 text = status,
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color(0xFF6B7785),
+                modifier =
+                    Modifier
+                        .testTag("tv_status")
+                        .semantics { contentDescription = status },
             )
             Text(
                 text = "Last message: $lastMode",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF6B7785),
+                modifier =
+                    Modifier
+                        .testTag("tv_last_mode")
+                        .semantics { contentDescription = "Last message: $lastMode" },
             )
             Text(
                 text = BuildConfig.FLAVOR + " · " + BuildConfig.VERSION_NAME,

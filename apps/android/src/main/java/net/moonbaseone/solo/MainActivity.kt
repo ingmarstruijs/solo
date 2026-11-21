@@ -24,6 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -137,7 +140,10 @@ fun SoloShell(
             onValueChange = { host = it },
             label = { Text("TV host (LAN IP)") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .testTag("pair_host"),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
         )
         Spacer(Modifier.height(8.dp))
@@ -146,7 +152,10 @@ fun SoloShell(
             onValueChange = { portText = it.filter { ch -> ch.isDigit() }.take(5) },
             label = { Text("Port") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .testTag("pair_port"),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
         Spacer(Modifier.height(8.dp))
@@ -155,7 +164,10 @@ fun SoloShell(
             onValueChange = { code = it.filter { ch -> ch.isLetterOrDigit() }.take(6).uppercase() },
             label = { Text("Pair code") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .testTag("pair_code"),
             keyboardOptions =
                 KeyboardOptions(
                     capitalization = KeyboardCapitalization.Characters,
@@ -180,7 +192,10 @@ fun SoloShell(
                 }
             },
             enabled = host.isNotBlank() && code.length == 6,
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .testTag("pair_connect"),
         ) {
             Text("Connect")
         }
@@ -192,14 +207,19 @@ fun SoloShell(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(top = 8.dp)
+                    .testTag("pair_disconnect"),
         ) {
             Text("Disconnect")
         }
         Text(
             text = status,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 24.dp),
+            modifier =
+                Modifier
+                    .padding(top = 24.dp)
+                    .testTag("pair_status")
+                    .semantics { contentDescription = status },
         )
     }
 }

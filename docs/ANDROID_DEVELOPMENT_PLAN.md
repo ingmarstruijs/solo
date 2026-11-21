@@ -96,14 +96,16 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 **Gate:** JVM encode/decode all goldens; version bump required on breaking change.
 
-### Phase 3 — Transport + pairing (slice A)
+### Phase 3 — Transport + pairing (slice A) — **Done** (PR D + E)
 
 - `apps/transport`: pair payload `{host,port,nonce,schemaVersion}`, hello/welcome handshake, fake duplex + OkHttp/Java-WebSocket.
 - TV listens (WebSocket); phone dials; on-screen pair code + payload JSON (QR later).
+- CI pair smoke: fake sockets **and** real loopback OkHttp ↔ Java-WebSocket (`RealWebSocketPairingSmokeTest`).
+- Maestro scaffold under `e2e/` for local dual-emulator; full dual-AVD CI later.
 - mDNS optional later.
 - Phone UX: pair sheet only (no web fallback).
 
-**Gate:** fake-socket unit tests; emulator pair smoke E2E (PR E).
+**Gate:** fake + real loopback pair smoke green in CI; Maestro dual-emulator optional locally.
 
 ### Phase 4 — BLE HR (phone)
 
@@ -187,9 +189,9 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 | --- | --- | --- | --- |
 | A | Docs + web `/tv` removal | 0 | **Done** |
 | B | Android Gradle skeleton + GitHub/`preview` Obtainium releases | 1 | **Done** |
-| C | Contracts + codecs | 2 | **Done** (stack parent) |
-| D | Pairing + WebSocket | 3 | **This PR** |
-| E | E2E pair smoke | 3 | |
+| C | Contracts + codecs | 2 | **Done** |
+| D | Pairing + WebSocket | 3 | **Done** |
+| E | E2E pair smoke (loopback WS + Maestro scaffold) | 3 | **This PR** |
 | F | BLE + fakes | 4 | |
 | G | TV HUD | 5 | |
 | H… | Phone UI slices | 6 | |
@@ -200,4 +202,4 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 ## Immediate next step
 
-After PR D merges: **PR E** — emulator pair smoke E2E (phone dials TV, idle message lands).
+After PR E merges: **PR F** — BLE HR client + fakes on the phone.
