@@ -39,8 +39,22 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
+        run: |
+          set -euo pipefail
+          : "${ANDROID_HOME:?ANDROID_HOME missing on runner}"
+          mkdir -p "$ANDROID_HOME/licenses"
+          printf '%s\n' \
+            '24333f8a63b6825ea9c5514f83c2829b004d1fee' \
+            > "$ANDROID_HOME/licenses/android-sdk-license"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            || "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" \
+              "platform-tools" \
+              "platforms;android-35" \
+              "build-tools;35.0.0"
 
       - name: Unit smoke tests
         run: ./gradlew :android:testFossDebugUnitTest :android-tv:testFossDebugUnitTest --stacktrace
