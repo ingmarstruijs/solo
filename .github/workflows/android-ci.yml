@@ -1,0 +1,75 @@
+name: Android CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - '.github/workflows/android-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - '.github/workflows/android-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  assemble-foss-debug:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Android SDK packages
+        run: |
+          set -euo pipefail
+          : "${ANDROID_HOME:?ANDROID_HOME missing on runner}"
+          mkdir -p "$ANDROID_HOME/licenses"
+          printf '%s\n' \
+            '24333f8a63b6825ea9c5514f83c2829b004d1fee' \
+            > "$ANDROID_HOME/licenses/android-sdk-license"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            || "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" \
+              "platform-tools" \
+              "platforms;android-35" \
+              "build-tools;35.0.0"
+
+      - name: Unit smoke tests
+        run: ./gradlew :android:testFossDebugUnitTest :android-tv:testFossDebugUnitTest --stacktrace
+
+      - name: Assemble fossDebug (phone + TV)
+        run: ./gradlew :android:assembleFossDebug :android-tv:assembleFossDebug --stacktrace
+
+      - name: Assert no GMS on foss classpath
+        run: |
+          set -euo pipefail
+          REPORT=$(find . -path '*/fossDebug*dependencies*.txt' -o -path '*/reports/configuration-cache/*' 2>/dev/null | head -1 || true)
+          ./gradlew :android:dependencies --configuration fossDebugRuntimeClasspath > /tmp/phone-deps.txt
+          ./gradlew :android-tv:dependencies --configuration fossDebugRuntimeClasspath > /tmp/tv-deps.txt
+          if grep -Eim1 'play-services|firebase-bom|com\.google\.android\.gms|cast-framework' /tmp/phone-deps.txt /tmp/tv-deps.txt; then
+            echo "::error::GMS/Cast dependency found on foss classpath"
+            exit 1
+          fi
+          echo "foss classpath clean (no GMS/Cast)"

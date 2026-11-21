@@ -100,13 +100,21 @@ User flows, system diagrams, data stores, and project layout: **[ARCHITECTURE.md
 - [SECURITY.md](SECURITY.md) — reporting + GitHub hardening
 - [CHANGELOG.md](CHANGELOG.md) — Keep a Changelog + store notes
 
-## Android / F-Droid (planned)
+## Android (Compose) + Obtainium
 
-Kotlin + Jetpack Compose on **Android phone + Android TV** (phone controls TV on LAN). GitHub Releases + F-Droid (`foss`). **iOS dropped.** React/Vite is reference only.
+Kotlin + Jetpack Compose on **Android phone + Android TV** (phone controls TV on LAN). **iOS dropped.** React/Vite is reference only.
+
+Early device installs: **GitHub Releases + Obtainium** (floating `preview` pre-release on `main`). F-Droid/`foss` Byte-RB comes later for store listing.
+
+```bash
+cd apps
+./gradlew :android:assembleFossDebug :android-tv:assembleFossDebug
+```
 
 - Stack research: **[docs/native-android-stack.md](docs/native-android-stack.md)**
-- Release process: **[docs/RELEASING.md](docs/RELEASING.md)**
-- F-Droid kit: **[metadata/FDROID_SUBMISSION.md](metadata/FDROID_SUBMISSION.md)**
+- Release + Obtainium: **[docs/RELEASING.md](docs/RELEASING.md)**
+- Development plan: **[docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md)**
+- F-Droid kit (later): **[metadata/FDROID_SUBMISSION.md](metadata/FDROID_SUBMISSION.md)**
 - Agents: **[AGENTS.md](AGENTS.md)**
 
 ## License

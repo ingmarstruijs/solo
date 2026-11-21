@@ -1,0 +1,11 @@
+// Shared by :android and :android-tv.
+// Override from CI: -PsoloVersionCode=N -PsoloVersionName=X.Y.Z
+//
+// Convention (see docs/RELEASING.md):
+//   preview (main / workflow_dispatch): versionName = 0.1.0-dev.<N>, versionCode = N (CI run)
+//   milestone tag v0.1.0-android.N:     versionName from tag, versionCode = CI run
+//   production tag vX.Y.Z:              versionName = X.Y.Z, versionCode = CI run
+// Local defaults keep installs working without CI props.
+
+extra["soloVersionCode"] = (findProperty("soloVersionCode") as String?)?.toIntOrNull() ?: 1
+extra["soloVersionName"] = (findProperty("soloVersionName") as String?) ?: "0.1.0-dev.0"
