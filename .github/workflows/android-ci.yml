@@ -61,7 +61,7 @@ jobs:
       - name: Contract codecs (JVM goldens)
         run: ./gradlew :contracts:test --stacktrace
 
-      - name: Transport pairing (fake sockets)
+      - name: Transport pair smoke (fake + real loopback WS)
         run: ./gradlew :transport:test --stacktrace
 
       - name: Unit smoke tests
