@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "mode": "session",
+  "theme": "midnight",
+  "connected": true,
+  "workoutName": "Push A",
+  "exerciseIndex": 1,
+  "exerciseName": "Bench press",
+  "exerciseKind": "compound",
+  "metric": "reps",
+  "equipment": ["barbell"],
+  "icon": "barbell",
+  "exerciseDescription": "Flat bench barbell press",
+  "nextExerciseName": "Overhead press",
+  "completedCount": 1,
+  "totalExercises": 6,
+  "setIndex": 2,
+  "totalSets": 4,
+  "phaseLabel": "Main",
+  "progressPercent": 35.5,
+  "completedSlots": 5,
+  "totalSlots": 14,
+  "targetLabel": "8 reps · 60 kg",
+  "weightKg": 60,
+  "recoveryScore": 72,
+  "sensor": {
+    "cameraEnabled": false,
+    "garminConnected": true,
+    "heartRateLive": true,
+    "heartRateBpm": 128,
+    "velocityDropPercent": 0,
+    "heartRatePercentMax": 68.4
+  },
+  "coachEnabled": true,
+  "rest": {
+    "active": false,
+    "endsAt": null,
+    "totalSeconds": 0
+  },
+  "exerciseStartedAt": "2026-11-21T12:05:10.000Z",
+  "exerciseTimerActive": true,
+  "updatedAt": "2026-11-21T12:05:12.000Z"
+}

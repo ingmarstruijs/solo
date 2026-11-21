@@ -1,0 +1,368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ingmarstruijs/solo/contracts/tv-messages.schema.json",
+  "title": "SOLO TvMessage",
+  "description": "Phone → Android TV HUD state. schemaVersion must match both apps.",
+  "oneOf": [
+    { "$ref": "#/$defs/idle" },
+    { "$ref": "#/$defs/prep" },
+    { "$ref": "#/$defs/setup" },
+    { "$ref": "#/$defs/session" },
+    { "$ref": "#/$defs/summary" }
+  ],
+  "$defs": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Bump on breaking field/mode changes."
+    },
+    "themeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "isoDateTime": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sensor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cameraEnabled",
+        "garminConnected",
+        "heartRateLive",
+        "heartRateBpm",
+        "velocityDropPercent",
+        "heartRatePercentMax"
+      ],
+      "properties": {
+        "cameraEnabled": { "type": "boolean" },
+        "garminConnected": { "type": "boolean" },
+        "heartRateLive": { "type": "boolean" },
+        "heartRateBpm": { "type": ["integer", "null"] },
+        "velocityDropPercent": { "type": "number" },
+        "heartRatePercentMax": { "type": "number" }
+      }
+    },
+    "rest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active", "endsAt", "totalSeconds"],
+      "properties": {
+        "active": { "type": "boolean" },
+        "endsAt": { "type": ["string", "null"] },
+        "totalSeconds": { "type": "integer", "minimum": 0 },
+        "afterExerciseName": { "type": "string" },
+        "kind": { "type": "string", "enum": ["exercise", "phase"] },
+        "phaseLabel": { "type": "string" },
+        "completedPhase": { "type": "integer" },
+        "nextExerciseName": { "type": "string" },
+        "nextExerciseTarget": { "type": "string" }
+      }
+    },
+    "idle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "mode", "theme", "updatedAt"],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
+        "mode": { "const": "idle" },
+        "theme": { "$ref": "#/$defs/themeId" },
+        "updatedAt": { "$ref": "#/$defs/isoDateTime" }
+      }
+    },
+    "prepWorkout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "exerciseCount"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "exerciseCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "prep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "mode",
+        "theme",
+        "workouts",
+        "garminConnected",
+        "updatedAt"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
+        "mode": { "const": "prep" },
+        "theme": { "$ref": "#/$defs/themeId" },
+        "workouts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/prepWorkout" }
+        },
+        "garminConnected": { "type": "boolean" },
+        "recoveryScore": { "type": "number" },
+        "updatedAt": { "$ref": "#/$defs/isoDateTime" }
+      }
+    },
+    "setupMaterial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "label"],
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string" },
+        "label": { "type": "string" }
+      }
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "mode",
+        "theme",
+        "workoutName",
+        "exerciseCount",
+        "materials",
+        "garminConnected",
+        "updatedAt"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
+        "mode": { "const": "setup" },
+        "theme": { "$ref": "#/$defs/themeId" },
+        "workoutName": { "type": "string" },
+        "exerciseCount": { "type": "integer", "minimum": 0 },
+        "materials": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/setupMaterial" }
+        },
+        "garminConnected": { "type": "boolean" },
+        "recoveryScore": { "type": "number" },
+        "updatedAt": { "$ref": "#/$defs/isoDateTime" }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "mode",
+        "theme",
+        "connected",
+        "workoutName",
+        "exerciseIndex",
+        "exerciseName",
+        "completedCount",
+        "totalExercises",
+        "setIndex",
+        "totalSets",
+        "phaseLabel",
+        "progressPercent",
+        "completedSlots",
+        "totalSlots",
+        "targetLabel",
+        "sensor",
+        "coachEnabled",
+        "rest",
+        "updatedAt"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
+        "mode": { "const": "session" },
+        "theme": { "$ref": "#/$defs/themeId" },
+        "connected": { "type": "boolean" },
+        "workoutName": { "type": "string" },
+        "exerciseIndex": { "type": "integer", "minimum": 0 },
+        "exerciseName": { "type": "string" },
+        "exerciseKind": { "type": "string" },
+        "metric": { "type": "string" },
+        "equipment": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "icon": { "type": "string" },
+        "exerciseDescription": { "type": "string" },
+        "nextExerciseName": { "type": "string" },
+        "completedCount": { "type": "integer", "minimum": 0 },
+        "totalExercises": { "type": "integer", "minimum": 0 },
+        "setIndex": { "type": "integer", "minimum": 0 },
+        "totalSets": { "type": "integer", "minimum": 0 },
+        "phaseLabel": { "type": "string" },
+        "progressPercent": { "type": "number" },
+        "completedSlots": { "type": "integer", "minimum": 0 },
+        "totalSlots": { "type": "integer", "minimum": 0 },
+        "targetLabel": { "type": "string" },
+        "weightKg": { "type": "number" },
+        "recoveryScore": { "type": "number" },
+        "sensor": { "$ref": "#/$defs/sensor" },
+        "coachEnabled": { "type": "boolean" },
+        "rest": { "$ref": "#/$defs/rest" },
+        "exerciseStartedAt": { "type": ["string", "null"] },
+        "exerciseTimerActive": { "type": "boolean" },
+        "updatedAt": { "$ref": "#/$defs/isoDateTime" }
+      }
+    },
+    "summaryExercise": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "metric",
+        "durationSeconds",
+        "durationsBySet",
+        "avgPerSet",
+        "trend",
+        "trendPercent"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "metric": { "type": "string" },
+        "durationSeconds": { "type": "integer" },
+        "durationsBySet": {
+          "type": "array",
+          "items": { "type": "integer" }
+        },
+        "avgPerSet": { "type": "number" },
+        "trend": { "type": "string", "enum": ["faster", "slower", "stable"] },
+        "trendPercent": { "type": "number" }
+      }
+    },
+    "summarySet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["setNumber", "label", "durationSeconds", "exercises"],
+      "properties": {
+        "setNumber": { "type": "integer" },
+        "label": { "type": "string" },
+        "durationSeconds": { "type": "integer" },
+        "exercises": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "durationSeconds"],
+            "properties": {
+              "name": { "type": "string" },
+              "durationSeconds": { "type": "integer" }
+            }
+          }
+        },
+        "rpe": { "type": "number" }
+      }
+    },
+    "summaryStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phaseLabel",
+        "totalSets",
+        "totalExercisesCompleted",
+        "avgSetDurationSeconds",
+        "avgExercisePerSetSeconds",
+        "fastestSet",
+        "slowestSet",
+        "fastestExercise",
+        "slowestExercise",
+        "paceChangePercent",
+        "paceLabel",
+        "avgRpe"
+      ],
+      "properties": {
+        "phaseLabel": { "type": "string" },
+        "totalSets": { "type": "integer" },
+        "totalExercisesCompleted": { "type": "integer" },
+        "avgSetDurationSeconds": { "type": "number" },
+        "avgExercisePerSetSeconds": { "type": "number" },
+        "fastestSet": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["setNumber", "seconds"],
+          "properties": {
+            "setNumber": { "type": "integer" },
+            "seconds": { "type": "integer" }
+          }
+        },
+        "slowestSet": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["setNumber", "seconds"],
+          "properties": {
+            "setNumber": { "type": "integer" },
+            "seconds": { "type": "integer" }
+          }
+        },
+        "fastestExercise": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["name", "avgSeconds"],
+          "properties": {
+            "name": { "type": "string" },
+            "avgSeconds": { "type": "number" }
+          }
+        },
+        "slowestExercise": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["name", "avgSeconds"],
+          "properties": {
+            "name": { "type": "string" },
+            "avgSeconds": { "type": "number" }
+          }
+        },
+        "paceChangePercent": { "type": "number" },
+        "paceLabel": { "type": "string" },
+        "avgRpe": { "type": ["number", "null"] }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "mode",
+        "theme",
+        "updatedAt",
+        "workoutName",
+        "exercises",
+        "sets",
+        "stats",
+        "rpeBySet",
+        "totalDurationSeconds",
+        "startedAt",
+        "completedAt"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
+        "mode": { "const": "summary" },
+        "theme": { "$ref": "#/$defs/themeId" },
+        "updatedAt": { "$ref": "#/$defs/isoDateTime" },
+        "workoutName": { "type": "string" },
+        "exercises": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/summaryExercise" }
+        },
+        "sets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/summarySet" }
+        },
+        "stats": { "$ref": "#/$defs/summaryStats" },
+        "rpeBySet": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "totalDurationSeconds": { "type": "integer" },
+        "startedAt": { "$ref": "#/$defs/isoDateTime" },
+        "completedAt": { "$ref": "#/$defs/isoDateTime" },
+        "aiReport": { "type": "string" },
+        "aiReportModel": { "type": "string" },
+        "aiReportAt": { "type": "string" },
+        "momentIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

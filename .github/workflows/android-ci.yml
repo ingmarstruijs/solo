@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - 'apps/**'
+      - 'contracts/**'
       - '.github/workflows/android-ci.yml'
   push:
     branches: [main]
     paths:
       - 'apps/**'
+      - 'contracts/**'
       - '.github/workflows/android-ci.yml'
 
 permissions:
@@ -55,6 +57,9 @@ jobs:
               "platform-tools" \
               "platforms;android-35" \
               "build-tools;35.0.0"
+
+      - name: Contract codecs (JVM goldens)
+        run: ./gradlew :contracts:test --stacktrace
 
       - name: Unit smoke tests
         run: ./gradlew :android:testFossDebugUnitTest :android-tv:testFossDebugUnitTest --stacktrace

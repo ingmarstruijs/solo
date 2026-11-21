@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "mode": "summary",
+  "theme": "midnight",
+  "updatedAt": "2026-11-21T12:40:00.000Z",
+  "workoutName": "Push A",
+  "exercises": [
+    {
+      "name": "Bench press",
+      "metric": "reps",
+      "durationSeconds": 180,
+      "durationsBySet": [40, 45, 48, 47],
+      "avgPerSet": 45,
+      "trend": "slower",
+      "trendPercent": 17.5
+    }
+  ],
+  "sets": [
+    {
+      "setNumber": 1,
+      "label": "Set 1",
+      "durationSeconds": 120,
+      "exercises": [{ "name": "Bench press", "durationSeconds": 40 }]
+    }
+  ],
+  "stats": {
+    "phaseLabel": "Main",
+    "totalSets": 4,
+    "totalExercisesCompleted": 6,
+    "avgSetDurationSeconds": 130,
+    "avgExercisePerSetSeconds": 45,
+    "fastestSet": { "setNumber": 1, "seconds": 120 },
+    "slowestSet": { "setNumber": 4, "seconds": 145 },
+    "fastestExercise": { "name": "Push-up", "avgSeconds": 30 },
+    "slowestExercise": { "name": "Bench press", "avgSeconds": 45 },
+    "paceChangePercent": 8,
+    "paceLabel": "steady",
+    "avgRpe": null
+  },
+  "rpeBySet": {},
+  "totalDurationSeconds": 2100,
+  "startedAt": "2026-11-21T12:05:00.000Z",
+  "completedAt": "2026-11-21T12:40:00.000Z"
+}

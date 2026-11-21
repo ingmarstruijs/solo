@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "prep",
+  "theme": "midnight",
+  "workouts": [
+    { "id": "w1", "name": "Push A", "exerciseCount": 6 },
+    { "id": "w2", "name": "Pull B", "exerciseCount": 5 }
+  ],
+  "garminConnected": true,
+  "recoveryScore": 72,
+  "updatedAt": "2026-11-21T12:01:00.000Z"
+}

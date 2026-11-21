@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "mode": "session",
+  "theme": "midnight",
+  "connected": true,
+  "workoutName": "Push A",
+  "exerciseIndex": 1,
+  "exerciseName": "Bench press",
+  "exerciseKind": "compound",
+  "metric": "reps",
+  "completedCount": 2,
+  "totalExercises": 6,
+  "setIndex": 2,
+  "totalSets": 4,
+  "phaseLabel": "Main",
+  "progressPercent": 40,
+  "completedSlots": 6,
+  "totalSlots": 14,
+  "targetLabel": "8 reps · 60 kg",
+  "weightKg": 60,
+  "sensor": {
+    "cameraEnabled": false,
+    "garminConnected": true,
+    "heartRateLive": true,
+    "heartRateBpm": 142,
+    "velocityDropPercent": 0,
+    "heartRatePercentMax": 75.9
+  },
+  "coachEnabled": true,
+  "rest": {
+    "active": true,
+    "endsAt": "2026-11-21T12:07:00.000Z",
+    "totalSeconds": 90,
+    "afterExerciseName": "Bench press",
+    "kind": "exercise",
+    "nextExerciseName": "Bench press",
+    "nextExerciseTarget": "8 reps · 60 kg"
+  },
+  "exerciseStartedAt": null,
+  "exerciseTimerActive": false,
+  "updatedAt": "2026-11-21T12:05:30.000Z"
+}

@@ -79,7 +79,7 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 **Gate:** React lint/build green; no product path to a browser TV board.
 
-### Phase 1 — Android skeleton + CI + early GitHub Releases
+### Phase 1 — Android skeleton + CI + early GitHub Releases — **Done**
 
 - Gradle: phone + TV shells, `foss`/`full`, `LEANBACK_LAUNCHER` on TV.
 - Pin JDK 21 / AGP / Kotlin; `dependenciesInfo.includeInApk = false`.
@@ -90,9 +90,9 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 ### Phase 2 — Contracts + codecs
 
-- Author `contracts/tv-messages.schema.json` + goldens (`idle`, `prep`, `session`, `summary`, `rest`).
-- Kotlin codecs + schema version; reject unknowns.
-- Phone and TV both depend on the same schema module.
+- Author `contracts/tv-messages.schema.json` + goldens (`idle`, `prep`, `setup`, `session`, `summary`, `rest`).
+- Kotlin codecs in `apps/contracts` (`schemaVersion`, reject unknowns); phone + TV depend on `:contracts`.
+- JVM golden round-trip tests in CI (`:contracts:test`).
 
 **Gate:** JVM encode/decode all goldens; version bump required on breaking change.
 
@@ -185,8 +185,8 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 | PR | Focus | Phase | Status |
 | --- | --- | --- | --- |
 | A | Docs + web `/tv` removal | 0 | **Done** |
-| B | Android Gradle skeleton + GitHub/`preview` Obtainium releases | 1 | **This PR** |
-| C | Contracts + codecs | 2 | |
+| B | Android Gradle skeleton + GitHub/`preview` Obtainium releases | 1 | **Done** |
+| C | Contracts + codecs | 2 | **This PR** |
 | D | Pairing + WebSocket | 3 | |
 | E | E2E pair smoke | 3 | |
 | F | BLE + fakes | 4 | |
@@ -199,4 +199,4 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 ## Immediate next step
 
-After PR B merges: subscribe Obtainium to the `preview` pre-release (see [RELEASING.md](RELEASING.md)), then start **PR C** (contracts + codecs).
+After PR C merges: **PR D** — TV listens / phone dials (WebSocket pairing + schemaVersion in pair payload).
