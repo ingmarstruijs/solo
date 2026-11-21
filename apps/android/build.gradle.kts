@@ -108,6 +108,7 @@ android {
 
 dependencies {
     implementation(project(":contracts"))
+    implementation(project(":transport"))
 
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
