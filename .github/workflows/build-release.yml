@@ -159,14 +159,10 @@ jobs:
           mkdir -p artifacts
           PHONE=$(find apps/android/build/outputs/apk/foss/release -name '*.apk' | head -1)
           TV=$(find apps/android-tv/build/outputs/apk/foss/release -name '*.apk' | head -1)
-          # Floating preview keeps stable Obtainium asset names; versioned tags keep the version in the filename.
-          if [ "$CHANNEL" = "preview" ]; then
-            PHONE_OUT="solo-preview-foss.apk"
-            TV_OUT="solo-tv-preview-foss.apk"
-          else
-            PHONE_OUT="solo-${VERSION}-foss.apk"
-            TV_OUT="solo-tv-${VERSION}-foss.apk"
-          fi
+          # Always embed versionName in the APK filename so Obtainium sees a new
+          # asset (overwriting solo-preview-foss.apk on a floating release does not).
+          PHONE_OUT="solo-${VERSION}-foss.apk"
+          TV_OUT="solo-tv-${VERSION}-foss.apk"
           echo "phone_apk=$PHONE_OUT" >> "$GITHUB_OUTPUT"
           echo "tv_apk=$TV_OUT" >> "$GITHUB_OUTPUT"
           cp "$PHONE" "artifacts/$PHONE_OUT"
@@ -258,7 +254,10 @@ jobs:
               echo
               echo "Rolling pre-release for device testing via **Obtainium**."
               echo "\`versionName=${VERSION}\` · \`versionCode=${VERSION_CODE}\`. Not an F-Droid build."
-              echo "Asset names stay stable so Obtainium can overwrite-update."
+              echo
+              echo "Each \`main\` build **deletes and recreates** the \`preview\` GitHub Release"
+              echo "(new release id + \`publishedAt\`) and ships versioned APK filenames so"
+              echo "Obtainium detects an update."
             elif [ "$CHANNEL" = "prerelease" ]; then
               echo "## SOLO ${VERSION} (pre-release)"
               echo
@@ -288,16 +287,30 @@ jobs:
             echo "### Obtainium"
             echo "1. Add \`https://github.com/${{ github.repository }}\`"
             echo "2. Enable **Include pre-releases** for the early \`preview\` channel"
-            echo "3. APK filter — phone: \`solo-(preview|[0-9]).*-foss\\.apk\$\` · TV: \`solo-tv-\`"
+            echo "3. APK filter — phone: \`^solo-[0-9].*-foss\\.apk\$\` · TV: \`^solo-tv-[0-9].*-foss\\.apk\$\`"
           } > release-notes.md
+
+      # Obtainium keys off release identity / asset names. Replacing files on a
+      # long-lived release leaves the same release id and often no "update".
+      - name: Recreate floating preview release
+        if: needs.build.outputs.channel == 'preview'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Drop previous release + tag so the next publish gets a fresh id.
+          gh release delete preview --yes --cleanup-tag 2>/dev/null || true
+          # Tag may remain if there was no release yet.
+          git push origin :refs/tags/preview 2>/dev/null || true
 
       - name: Publish floating preview release
         if: needs.build.outputs.channel == 'preview'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: preview
-          name: SOLO Android preview
+          name: SOLO Android preview ${{ needs.build.outputs.version_name }}
           prerelease: true
+          target_commitish: ${{ github.sha }}
           body_path: release-notes.md
           files: |
             artifacts/${{ needs.build.outputs.phone_apk }}
