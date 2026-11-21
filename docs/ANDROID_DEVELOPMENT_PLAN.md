@@ -79,13 +79,14 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 **Gate:** React lint/build green; no product path to a browser TV board.
 
-### Phase 1 — Android skeleton + CI
+### Phase 1 — Android skeleton + CI + early GitHub Releases
 
 - Gradle: phone + TV shells, `foss`/`full`, `LEANBACK_LAUNCHER` on TV.
 - Pin JDK 21 / AGP / Kotlin; `dependenciesInfo.includeInApk = false`.
 - `android-ci.yml`: unit smoke + assemble `fossDebug`.
+- `build-release.yml` (Kinetic-style): assemble `fossRelease`, publish installable APKs to GitHub Releases for **Obtainium** — floating `preview` pre-release on `main`, versioned `v*` later. **Not F-Droid** for early device testing.
 
-**Gate:** assemble both apps; no GMS on `foss` classpath.
+**Gate:** assemble both apps; no GMS on `foss` classpath; preview APKs installable via Obtainium.
 
 ### Phase 2 — Contracts + codecs
 
@@ -183,8 +184,8 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 | PR | Focus | Phase | Status |
 | --- | --- | --- | --- |
-| A | Docs + web `/tv` removal | 0 | **Done locally** — merge when ready |
-| B | Android Gradle skeleton | 1 | Next |
+| A | Docs + web `/tv` removal | 0 | **Done** |
+| B | Android Gradle skeleton + GitHub/`preview` Obtainium releases | 1 | **This PR** |
 | C | Contracts + codecs | 2 | |
 | D | Pairing + WebSocket | 3 | |
 | E | E2E pair smoke | 3 | |
@@ -198,4 +199,4 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 ## Immediate next step
 
-**PR B** — empty Compose phone + TV modules, `foss`/`full` flavors, and `android-ci.yml` that assembles both `fossDebug` APKs.
+After PR B merges: subscribe Obtainium to the `preview` pre-release (see [RELEASING.md](RELEASING.md)), then start **PR C** (contracts + codecs).

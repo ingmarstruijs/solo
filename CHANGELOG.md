@@ -15,6 +15,7 @@ F-Droid store notes. Run `./tool/sync_fastlane_changelogs.sh` after editing it.
 - Release / F-Droid scaffolding (CHANGELOG, Fastlane stubs, metadata drafts, AGENTS.md) modeled on Kinetic.
 - Android stack research + [development plan](docs/ANDROID_DEVELOPMENT_PLAN.md): Kotlin + Compose phone + Android TV, iOS dropped, **Byte-RB required**, Capacitor not chosen.
 - Store / display name: **SOLO Home training** (brand mark remains SOLO.).
+- Android Gradle skeleton (`apps/android` + `apps/android-tv`, `foss`/`full`) with CI assemble + **GitHub Releases / Obtainium** early channel (`preview` pre-release).
 
 ### Removed
 

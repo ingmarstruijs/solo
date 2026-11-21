@@ -9,6 +9,19 @@ dist-ssr/
 build/
 *.local
 
+# Android / Gradle
+apps/**/build/
+apps/.gradle/
+apps/local.properties
+apps/keystore.jks
+apps/keystore.properties
+*.apk
+*.aab
+*.ap_
+captures/
+.cxx/
+.android-sdk/
+
 # Vite / PWA
 dev-dist/
 

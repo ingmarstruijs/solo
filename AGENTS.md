@@ -33,13 +33,17 @@ F-Droid: [metadata/FDROID_SUBMISSION.md](metadata/FDROID_SUBMISSION.md)
 
 ## When releasing
 
-Follow [docs/RELEASING.md](docs/RELEASING.md) end-to-end:
+Follow [docs/RELEASING.md](docs/RELEASING.md).
+
+**Early Android (while building the Compose apps):** merge to `main` (or `workflow_dispatch` **Build & Sign Android**) → floating GitHub pre-release `preview` → install with **Obtainium** (include pre-releases). Do not wait for F-Droid.
+
+**Stable / F-Droid later:**
 
 1. Bump version + [CHANGELOG.md](CHANGELOG.md) (`### Store` + detail sections)
 2. Run `./tool/sync_fastlane_changelogs.sh` and commit Fastlane files
 3. PR → merge to `main` → annotated `v*` tag on that commit
-4. GitHub APKs (once Android CI exists); set metadata `commit:` to **full SHA**
-5. Verify with `./tool/fdroid_build.sh`; open fdroiddata MR
+4. GitHub APKs via `build-release.yml`; set metadata `commit:` to **full SHA**
+5. Verify with `./tool/fdroid_build.sh`; open fdroiddata MR only after Byte-RB
 
 ## Web / PWA day-to-day
 

@@ -98,9 +98,19 @@ sequenceDiagram
 
 ---
 
-## F-Droid + Byte-RB
+## Early installs: GitHub Releases + Obtainium
 
-Pure Gradle Compose apps are the comfortable F-Droid path. **Byte-RB is required** before listing (stricter than Kinetic’s deferred RB).
+While the Compose apps are still landing, ship installable `foss` APKs through **GitHub Releases** (Kinetic-style Build & Sign) and install with **Obtainium** — not F-Droid.
+
+- Floating pre-release tag `preview` on each `main` Android build (`solo-preview-foss.apk` + `solo-tv-preview-foss.apk`)
+- Milestone tags `v0.x.y-android.N` as GitHub pre-releases
+- Stable `vX.Y.Z` later for wider sideload / Obtainium without pre-release flag
+
+See [RELEASING.md](RELEASING.md).
+
+## F-Droid + Byte-RB (later)
+
+Pure Gradle Compose apps are the comfortable F-Droid path. **Byte-RB is required** before listing (stricter than Kinetic’s deferred RB). Do **not** block early Obtainium testing on F-Droid.
 
 - Pin JDK/AGP/Gradle; `SOURCE_DATE_EPOCH`; `dependenciesInfo.includeInApk = false`  
 - No npm/Vite in the `foss` recipe  
