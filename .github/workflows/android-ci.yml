@@ -64,6 +64,9 @@ jobs:
       - name: Transport pair smoke (fake + real loopback WS)
         run: ./gradlew :transport:test --stacktrace
 
+      - name: BLE HR FSM + parser (JVM fakes)
+        run: ./gradlew :ble:test --stacktrace
+
       - name: Unit smoke tests
         run: ./gradlew :android:testFossDebugUnitTest :android-tv:testFossDebugUnitTest --stacktrace
 
