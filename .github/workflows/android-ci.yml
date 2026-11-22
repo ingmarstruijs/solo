@@ -61,6 +61,9 @@ jobs:
       - name: Contract codecs (JVM goldens)
         run: ./gradlew :contracts:test --stacktrace
 
+      - name: Domain session + overload (JVM)
+        run: ./gradlew :domain:test --stacktrace
+
       - name: Transport pair smoke (fake + real loopback WS)
         run: ./gradlew :transport:test --stacktrace
 

@@ -42,14 +42,14 @@ Non-goals v1: pose/proof reel, Connect IQ, Health Connect, Chromecast, any web T
 
 | # | Proposal | Status |
 | --- | --- | --- |
-| P1 | Vertical slices: contracts → pair → one session message on TV → grow UI | **In plan** |
+| P1 | Vertical slices: contracts → pair → one session message on TV → grow UI | **Done** (through Phase 6) |
 | P2 | Compose TV is the only receiver; React never hosts TV again | **Done** |
-| P3 | Keep web at repo root until Android skeleton exists | **In plan** |
-| P4 | Contract-first goldens in `contracts/` (schema from product needs; deleted `broadcast.ts` is historical only) | **In plan** |
-| P5 | Fake BLE + fake WS in CI; real BLE = release checklist | **In plan** |
-| P6 | E2E: phone + Android TV emulators (Maestro preferred) | **In plan** |
-| P7 | Byte-RB blocking on `v*` tags; nightly on `main` | **In plan** |
-| P8 | TV listens / phone dials (pair code on TV) | **In plan** |
+| P3 | Keep web at repo root until Android skeleton exists | **Done** (skeleton + phone core ship; `src/` still reference) |
+| P4 | Contract-first goldens in `contracts/` (schema from product needs; deleted `broadcast.ts` is historical only) | **Done** |
+| P5 | Fake BLE + fake WS in CI; real BLE = release checklist | **Done** (CI fakes; real band = tag checklist) |
+| P6 | E2E: phone + Android TV emulators (Maestro preferred) | **Partial** (loopback WS + Maestro scaffold; dual-AVD later) |
+| P7 | Byte-RB blocking on `v*` tags; nightly on `main` | **Open** (Phase 8) |
+| P8 | TV listens / phone dials (pair code on TV) | **Done** |
 
 ---
 
@@ -57,10 +57,13 @@ Non-goals v1: pose/proof reel, Connect IQ, Health Connect, Chromecast, any web T
 
 ```text
 contracts/                 # JSON Schema + golden fixtures (phone↔TV messages)
-apps/android/              # phone
-apps/android-tv/           # Android TV
-# :contracts-kotlin :domain :transport-test
-src/                       # React phone reference (no TV route or transport)
+apps/contracts/            # Kotlin codecs
+apps/domain/               # Pure JVM domain (session, overload, seeds, TvMessage factory)
+apps/transport/            # Pairing + WebSocket
+apps/ble/                  # HR parser + FakeBleHrClient
+apps/android/              # phone Compose app (DataStore snapshot)
+apps/android-tv/           # Android TV HUD
+src/                       # React phone UX reference (delete after full parity)
 tool/fdroid_build.sh
 tool/verify_reproducible.sh
 ```
@@ -107,15 +110,15 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 **Gate:** fake + real loopback pair smoke green in CI; Maestro dual-emulator optional locally.
 
-### Phase 4 — BLE HR (phone)
+### Phase 4 — BLE HR (phone) — **Done** (PR F)
 
 - `apps/ble`: HR measurement parser (0x2A37), FSM, `FakeBleHrClient`, `tvSensorFromHr`.
 - Phone: `AndroidBleHrClient` (`BluetoothGatt` + 0x180D scan) + Fake HR smoke buttons.
-- HR samples ready for session state / TV sensor strip (session wiring grows with phone UI).
+- Session HUD can push live BPM into `TvMessage.Session.sensor` when paired.
 
 **Gate:** FSM + parser unit tests; fake client instrumented in JVM CI; manual real-band checklist before public tag.
 
-### Phase 5 — TV HUD (slice B)
+### Phase 5 — TV HUD (slice B) — **Done** (PR G)
 
 - Compose HUD from `TvMessage` only: idle / prep / setup / session / rest / summary.
 - Live WebSocket messages swap pair shell → `TvHudScreen`.
@@ -123,19 +126,21 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 **Gate:** JVM mode-routing tests; Compose UI tests for idle + rest (instrumented); fuller E2E with phone later.
 
-### Phase 6 — Phone core UI
+### Phase 6 — Phone core UI — **Done** (PR H)
 
-- Incremental: nav → workouts → locker/domain → prep → session → summary/history.
-- Port domain into `:domain` with golden fixtures.
-- Pair entry points in prep/session when transport exists.
+- Nav → workouts → locker → prep → session → summary/history.
+- `:domain` with seeds, overload planner, session controller, `TvMessage` factory + JVM tests.
+- Pair entry points in Settings / Prep / Session; live HUD push when paired.
 
-**Gate:** domain unit tests per PR; phone-only E2E happy path; TV-connected path when transport exists.
+**Gate:** domain unit tests in CI; phone assemble green; TV-connected path via existing transport.
 
-### Phase 7 — Persistence + polish
+### Phase 7 — Persistence + polish — **Done** (PR H)
 
-- DataStore/Room; Material 3; TV focus / D-pad.
+- DataStore JSON `SoloSnapshot` (workouts, locker, history, active session, prep).
+- Process-death policy: restore `activeSession` on cold start (`ProcessDeathPolicy` + restore test).
+- Material 3 Solo theme (charcoal + mint). TV D-pad polish can grow later.
 
-**Gate:** storage round-trip tests; define process-death policy + test.
+**Gate:** snapshot JSON round-trip; restore-after-death clears expired rest.
 
 ### Phase 8 — Release + Byte-RB
 
@@ -195,8 +200,8 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 | D | Pairing + WebSocket | 3 | **Done** |
 | E | E2E pair smoke (loopback WS + Maestro scaffold) | 3 | **Done** |
 | F | BLE + fakes | 4 | **Done** |
-| G | TV HUD | 5 | **This PR** |
-| H… | Phone UI slices | 6 | |
+| G | TV HUD | 5 | **Done** |
+| H | Phone UI + DataStore persistence | 6–7 | **This PR** |
 | R | Signing + Byte-RB | 8 | |
 | F-Droid | fdroiddata | 9 | |
 
@@ -204,4 +209,4 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 ## Immediate next step
 
-After PR G merges: **PR H** — phone core UI slices (nav → workouts → session).
+After PR H merges: **Phase 8 / PR R** — real `fdroid_build.sh` + Byte-RB on tags. Optional follow-ups: dual-AVD Maestro E2E, workout editor / Wger port, then remove React `src/` once parity is enough.

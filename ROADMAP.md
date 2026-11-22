@@ -45,11 +45,11 @@ Features and architecture phases that are **not yet in the product app**, plus p
 
 | Item | Status | Notes |
 |---|---|---|
-| Web `/tv` + BroadcastChannel receiver | **Removed** | Replaced by planned Android TV Compose app |
+| Web `/tv` + BroadcastChannel receiver | **Removed** | Replaced by Android TV Compose app |
 | Exercise icons on phone | **Shipped** | `[exerciseMedia.ts](src/lib/exercise/exerciseMedia.ts)` |
 | Exercise info modal on phone (prep + session) | **Shipped** | `[ExerciseVisualMobile](src/components/workout/ExerciseVisualMobile.tsx)` |
 | Front-camera preview in session | **Shipped** | Toggle in session; preference in `[sessionUiStore](src/lib/storage/sessionUiStore.ts)` |
-| Android TV companion (phone-controlled LAN) | **Next** | See [docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md) |
+| Android TV companion (phone-controlled LAN) | **Shipped** | Pair + WebSocket + Compose HUD (`apps/android-tv`); phone UI in `apps/android` |
 | MediaPipe Pose Landmarker (Wasm/GPU) | **Shipped** | Session camera preview + `/lab/pose`; lite model via `[poseEngine.ts](src/lib/pose/poseEngine.ts)` |
 | Form deviation cues (knee valgus, lumbar flexion) | **Shipped** | Advisory cues in camera preview; toggleable; not diagnosis |
 | Curated licensed exercise video loops | **Next** | Verify CC-BY / project-owned assets; Wger media where license metadata allows |
@@ -153,7 +153,7 @@ Current integrated lab slices:
 - [x] Manual recovery slider (Home / Settings / Prep)
 - [x] Live BLE HR in session control bar (web reference)
 - [x] Native BLE HR client + fakes on Android phone (`:ble`)
-- [ ] Optional push of live HR into Android TV HUD during session
+- [x] Optional push of live HR into Android TV HUD during session (`TvMessage.Session.sensor`)
 - [ ] Health Connect recovery ingestion (`full` / FOSS-check later)
 
 ### Phase B — Vision (pose + loops)
@@ -165,8 +165,10 @@ Current integrated lab slices:
 ### Phase C — Android TV companion (Pillar 3)
 
 - [x] Pairing + WebSocket (phone dials, TV listens)
-- [ ] Pair smoke E2E (loopback WS in CI; Maestro dual-AVD later)
-- [ ] Compose TV HUD (session / rest / summary) — in progress (PR G)
+- [x] Pair smoke E2E (loopback WS in CI; Maestro dual-AVD scaffold later)
+- [x] Compose TV HUD (idle / prep / setup / session / rest / summary)
+- [x] Phone core UI + DataStore persistence (Phase 6–7)
+- [ ] Dual-emulator Maestro E2E in CI
 - Labs cast/canvas pages stay experiments — not a product TV path
 - Cast/`full` flavor only if needed later; not required for `foss`
 
