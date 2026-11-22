@@ -152,7 +152,8 @@ Current integrated lab slices:
 
 - [x] Manual recovery slider (Home / Settings / Prep)
 - [x] Live BLE HR in session control bar (web reference)
-- [ ] Native BLE HR on Android phone + optional push to Android TV HUD — in progress (PR F: `:ble` + Fake/Android clients)
+- [x] Native BLE HR client + fakes on Android phone (`:ble`)
+- [ ] Optional push of live HR into Android TV HUD during session
 - [ ] Health Connect recovery ingestion (`full` / FOSS-check later)
 
 ### Phase B — Vision (pose + loops)
@@ -165,7 +166,7 @@ Current integrated lab slices:
 
 - [x] Pairing + WebSocket (phone dials, TV listens)
 - [ ] Pair smoke E2E (loopback WS in CI; Maestro dual-AVD later)
-- [ ] Compose TV HUD (session / rest / summary)
+- [ ] Compose TV HUD (session / rest / summary) — in progress (PR G)
 - Labs cast/canvas pages stay experiments — not a product TV path
 - Cast/`full` flavor only if needed later; not required for `foss`
 

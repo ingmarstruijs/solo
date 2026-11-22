@@ -25,7 +25,6 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import net.moonbaseone.solo.contracts.TV_SCHEMA_VERSION
 import net.moonbaseone.solo.contracts.TvMessage
-import net.moonbaseone.solo.contracts.mode
 import net.moonbaseone.solo.transport.DEFAULT_TV_WS_PORT
 import net.moonbaseone.solo.transport.JavaWebSocketTvServer
 import net.moonbaseone.solo.transport.PairPayload
@@ -33,6 +32,8 @@ import net.moonbaseone.solo.transport.PairPayloadCodec
 import net.moonbaseone.solo.transport.PairingState
 import net.moonbaseone.solo.transport.TvListenSession
 import net.moonbaseone.solo.transport.generatePairNonce
+import net.moonbaseone.solo.tv.hud.TvHudColors
+import net.moonbaseone.solo.tv.hud.TvHudScreen
 import net.moonbaseone.solo.tv.ui.theme.SoloTvTheme
 
 class MainActivity : ComponentActivity() {
@@ -42,8 +43,9 @@ class MainActivity : ComponentActivity() {
 
     private var uiHost by mutableStateOf("…")
     private var uiStatus by mutableStateOf("Starting…")
-    private var uiLastMode by mutableStateOf("—")
     private var uiPayloadJson by mutableStateOf("")
+    private var uiMessage by mutableStateOf<TvMessage?>(null)
+    private var uiPaired by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,9 +68,13 @@ class MainActivity : ComponentActivity() {
                 expectedNonce = nonce,
                 stateListener = { state ->
                     runOnUiThread {
+                        uiPaired = state is PairingState.Paired
                         uiStatus =
                             when (state) {
-                                is PairingState.Idle -> "Idle"
+                                is PairingState.Idle -> {
+                                    uiMessage = null
+                                    "Idle"
+                                }
                                 is PairingState.Listening -> "Listening on :$DEFAULT_TV_WS_PORT"
                                 is PairingState.Handshaking -> "Handshaking…"
                                 is PairingState.Dialing -> "Dialing…"
@@ -78,7 +84,7 @@ class MainActivity : ComponentActivity() {
                     }
                 },
                 messageListener = { message: TvMessage ->
-                    runOnUiThread { uiLastMode = message.mode }
+                    runOnUiThread { uiMessage = message }
                 },
             )
         listenSession = session
@@ -91,13 +97,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             SoloTvTheme {
-                SoloTvShell(
-                    pairCode = nonce,
-                    host = uiHost,
-                    status = uiStatus,
-                    lastMode = uiLastMode,
-                    payloadJson = uiPayloadJson,
-                )
+                val message = uiMessage
+                if (uiPaired && message != null) {
+                    TvHudScreen(message = message)
+                } else {
+                    PairingShell(
+                        pairCode = nonce,
+                        host = uiHost,
+                        status = uiStatus,
+                        payloadJson = uiPayloadJson,
+                    )
+                }
             }
         }
     }
@@ -114,18 +124,17 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun SoloTvShell(
+fun PairingShell(
     pairCode: String,
     host: String,
     status: String,
-    lastMode: String,
     payloadJson: String,
 ) {
     Box(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0B0F14)),
+                .background(TvHudColors.Background),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -136,17 +145,17 @@ fun SoloTvShell(
             Text(
                 text = "SOLO.",
                 style = MaterialTheme.typography.displayMedium,
-                color = Color(0xFFE8EEF5),
+                color = TvHudColors.Title,
             )
             Text(
                 text = "Pair code",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF9AA7B5),
+                color = TvHudColors.Subtitle,
             )
             Text(
                 text = pairCode,
                 style = MaterialTheme.typography.displayLarge,
-                color = Color(0xFFE8EEF5),
+                color = TvHudColors.Title,
                 modifier =
                     Modifier
                         .testTag("tv_pair_code")
@@ -155,26 +164,17 @@ fun SoloTvShell(
             Text(
                 text = "$host:$DEFAULT_TV_WS_PORT",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF9AA7B5),
+                color = TvHudColors.Subtitle,
                 modifier = Modifier.testTag("tv_host_port"),
             )
             Text(
                 text = status,
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF6B7785),
+                color = TvHudColors.Muted,
                 modifier =
                     Modifier
                         .testTag("tv_status")
                         .semantics { contentDescription = status },
-            )
-            Text(
-                text = "Last message: $lastMode",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6B7785),
-                modifier =
-                    Modifier
-                        .testTag("tv_last_mode")
-                        .semantics { contentDescription = "Last message: $lastMode" },
             )
             Text(
                 text = BuildConfig.FLAVOR + " · " + BuildConfig.VERSION_NAME,
