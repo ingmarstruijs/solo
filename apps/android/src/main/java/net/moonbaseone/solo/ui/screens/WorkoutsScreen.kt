@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import net.moonbaseone.solo.domain.model.SoloSnapshot
+import net.moonbaseone.solo.ui.components.SoftSurface
 
 @Composable
 fun WorkoutsScreen(
@@ -54,41 +55,44 @@ fun WorkoutsScreen(
         Text(
             "Select one or more, then prepare — or edit a template",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 12.dp),
         )
         LazyColumn(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(snapshot.workouts, key = { it.id }) { workout ->
                 val checked = selected[workout.id] == true
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp)
-                            .testTag("workout_${workout.id}"),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(
-                        checked = checked,
-                        onCheckedChange = { selected[workout.id] = it },
-                    )
-                    Text(
-                        "${if (workout.favorite) "★ " else ""}${workout.name}\n" +
-                            "${workout.exercises.size} exercises · ~${workout.estimatedMinutes} min",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .clickable { onEdit(workout.id) }
-                                .padding(start = 4.dp),
-                    )
-                    TextButton(
-                        onClick = { onToggleFavorite(workout.id) },
-                        modifier = Modifier.testTag("workout_fav_${workout.id}"),
-                    ) {
-                        Text(if (workout.favorite) "★" else "☆")
+                SoftSurface(modifier = Modifier.testTag("workout_${workout.id}")) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = checked,
+                            onCheckedChange = { selected[workout.id] = it },
+                        )
+                        Column(
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .clickable { onEdit(workout.id) }
+                                    .padding(start = 4.dp),
+                        ) {
+                            Text(
+                                "${if (workout.favorite) "★ " else ""}${workout.name}",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "${workout.exercises.size} exercises · ~${workout.estimatedMinutes} min",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        TextButton(
+                            onClick = { onToggleFavorite(workout.id) },
+                            modifier = Modifier.testTag("workout_fav_${workout.id}"),
+                        ) {
+                            Text(if (workout.favorite) "★" else "☆")
+                        }
                     }
                 }
             }
@@ -102,6 +106,7 @@ fun WorkoutsScreen(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .padding(top = 8.dp)
                     .testTag("workouts_prepare"),
         ) {
             Text("Prepare session")

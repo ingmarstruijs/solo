@@ -2,6 +2,7 @@ package net.moonbaseone.solo.domain
 
 import net.moonbaseone.solo.domain.model.ActiveSession
 import net.moonbaseone.solo.domain.model.HistoryEntry
+import net.moonbaseone.solo.domain.model.HistoryExerciseLine
 import net.moonbaseone.solo.domain.model.OverloadTarget
 import net.moonbaseone.solo.domain.model.PreparedWorkout
 import net.moonbaseone.solo.domain.model.SessionPrep
@@ -30,21 +31,46 @@ fun prepareSession(
     )
 }
 
+data class ActivatedPrep(
+    val session: ActiveSession,
+    val remainingQueue: List<PreparedWorkout>,
+)
+
 fun activatePrep(
     prep: SessionPrep,
     now: Instant = Instant.now(),
-): ActiveSession? {
+): ActivatedPrep? {
     val first = prep.workouts.firstOrNull() ?: return null
     val iso = now.toString()
+    val session =
+        ActiveSession(
+            workout = first.workout,
+            targets = first.targets,
+            completedExerciseIds = emptyList(),
+            currentSet = 1,
+            startedAt = iso,
+            currentSetStartedAt = iso,
+            exercisesStarted = false,
+            recoveryScore = prep.recoveryScore,
+        )
+    return ActivatedPrep(session = session, remainingQueue = prep.workouts.drop(1))
+}
+
+fun activateQueuedWorkout(
+    prepared: PreparedWorkout,
+    recoveryScore: Double,
+    now: Instant = Instant.now(),
+): ActiveSession {
+    val iso = now.toString()
     return ActiveSession(
-        workout = first.workout,
-        targets = first.targets,
+        workout = prepared.workout,
+        targets = prepared.targets,
         completedExerciseIds = emptyList(),
         currentSet = 1,
         startedAt = iso,
         currentSetStartedAt = iso,
         exercisesStarted = false,
-        recoveryScore = prep.recoveryScore,
+        recoveryScore = recoveryScore,
     )
 }
 
@@ -178,6 +204,54 @@ fun skipRest(
         currentExerciseStartedAt = now.toString(),
     )
 
+fun undoCompleteExercise(
+    session: ActiveSession,
+    exerciseId: String,
+): ActiveSession {
+    if (exerciseId !in session.completedExerciseIds) return session
+    val last = session.lastExerciseDuration[exerciseId] ?: 0
+    val exerciseDurations = session.exerciseDurations.toMutableMap()
+    val lastExerciseDuration = session.lastExerciseDuration.toMutableMap()
+    val bySet = session.exerciseDurationsBySet.toMutableMap()
+    val setMap = (bySet[session.currentSet] ?: emptyMap()).toMutableMap()
+    if (last > 0) {
+        exerciseDurations[exerciseId] = ((exerciseDurations[exerciseId] ?: 0) - last).coerceAtLeast(0)
+        if (exerciseDurations[exerciseId] == 0) exerciseDurations.remove(exerciseId)
+        setMap[exerciseId] = ((setMap[exerciseId] ?: 0) - last).coerceAtLeast(0)
+        if (setMap[exerciseId] == 0) setMap.remove(exerciseId)
+    }
+    lastExerciseDuration.remove(exerciseId)
+    bySet[session.currentSet] = setMap
+    return session.copy(
+        completedExerciseIds = session.completedExerciseIds - exerciseId,
+        exerciseDurations = exerciseDurations,
+        exerciseDurationsBySet = bySet,
+        lastExerciseDuration = lastExerciseDuration,
+        restEndsAt = null,
+        restTotalSeconds = 0,
+        restAfterExerciseName = null,
+    )
+}
+
+fun toggleExercisePause(
+    session: ActiveSession,
+    exerciseId: String,
+    now: Instant = Instant.now(),
+): ActiveSession {
+    if (!session.exercisesStarted) return session
+    val paused = session.pausedExerciseIds.toMutableSet()
+    return if (exerciseId in paused) {
+        paused.remove(exerciseId)
+        session.copy(
+            pausedExerciseIds = paused.toList(),
+            currentExerciseStartedAt = now.toString(),
+        )
+    } else {
+        paused.add(exerciseId)
+        session.copy(pausedExerciseIds = paused.toList())
+    }
+}
+
 fun advanceToNextSet(
     session: ActiveSession,
     now: Instant = Instant.now(),
@@ -214,6 +288,35 @@ fun finishSession(
             } else {
                 0
             }
+    val lines =
+        session.workout.exercises.map { ex ->
+            val bySet =
+                (1..session.currentSet).map { set ->
+                    session.exerciseDurationsBySet[set]?.get(ex.id) ?: 0
+                }
+            val positive = bySet.filter { it > 0 }
+            val trend =
+                when {
+                    positive.size < 2 -> "stable" to 0
+                    else -> {
+                        val first = positive.first()
+                        val last = positive.last()
+                        val pct = kotlin.math.round(((last - first).toDouble() / first) * 100).toInt()
+                        when {
+                            pct >= 10 -> "slower" to pct
+                            pct <= -10 -> "faster" to pct
+                            else -> "stable" to pct
+                        }
+                    }
+                }
+            HistoryExerciseLine(
+                name = ex.name,
+                durationSeconds = session.exerciseDurations[ex.id] ?: positive.sum(),
+                durationsBySet = bySet,
+                trend = trend.first,
+                trendPercent = trend.second,
+            )
+        }
     return HistoryEntry(
         id = UUID.randomUUID().toString(),
         workoutName = session.workout.name,
@@ -223,6 +326,8 @@ fun finishSession(
         totalSets = session.currentSet,
         totalExercisesCompleted =
             completedSlots.coerceAtLeast(session.completedExerciseIds.size),
+        exercises = lines,
+        setWallDurations = session.setWallDurations,
     )
 }
 

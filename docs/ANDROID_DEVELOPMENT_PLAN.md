@@ -138,7 +138,7 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 - DataStore JSON `SoloSnapshot` (workouts, locker, history, active session, prep).
 - Process-death policy: restore `activeSession` on cold start (`ProcessDeathPolicy` + restore test).
-- Material 3 Solo theme (charcoal + mint). TV D-pad polish can grow later.
+- Material 3 Solo theme: neutral dark + warm paper light, accent picker (Mint/Amber/Forest/Ember/Slate), `surfaceContainer` SoftSurface rows — modern M3 look inspired by contemporary FOSS Compose apps (original MIT palette; no third-party theme code). TV D-pad polish can grow later.
 
 **Gate:** snapshot JSON round-trip; restore-after-death clears expired rest.
 
@@ -159,16 +159,16 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 Goal: enough native phone UX that `src/` can be deleted. Vertical PRs; each removes or retires a React surface when done.
 
-| Slice | Port | Unlocks deleting |
-| --- | --- | --- |
-| **P1** | Workout CRUD + editor (create / edit / delete / favorite) | `WorkoutEditorPage`, builder parts |
-| **P1** | Locker CRUD (add / edit / delete items) | `LockerPage` forms |
-| **P2** | Prep polish (insights, plate cues) + multi-queue UX | prep panels |
-| **P3** | Session polish (rest overlay, undo, pause, sticky active) | session chrome |
-| **P4** | Summary / history detail (trends) | rich summary |
-| **P5** | Settings themes + coach TTS (Android speech) | coach / theme stores |
-| **P6** | Wger search import + FIT import (optional) | Wger / FIT modules |
-| Later | Camera / pose / proof reel | labs — still non-goals for early foss |
+| Slice | Port | Unlocks deleting | Status |
+| --- | --- | --- | --- |
+| **P1** | Workout CRUD + editor (create / edit / delete / favorite) | `WorkoutEditorPage`, builder parts | **Done** |
+| **P1** | Locker CRUD (add / edit / delete items) | `LockerPage` forms | **Done** |
+| **P2** | Prep polish (insights, plate cues) + multi-queue UX | prep panels | **Done** |
+| **P3** | Session polish (rest overlay, undo, pause, sticky active) | session chrome | **Done** |
+| **P4** | Summary / history detail (trends) | rich summary | **Done** |
+| **P5** | Settings themes + coach TTS (Android speech) | coach / theme stores | **Done** (M3 accent + SoftSurface; on-device TTS) |
+| **P6** | Wger search import + FIT import (optional) | Wger / FIT modules | **Partial** (Wger search; FIT deferred) |
+| Later | Camera / pose / proof reel | labs — still non-goals for early foss | — |
 
 **Gate per slice:** domain unit tests where logic moves; Compose smoke; update ROADMAP checklist; only then delete matching `src/` trees.
 

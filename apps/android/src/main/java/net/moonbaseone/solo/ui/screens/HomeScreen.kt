@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import net.moonbaseone.solo.domain.model.SoloSnapshot
+import net.moonbaseone.solo.ui.components.SoftSurface
 
 @Composable
 fun HomeScreen(
@@ -32,29 +33,30 @@ fun HomeScreen(
                 .testTag("screen_home"),
         verticalArrangement = Arrangement.Top,
     ) {
-        Text("SOLO.", style = MaterialTheme.typography.displayMedium)
+        Text("SOLO.", style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.primary)
         Text(
             "Home training — on device",
             style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
         )
-        Text(
-            "${snapshot.workouts.size} workouts · ${snapshot.locker.size} locker items",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Text(
-            "Recovery ${snapshot.recoveryScore.toInt()}%",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 4.dp),
-        )
-        Spacer(Modifier.height(24.dp))
+        SoftSurface {
+            Text(
+                "${snapshot.workouts.size} workouts · ${snapshot.locker.size} locker items",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                "Recovery ${snapshot.recoveryScore.toInt()}% · theme ${snapshot.theme}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        Spacer(Modifier.height(16.dp))
         if (snapshot.activeSession != null) {
             Button(
                 onClick = onResumeSession,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .testTag("home_resume"),
+                modifier = Modifier.fillMaxWidth().testTag("home_resume"),
             ) {
                 Text("Resume ${snapshot.activeSession!!.workout.name}")
             }
@@ -63,21 +65,15 @@ fun HomeScreen(
         if (snapshot.prep != null && snapshot.activeSession == null) {
             OutlinedButton(
                 onClick = onOpenPrep,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .testTag("home_prep"),
+                modifier = Modifier.fillMaxWidth().testTag("home_prep"),
             ) {
-                Text("Continue prep")
+                Text("Continue prep (${snapshot.prep!!.workouts.size})")
             }
             Spacer(Modifier.height(8.dp))
         }
         Button(
             onClick = onOpenWorkouts,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .testTag("home_workouts"),
+            modifier = Modifier.fillMaxWidth().testTag("home_workouts"),
         ) {
             Text("Start a workout")
         }

@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import net.moonbaseone.solo.domain.model.EquipmentCategory
 import net.moonbaseone.solo.domain.model.LockerItem
 import net.moonbaseone.solo.domain.model.SoloSnapshot
+import net.moonbaseone.solo.ui.components.SoftSurface
 
 @Composable
 fun LockerScreen(
@@ -96,26 +97,26 @@ fun LockerScreen(
         Text(
             "Home equipment used for overload matching",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 12.dp),
         )
-        LazyColumn {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(snapshot.locker, key = { it.id }) { item ->
                 val weight =
                     item.weightKg?.let { "${it} kg" }
                         ?: item.resistance
                         ?: "—"
-                Column(
+                SoftSurface(
                     modifier =
                         Modifier
-                            .fillMaxWidth()
                             .clickable { editing = item }
-                            .padding(vertical = 10.dp)
                             .testTag("locker_${item.id}"),
                 ) {
                     Text(item.name, style = MaterialTheme.typography.titleMedium)
                     Text(
                         "${item.category.name} · $weight",
                         style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

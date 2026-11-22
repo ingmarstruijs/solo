@@ -147,6 +147,15 @@ data class SessionPrep(
 )
 
 @Serializable
+data class HistoryExerciseLine(
+    val name: String,
+    val durationSeconds: Int,
+    val durationsBySet: List<Int> = emptyList(),
+    val trend: String = "stable",
+    val trendPercent: Int = 0,
+)
+
+@Serializable
 data class HistoryEntry(
     val id: String,
     val workoutName: String,
@@ -155,6 +164,8 @@ data class HistoryEntry(
     val totalDurationSeconds: Int,
     val totalSets: Int,
     val totalExercisesCompleted: Int,
+    val exercises: List<HistoryExerciseLine> = emptyList(),
+    val setWallDurations: Map<Int, Int> = emptyMap(),
 )
 
 @Serializable
@@ -164,7 +175,12 @@ data class SoloSnapshot(
     val history: List<HistoryEntry> = emptyList(),
     val activeSession: ActiveSession? = null,
     val prep: SessionPrep? = null,
+    /** Remaining prepared workouts after the active one (multi-select queue). */
+    val workoutQueue: List<PreparedWorkout> = emptyList(),
     val recoveryScore: Double = 100.0,
     val theme: String = "midnight",
+    val coachEnabled: Boolean = true,
     val seeded: Boolean = false,
 )
+
+val SOLO_THEMES = listOf("midnight", "dawn", "forest", "ember", "slate")

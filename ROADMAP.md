@@ -168,7 +168,9 @@ Current integrated lab slices:
 - [x] Pair smoke E2E (loopback WS in CI; Maestro dual-AVD scaffold later)
 - [x] Compose TV HUD (idle / prep / setup / session / rest / summary)
 - [x] Phone core UI + DataStore persistence (Phase 6–7)
-- [ ] Product parity Phase 10 — workout/locker CRUD, prep/session polish, then delete React `src/`
+- [x] Product parity Phase 10 P1–P5 — workout/locker CRUD, prep/session/summary polish, themes + coach TTS
+- [~] Phase 10 P6 — Wger search import in editor (FIT import still optional)
+- [ ] Delete React `src/` after Android phone UX gate + docs sweep
 - [ ] Dual-emulator Maestro E2E in CI
 - Labs cast/canvas pages stay experiments — not a product TV path
 - Cast/`full` flavor only if needed later; not required for `foss`
