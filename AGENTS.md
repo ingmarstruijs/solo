@@ -54,7 +54,7 @@ npm run lint
 npm run build
 ```
 
-CI: `.github/workflows/ci.yml` (`npm ci` + build). Deploy Pages: `.github/workflows/deploy.yml`.
+CI: `.github/workflows/ci.yml` (`npm ci` + build). Optional web/Pages rollout is **manual only**: `.github/workflows/deploy.yml` (`workflow_dispatch`) — not on every `main` push.
 
 ## Docs map
 

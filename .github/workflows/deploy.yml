@@ -1,9 +1,14 @@
-name: Deploy to GitHub Pages
+name: Deploy web (manual)
 
+# Android is the product path. This workflow is optional: a future SOLO Home
+# Training marketing / reference web surface. It does NOT run on every push.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      note:
+        description: 'Optional note for this rollout (appears in the run summary)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -12,7 +17,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
