@@ -9,21 +9,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import net.moonbaseone.solo.ble.AndroidBleHrClient
 import net.moonbaseone.solo.ble.BleHrClient
 import net.moonbaseone.solo.ble.BleHrState
 import net.moonbaseone.solo.ble.FakeBleHrClient
+import net.moonbaseone.solo.coach.CoachSpeaker
 import net.moonbaseone.solo.ui.SoloApp
-import net.moonbaseone.solo.ui.theme.SoloTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel: SoloViewModel by viewModels()
-
     private var hrClient: BleHrClient? = null
+    private var coach: CoachSpeaker? = null
 
     private val blePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
@@ -36,18 +33,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        coach = CoachSpeaker(this)
         enableEdgeToEdge()
         setContent {
-            SoloTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    SoloApp(
-                        viewModel = viewModel,
-                        onStartFakeHr = { startFakeHr() },
-                        onStartRealHr = { requestBleAndStart() },
-                        onStopHr = { stopHr() },
-                    )
-                }
-            }
+            SoloApp(
+                viewModel = viewModel,
+                onStartFakeHr = { startFakeHr() },
+                onStartRealHr = { requestBleAndStart() },
+                onStopHr = { stopHr() },
+                onAnnounce = { line ->
+                    coach?.speak(line, enabled = viewModel.snapshot.value.coachEnabled)
+                },
+            )
         }
     }
 
@@ -96,6 +93,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         stopHr()
+        coach?.shutdown()
+        coach = null
         super.onDestroy()
     }
 }

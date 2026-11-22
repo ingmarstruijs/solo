@@ -23,12 +23,14 @@ class SessionControllerTest {
                 now = now,
             )
         assertNotNull(prep)
-        val session = activatePrep(prep!!, now)
-        assertNotNull(session)
-        assertFalse(session!!.exercisesStarted)
+        val activated = activatePrep(prep!!, now)
+        assertNotNull(activated)
+        val session = activated!!.session
+        assertFalse(session.exercisesStarted)
         assertEquals(1, session.currentSet)
         assertEquals("Upper Push", session.workout.name)
         assertTrue(session.targets.isNotEmpty())
+        assertTrue(activated.remainingQueue.isEmpty())
     }
 
     @Test
@@ -40,7 +42,7 @@ class SessionControllerTest {
                 100.0,
                 now,
             )!!
-        var session = startExercises(activatePrep(prep, now)!!, now)
+        var session = startExercises(activatePrep(prep, now)!!.session, now)
         val firstId = session.workout.exercises.first().id
         session = completeExercise(session, firstId, now)
         assertTrue(firstId in session.completedExerciseIds)
@@ -52,7 +54,7 @@ class SessionControllerTest {
     fun advanceSet_resetsCompletedExercises() {
         val workout = SeedData.workouts.first()
         val prep = prepareSession(listOf(workout), SeedData.locker, 100.0, now)!!
-        var session = startExercises(activatePrep(prep, now)!!, now)
+        var session = startExercises(activatePrep(prep, now)!!.session, now)
         for (ex in workout.exercises) {
             session = skipRest(completeExercise(session, ex.id, now), now)
         }
@@ -66,7 +68,7 @@ class SessionControllerTest {
     fun restoreAfterDeath_clearsExpiredRest() {
         val prep =
             prepareSession(listOf(SeedData.workouts.first()), SeedData.locker, 100.0, now)!!
-        var session = startExercises(activatePrep(prep, now)!!, now)
+        var session = startExercises(activatePrep(prep, now)!!.session, now)
         session =
             completeExercise(session, session.workout.exercises.first().id, now).copy(
                 restEndsAt = now.plusSeconds(30).toString(),
@@ -106,7 +108,7 @@ class SessionControllerTest {
     fun tvSessionMessage_progressTracksCompletedSlots() {
         val prep =
             prepareSession(listOf(SeedData.workouts.first()), SeedData.locker, 72.0, now)!!
-        var session = startExercises(activatePrep(prep, now)!!, now)
+        var session = startExercises(activatePrep(prep, now)!!.session, now)
         session = skipRest(completeExercise(session, session.workout.exercises.first().id, now), now)
         val msg = sessionTvMessage(session, "midnight", heartRateBpm = 120, now = now)
         assertEquals("Upper Push", msg.workoutName)

@@ -15,6 +15,7 @@ import net.moonbaseone.solo.contracts.TV_SCHEMA_VERSION
 import net.moonbaseone.solo.contracts.TvMessage
 import net.moonbaseone.solo.data.SoloRepository
 import net.moonbaseone.solo.domain.activatePrep
+import net.moonbaseone.solo.domain.activateQueuedWorkout
 import net.moonbaseone.solo.domain.advanceToNextSet
 import net.moonbaseone.solo.domain.allExercisesDoneInSet
 import net.moonbaseone.solo.domain.clearExpiredRest
@@ -32,7 +33,9 @@ import net.moonbaseone.solo.domain.setupTvMessage
 import net.moonbaseone.solo.domain.skipRest
 import net.moonbaseone.solo.domain.startExercises
 import net.moonbaseone.solo.domain.summaryTvMessage
+import net.moonbaseone.solo.domain.toggleExercisePause
 import net.moonbaseone.solo.domain.toggleFavorite
+import net.moonbaseone.solo.domain.undoCompleteExercise
 import net.moonbaseone.solo.domain.updateLockerItem
 import net.moonbaseone.solo.domain.updateWorkout
 import net.moonbaseone.solo.domain.model.EquipmentCategory
@@ -40,6 +43,7 @@ import net.moonbaseone.solo.domain.model.LockerItem
 import net.moonbaseone.solo.domain.model.SoloSnapshot
 import net.moonbaseone.solo.domain.model.WorkoutExercise
 import net.moonbaseone.solo.domain.model.WorkoutTemplate
+import net.moonbaseone.solo.domain.model.SOLO_THEMES
 import net.moonbaseone.solo.transport.OkHttpTvSocketClient
 import net.moonbaseone.solo.transport.PairPayload
 import net.moonbaseone.solo.transport.PairingState
@@ -90,6 +94,20 @@ class SoloViewModel(
     fun setRecovery(score: Double) {
         viewModelScope.launch {
             repo.update { it.copy(recoveryScore = score.coerceIn(0.0, 100.0)) }
+        }
+    }
+
+    fun setTheme(theme: String) {
+        if (theme !in SOLO_THEMES) return
+        viewModelScope.launch {
+            repo.update { it.copy(theme = theme) }
+            pushCurrentHud()
+        }
+    }
+
+    fun setCoachEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            repo.update { it.copy(coachEnabled = enabled) }
         }
     }
 
@@ -233,9 +251,15 @@ class SoloViewModel(
     fun startFromPrep() {
         viewModelScope.launch {
             val prep = snapshot.value.prep ?: return@launch
-            val session = activatePrep(prep) ?: return@launch
-            repo.update { it.copy(activeSession = session, prep = null) }
-            broadcast { setupTvMessage(session, it.theme) }
+            val activated = activatePrep(prep) ?: return@launch
+            repo.update {
+                it.copy(
+                    activeSession = activated.session,
+                    prep = null,
+                    workoutQueue = activated.remainingQueue,
+                )
+            }
+            broadcast { setupTvMessage(activated.session, it.theme) }
         }
     }
 
@@ -245,6 +269,14 @@ class SoloViewModel(
 
     fun markExerciseDone(exerciseId: String) {
         mutateSession { completeExercise(it, exerciseId) }
+    }
+
+    fun undoExercise(exerciseId: String) {
+        mutateSession { undoCompleteExercise(it, exerciseId) }
+    }
+
+    fun togglePause(exerciseId: String) {
+        mutateSession { toggleExercisePause(it, exerciseId) }
     }
 
     fun skipRestNow() {
@@ -257,24 +289,50 @@ class SoloViewModel(
         }
     }
 
-    fun finishWorkout() {
+    fun finishWorkout(onDone: (queuedNext: Boolean) -> Unit = {}) {
         viewModelScope.launch {
             val session = snapshot.value.activeSession ?: return@launch
             val entry = finishSession(session)
-            repo.update {
-                it.copy(
-                    activeSession = null,
-                    history = listOf(entry) + it.history,
-                )
+            val queue = snapshot.value.workoutQueue
+            if (queue.isNotEmpty()) {
+                val next = queue.first()
+                val nextSession =
+                    activateQueuedWorkout(next, snapshot.value.recoveryScore)
+                repo.update {
+                    it.copy(
+                        activeSession = nextSession,
+                        workoutQueue = queue.drop(1),
+                        history = listOf(entry) + it.history,
+                    )
+                }
+                broadcast { setupTvMessage(nextSession, it.theme) }
+                onDone(true)
+            } else {
+                repo.update {
+                    it.copy(
+                        activeSession = null,
+                        workoutQueue = emptyList(),
+                        history = listOf(entry) + it.history,
+                    )
+                }
+                broadcast { summaryTvMessage(entry, it.theme) }
+                onDone(false)
             }
-            broadcast { summaryTvMessage(entry, it.theme) }
         }
     }
 
     fun cancelSession() {
         viewModelScope.launch {
-            repo.update { it.copy(activeSession = null, prep = null) }
+            repo.update {
+                it.copy(activeSession = null, prep = null, workoutQueue = emptyList())
+            }
             broadcast { idleTvMessage(it.theme) }
+        }
+    }
+
+    fun deleteHistory(id: String) {
+        viewModelScope.launch {
+            repo.update { it.copy(history = it.history.filterNot { h -> h.id == id }) }
         }
     }
 

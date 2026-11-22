@@ -1,6 +1,7 @@
 package net.moonbaseone.solo.ui
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -34,6 +35,7 @@ import net.moonbaseone.solo.ui.screens.SettingsScreen
 import net.moonbaseone.solo.ui.screens.SummaryScreen
 import net.moonbaseone.solo.ui.screens.WorkoutEditorScreen
 import net.moonbaseone.solo.ui.screens.WorkoutsScreen
+import net.moonbaseone.solo.ui.theme.SoloTheme
 
 @Composable
 fun SoloApp(
@@ -41,6 +43,27 @@ fun SoloApp(
     onStartFakeHr: () -> Unit,
     onStartRealHr: () -> Unit,
     onStopHr: () -> Unit,
+    onAnnounce: (String) -> Unit = {},
+) {
+    val snap by viewModel.snapshot.collectAsStateWithLifecycle()
+    SoloTheme(themeId = snap.theme) {
+        SoloAppContent(
+            viewModel = viewModel,
+            onStartFakeHr = onStartFakeHr,
+            onStartRealHr = onStartRealHr,
+            onStopHr = onStopHr,
+            onAnnounce = onAnnounce,
+        )
+    }
+}
+
+@Composable
+private fun SoloAppContent(
+    viewModel: SoloViewModel,
+    onStartFakeHr: () -> Unit,
+    onStartRealHr: () -> Unit,
+    onStopHr: () -> Unit,
+    onAnnounce: (String) -> Unit,
 ) {
     val navController = rememberNavController()
     val snap by viewModel.snapshot.collectAsStateWithLifecycle()
@@ -55,16 +78,18 @@ fun SoloApp(
     LaunchedEffect(snap.activeSession, snap.seeded) {
         if (!didRestoreNav && snap.seeded && snap.activeSession != null) {
             didRestoreNav = true
-            navController.navigate(Routes.SESSION) {
-                launchSingleTop = true
-            }
+            navController.navigate(Routes.SESSION) { launchSingleTop = true }
         }
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (showBottom) {
-                NavigationBar(modifier = Modifier.testTag("bottom_nav")) {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    modifier = Modifier.testTag("bottom_nav"),
+                ) {
                     bottomDestinations.forEach { dest ->
                         NavigationBarItem(
                             selected = route == dest,
@@ -116,14 +141,7 @@ fun SoloApp(
                     initial = null,
                     onSave = { name, description, exercises, sets, rest, rounds, restRounds, favorite ->
                         viewModel.saveNewWorkout(
-                            name,
-                            description,
-                            exercises,
-                            sets,
-                            rest,
-                            rounds,
-                            restRounds,
-                            favorite,
+                            name, description, exercises, sets, rest, rounds, restRounds, favorite,
                         )
                         navController.popBackStack()
                     },
@@ -144,15 +162,7 @@ fun SoloApp(
                         initial = workout,
                         onSave = { name, description, exercises, sets, rest, rounds, restRounds, favorite ->
                             viewModel.saveExistingWorkout(
-                                id,
-                                name,
-                                description,
-                                exercises,
-                                sets,
-                                rest,
-                                rounds,
-                                restRounds,
-                                favorite,
+                                id, name, description, exercises, sets, rest, rounds, restRounds, favorite,
                             )
                             navController.popBackStack()
                         },
@@ -174,7 +184,8 @@ fun SoloApp(
             composable(Routes.HISTORY) {
                 HistoryScreen(
                     snapshot = snap,
-                    onOpenSummary = { navController.navigate(Routes.SUMMARY) },
+                    onOpenSummary = { id -> navController.navigate("summary/$id") },
+                    onDelete = viewModel::deleteHistory,
                 )
             }
             composable(Routes.SETTINGS) {
@@ -184,6 +195,8 @@ fun SoloApp(
                     hrSource = hrSource,
                     pairing = pairing,
                     onRecovery = viewModel::setRecovery,
+                    onTheme = viewModel::setTheme,
+                    onCoachEnabled = viewModel::setCoachEnabled,
                     onOpenPair = { navController.navigate(Routes.PAIR) },
                     onStartFakeHr = onStartFakeHr,
                     onStartRealHr = onStartRealHr,
@@ -195,9 +208,7 @@ fun SoloApp(
                     snapshot = snap,
                     onStart = {
                         viewModel.startFromPrep()
-                        navController.navigate(Routes.SESSION) {
-                            popUpTo(Routes.HOME)
-                        }
+                        navController.navigate(Routes.SESSION) { popUpTo(Routes.HOME) }
                     },
                     onBack = { navController.popBackStack() },
                     onOpenPair = { navController.navigate(Routes.PAIR) },
@@ -209,11 +220,14 @@ fun SoloApp(
                     hrState = hrState,
                     onBegin = viewModel::beginExercises,
                     onComplete = viewModel::markExerciseDone,
+                    onUndo = viewModel::undoExercise,
+                    onTogglePause = viewModel::togglePause,
                     onSkipRest = viewModel::skipRestNow,
                     onFinish = {
-                        viewModel.finishWorkout()
-                        navController.navigate(Routes.SUMMARY) {
-                            popUpTo(Routes.HOME)
+                        viewModel.finishWorkout { queuedNext ->
+                            if (!queuedNext) {
+                                navController.navigate(Routes.SUMMARY) { popUpTo(Routes.HOME) }
+                            }
                         }
                     },
                     onCancel = {
@@ -223,16 +237,26 @@ fun SoloApp(
                         }
                     },
                     onOpenPair = { navController.navigate(Routes.PAIR) },
+                    onAnnounce = { line ->
+                        if (snap.coachEnabled) onAnnounce(line)
+                    },
                 )
             }
             composable(Routes.SUMMARY) {
+                SummaryScreen(snapshot = snap, onDone = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.HOME) { inclusive = true }
+                    }
+                })
+            }
+            composable(
+                route = "summary/{entryId}",
+                arguments = listOf(navArgument("entryId") { type = NavType.StringType }),
+            ) { entry ->
                 SummaryScreen(
                     snapshot = snap,
-                    onDone = {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.HOME) { inclusive = true }
-                        }
-                    },
+                    entryId = entry.arguments?.getString("entryId"),
+                    onDone = { navController.popBackStack() },
                 )
             }
             composable(Routes.PAIR) {
