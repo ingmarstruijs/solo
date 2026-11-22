@@ -152,7 +152,7 @@ Current integrated lab slices:
 
 - [x] Manual recovery slider (Home / Settings / Prep)
 - [x] Live BLE HR in session control bar (web reference)
-- [ ] Native BLE HR on Android phone + optional push to Android TV HUD
+- [ ] Native BLE HR on Android phone + optional push to Android TV HUD — in progress (PR F: `:ble` + Fake/Android clients)
 - [ ] Health Connect recovery ingestion (`full` / FOSS-check later)
 
 ### Phase B — Vision (pose + loops)

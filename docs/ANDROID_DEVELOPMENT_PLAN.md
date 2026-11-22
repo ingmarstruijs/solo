@@ -109,10 +109,11 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 ### Phase 4 — BLE HR (phone)
 
-- `BluetoothGatt` + `BleHrClient` / `FakeBleHrClient`.
-- HR samples flow into session state and (when paired) into TV messages.
+- `apps/ble`: HR measurement parser (0x2A37), FSM, `FakeBleHrClient`, `tvSensorFromHr`.
+- Phone: `AndroidBleHrClient` (`BluetoothGatt` + 0x180D scan) + Fake HR smoke buttons.
+- HR samples ready for session state / TV sensor strip (session wiring grows with phone UI).
 
-**Gate:** FSM unit tests; fake GATT instrumented; manual real-band checklist before public tag.
+**Gate:** FSM + parser unit tests; fake client instrumented in JVM CI; manual real-band checklist before public tag.
 
 ### Phase 5 — TV HUD (slice B)
 
@@ -191,8 +192,8 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 | B | Android Gradle skeleton + GitHub/`preview` Obtainium releases | 1 | **Done** |
 | C | Contracts + codecs | 2 | **Done** |
 | D | Pairing + WebSocket | 3 | **Done** |
-| E | E2E pair smoke (loopback WS + Maestro scaffold) | 3 | **This PR** |
-| F | BLE + fakes | 4 | |
+| E | E2E pair smoke (loopback WS + Maestro scaffold) | 3 | **Done** |
+| F | BLE + fakes | 4 | **This PR** |
 | G | TV HUD | 5 | |
 | H… | Phone UI slices | 6 | |
 | R | Signing + Byte-RB | 8 | |
@@ -202,4 +203,4 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 ## Immediate next step
 
-After PR E merges: **PR F** — BLE HR client + fakes on the phone.
+After PR F merges: **PR G** — Compose TV HUD from `TvMessage` fixtures.

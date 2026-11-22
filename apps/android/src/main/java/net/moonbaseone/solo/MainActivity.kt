@@ -1,19 +1,27 @@
 package net.moonbaseone.solo
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,6 +39,12 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import net.moonbaseone.solo.ble.AndroidBleHrClient
+import net.moonbaseone.solo.ble.BleHrClient
+import net.moonbaseone.solo.ble.BleHrState
+import net.moonbaseone.solo.ble.FakeBleHrClient
+import net.moonbaseone.solo.ble.liveBpm
 import net.moonbaseone.solo.contracts.TV_SCHEMA_VERSION
 import net.moonbaseone.solo.contracts.TvMessage
 import net.moonbaseone.solo.transport.DEFAULT_TV_WS_PORT
@@ -45,6 +59,19 @@ class MainActivity : ComponentActivity() {
     private val dialClient = OkHttpTvSocketClient()
     private var dialSession: PhoneDialSession? = null
 
+    private var hrClient: BleHrClient? = null
+    private var hrUiState by mutableStateOf<BleHrState>(BleHrState.Idle)
+    private var hrSource by mutableStateOf("off")
+
+    private val blePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+            if (grants.values.all { it }) {
+                startRealBle()
+            } else {
+                hrUiState = BleHrState.Error("Bluetooth permission denied")
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -52,6 +79,11 @@ class MainActivity : ComponentActivity() {
             SoloTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     SoloShell(
+                        hrState = hrUiState,
+                        hrSource = hrSource,
+                        onStartFakeHr = { startFakeHr() },
+                        onStartRealHr = { requestBleAndStart() },
+                        onStopHr = { stopHr() },
                         onConnect = { host, port, code, onState ->
                             dialSession?.disconnect()
                             lateinit var session: PhoneDialSession
@@ -93,15 +125,67 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun requestBleAndStart() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val needed =
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                )
+            val missing =
+                needed.filter {
+                    ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+                }
+            if (missing.isNotEmpty()) {
+                blePermissionLauncher.launch(missing.toTypedArray())
+                return
+            }
+        }
+        startRealBle()
+    }
+
+    private fun startFakeHr() {
+        stopHr()
+        val fake = FakeBleHrClient(sampleIntervalMs = 1_000)
+        hrClient = fake
+        hrSource = "fake"
+        fake.addStateListener { state -> runOnUiThread { hrUiState = state } }
+        fake.start()
+        fake.pushSample(96)
+    }
+
+    private fun startRealBle() {
+        stopHr()
+        val real = AndroidBleHrClient(this)
+        hrClient = real
+        hrSource = "ble"
+        real.addStateListener { state -> runOnUiThread { hrUiState = state } }
+        real.start()
+    }
+
+    private fun stopHr() {
+        hrClient?.stop()
+        (hrClient as? FakeBleHrClient)?.shutdown()
+        hrClient = null
+        hrSource = "off"
+        hrUiState = BleHrState.Idle
+    }
+
     override fun onDestroy() {
         dialSession?.disconnect()
         dialSession = null
+        stopHr()
         super.onDestroy()
     }
 }
 
 @Composable
 fun SoloShell(
+    hrState: BleHrState = BleHrState.Idle,
+    hrSource: String = "off",
+    onStartFakeHr: () -> Unit = {},
+    onStartRealHr: () -> Unit = {},
+    onStopHr: () -> Unit = {},
     onConnect: (host: String, port: Int, code: String, onState: (PairingState) -> Unit) -> Unit =
         { _, _, _, _ -> },
     onDisconnect: () -> Unit = {},
@@ -115,6 +199,7 @@ fun SoloShell(
         modifier =
             Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -132,8 +217,58 @@ fun SoloShell(
         Text(
             text = BuildConfig.FLAVOR + " · " + BuildConfig.VERSION_NAME,
             style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+            modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
         )
+
+        Text(
+            text = "Heart rate",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            text = hrLabel(hrState, hrSource),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 8.dp)
+                    .testTag("hr_status")
+                    .semantics { contentDescription = hrLabel(hrState, hrSource) },
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedButton(
+                onClick = onStartFakeHr,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .testTag("hr_fake"),
+            ) {
+                Text("Fake HR")
+            }
+            OutlinedButton(
+                onClick = onStartRealHr,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .testTag("hr_scan"),
+            ) {
+                Text("Scan band")
+            }
+            OutlinedButton(
+                onClick = onStopHr,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .testTag("hr_stop"),
+            ) {
+                Text("Stop")
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
             value = host,
@@ -221,6 +356,24 @@ fun SoloShell(
                     .testTag("pair_status")
                     .semantics { contentDescription = status },
         )
+    }
+}
+
+private fun hrLabel(state: BleHrState, source: String): String {
+    val bpm = state.liveBpm
+    return when (state) {
+        is BleHrState.Idle -> "HR off"
+        is BleHrState.Unsupported -> "Bluetooth unavailable"
+        is BleHrState.Scanning -> "Scanning… ($source)"
+        is BleHrState.Connecting -> "Connecting ${state.deviceName ?: ""} ($source)"
+        is BleHrState.Connected ->
+            if (bpm != null) {
+                "${state.deviceName}: $bpm bpm ($source)"
+            } else {
+                "${state.deviceName}: connected ($source)"
+            }
+        is BleHrState.Disconnected -> "Disconnected: ${state.reason ?: "—"}"
+        is BleHrState.Error -> "HR error: ${state.message}"
     }
 }
 
