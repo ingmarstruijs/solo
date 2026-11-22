@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # React/Vite reference tree (product path is Android under apps/).
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -7,10 +8,22 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     groups:
-      dev-dependencies:
+      npm-production:
+        dependency-type: production
+        patterns:
+          - '*'
+      npm-development:
         dependency-type: development
         patterns:
           - '*'
+
+  # Kotlin/Compose phone + TV + shared JVM modules.
+  - package-ecosystem: gradle
+    directory: /apps
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
     directory: /
