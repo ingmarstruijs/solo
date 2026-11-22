@@ -92,8 +92,10 @@ jobs:
               CHANNEL="stable"
             fi
           else
-            # Floating preview on main: 0.1.0-dev.<run_number>
-            VERSION_NAME="0.1.0-dev.${VERSION_CODE}"
+            # Floating preview on main: 0.1.<run_number>
+            # Avoid SemVer pre-release suffixes (0.1.0-dev.N): Obtainium's default
+            # detector often strips after "-" and then never sees an update.
+            VERSION_NAME="0.1.${VERSION_CODE}"
             CHANNEL="preview"
           fi
 
