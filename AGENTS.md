@@ -4,7 +4,7 @@ Instructions for AI agents and maintainers working in this repo.
 
 ## Product
 
-SOLO. (**SOLO Home training**) is a privacy-first home workout product. **Android** (Kotlin/Compose, planned) is the phone target; **Android TV** companion on LAN is the only TV surface (web `/tv` removed). The React/Vite tree remains as phone UX reference. **iOS is out of scope.** No accounts, no cloud backend. Data stays on-device.
+SOLO. (**SOLO Home training**) is a privacy-first home workout product. **Android** (Kotlin/Compose phone + Android TV) is the product target; web `/tv` is removed. The React/Vite tree at `src/` is **phone UX reference only** (editor / labs / Wger still ahead of native parity). **iOS is out of scope.** No accounts, no cloud backend. Data stays on-device.
 
 Read first: [README.md](README.md), [ARCHITECTURE.md](ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md).
 
@@ -21,9 +21,10 @@ Read first: [README.md](README.md), [ARCHITECTURE.md](ARCHITECTURE.md), [ROADMAP
 Stack research: [docs/native-android-stack.md](docs/native-android-stack.md).
 
 - **Kotlin + Jetpack Compose** — phone app + **Android TV receiver** app; **iOS out of scope**
-- Thin shared logic: JSON contracts + ported domain; React kept as reference only
+- Modules under `apps/`: `:contracts`, `:domain`, `:transport`, `:ble`, `:android`, `:android-tv`
 - Phone controls TV over LAN (WebSocket); no Cast required for `foss`
-- **Native BLE** on Android phone (not Web Bluetooth)
+- **Native BLE** on Android phone (not Web Bluetooth); DataStore snapshot persists sessions across process death
+- Do **not** delete React `src/` until remaining reference flows are ported or explicitly retired
 - Dual channel: **GitHub Releases** (project key) + **F-Droid** (rebuild; **Byte-RB required**)
 - F-Droid ships **`foss` only** (no GMS / Cast / non-free SDKs)
 - Do not open fdroiddata MRs without green reproducible verification for that tag

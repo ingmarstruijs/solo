@@ -19,11 +19,13 @@ rootProject.name = "solo"
 include(":android")
 include(":android-tv")
 include(":contracts")
+include(":domain")
 include(":transport")
 include(":ble")
 
 project(":android").projectDir = file("android")
 project(":android-tv").projectDir = file("android-tv")
 project(":contracts").projectDir = file("contracts")
+project(":domain").projectDir = file("domain")
 project(":transport").projectDir = file("transport")
 project(":ble").projectDir = file("ble")

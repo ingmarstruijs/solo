@@ -1,35 +1,44 @@
 # User Flows & Architecture
 
-How SOLO. is structured today — phone session lifecycle, navigation, and on-device storage. Product pillars: **[README.md](README.md#the-5-pillars-of-solo)**. Android phone + Android TV direction: **[docs/native-android-stack.md](docs/native-android-stack.md)** · **[docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md)**.
+How SOLO. is structured — **Android phone + Android TV** product path, plus the React tree kept as UX reference. Product pillars: **[README.md](README.md#the-5-pillars-of-solo)**. Plan: **[docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md)**.
 
 ---
 
 ## System overview
 
-The **phone** runs the product UX (React reference today; Kotlin/Compose planned). Persistent state lives in `localStorage` (with a few `sessionStorage` keys for ephemeral prep/queue/summary). There is no backend and no account.
+The **Android phone** app (`apps/android`) is the product UX. Domain logic lives in `:domain` (JVM). Persistence is a DataStore JSON `SoloSnapshot` (workouts, locker, history, active session, prep). There is no backend and no account.
 
-The former web `/tv` BroadcastChannel receiver has been **removed**. The living-room board will be a separate **Android TV** app controlled over LAN (see the Android development plan).
+The **Android TV** app (`apps/android-tv`) listens on LAN WebSocket; the phone dials with a pair code and pushes `TvMessage` HUD updates. The former web `/tv` BroadcastChannel receiver is **removed**.
 
 ```mermaid
 graph LR
-  subgraph Phone["Phone"]
-    A[Home / Workouts / Locker / Logboek]
+  subgraph Phone["Android phone"]
+    A[Home / Workouts / Locker / History]
     B[Prep + Session]
-    C[sessionStore + historyStore]
-    E[Bottom nav center action]
+    C[DataStore SoloSnapshot]
+    D[":domain session + overload"]
+  end
+  subgraph TV["Android TV"]
+    H[TvHudScreen]
   end
   A --> B
-  B --> C
-  E --> B
+  B --> D
+  D --> C
+  B -->|WebSocket TvMessage| H
 ```
 
-| Surface | Route | Role |
+| Surface | Location | Role |
 |---|---|---|
-| Mobile shell | `/`, `/workouts`, `/locker`, `/history` | Home, templates, locker, logbook |
-| Workout prep | `/workouts/prep?ids=…` | Targets, insights, queue |
-| Live session | `/session` | Active workout controller |
-| Summary | `/session/summary` or `/history/:id` | Post-workout or historical recap |
-| Labs | `/lab/*` | Architecture experiments (not main flow) |
+| Phone shell | Compose nav | Home, workouts, locker, history, settings |
+| Workout prep | `Routes.PREP` | Overload targets, optional pair, start |
+| Live session | `Routes.SESSION` | Setup → exercises → rest → finish |
+| Summary / history | `Routes.SUMMARY` / History | Post-workout recap |
+| Pair | `Routes.PAIR` | Dial TV host + code |
+| React reference | `src/` | Editor, labs, legacy flows not yet ported |
+
+### Process-death policy
+
+Active sessions are part of `SoloSnapshot`. On cold start the phone restores `activeSession`, clears expired rest timers, and can navigate back to Session. See `ProcessDeathPolicy` in `:domain`.
 
 ---
 
@@ -145,7 +154,7 @@ graph TD
 - The current exercise is pinned in a sticky card; the list below hides the duplicate row.
 - During **exercise rest**, the active badge reads **Volgende oefening**, the per-exercise timer pauses, and **Klaar** / **Pauze** are disabled until rest ends or is skipped.
 - Rest starts automatically after **Klaar** when `restSeconds` is configured — there are no manual “start rest” buttons.
-- During rest, the phone shows a **full-screen overlay** with the rust / set rust title, countdown, and the **exercise coming next** (name + target). Phase rest labels the next set/ronde and shows the first exercise of that phase. (Android TV will mirror this once the companion app lands.)
+- During rest, the phone shows a rest countdown (and the React reference uses a full-screen overlay). Android TV mirrors rest via `TvMessage.Session.rest`.
 
 ### Set / phase transitions
 

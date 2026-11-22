@@ -10,12 +10,12 @@
 </p>
 
 <p align="center">
-  React 19 · TypeScript · Vite (phone UX reference) · Kotlin/Compose Android + Android TV planned · Offline-first · No account · No cloud
+  Kotlin/Compose Android phone + Android TV · React/Vite phone UX reference · Offline-first · No account · No cloud
 </p>
 
 ---
 
-SOLO. (**SOLO Home training**) is an open-source home training app. The React/Vite app is the current phone UX reference; the product direction is **Kotlin/Compose on Android phone + Android TV** (see [docs/native-android-stack.md](docs/native-android-stack.md)). Build workouts, match weights to your home locker, run live sessions, and review summaries — all on-device. No subscriptions, no vendor backend.
+SOLO. (**SOLO Home training**) is an open-source home training app. The **product path** is **Kotlin/Compose on Android phone + Android TV** (LAN pairing, on-device DataStore). The React/Vite tree remains a **UX/domain reference** for flows not yet ported (editor, Wger, labs). Build workouts, match weights to your home locker, run live sessions, and review summaries — all on-device. No subscriptions, no vendor backend.
 
 For planned features (Connect IQ reps/velocity, MediaPipe pose, canvas cast pipeline), see **[ROADMAP.md](ROADMAP.md)**.
 
@@ -26,8 +26,8 @@ Five ideas guide the product. **Now** is what you can use today; **Next** is on 
 | # | Pillar | Now | Next |
 |---|---|---|---|
 | 1 | **Your gear, your weights** | Locker profiles, overload planner, plate configurator, and TUT when you hit your home weight ceiling | — |
-| 2 | **Garmin as live sensor** | Manual recovery slider; BLE HR band in session (Chrome/Edge) | Native BLE on Android; Connect IQ reps/velocity; Health API recovery |
-| 3 | **See your form and the workout** | Camera preview on phone with optional MediaPipe form cues; exercise icons on phone | Android TV companion HUD (Compose); licensed exercise loops |
+| 2 | **Garmin as live sensor** | Manual recovery slider; native BLE HR on Android (`:ble` + Fake/GATT); web BLE reference | Connect IQ reps/velocity; Health API recovery |
+| 3 | **See your form and the workout** | Camera preview on phone (web reference); Android TV Compose HUD via LAN WebSocket | Licensed exercise loops on TV; pose cues on Android phone |
 | 4 | **Coach in your ear** | Spoken exercise cues, set-rust vs exercise-rest announcements, pause/resume, male/female voice; HR strain edge pulse + calm coach cue | Velocity-triggered coaching, style options |
 | 5 | **Proof on your device** | Session summary, logbook, and ~15s proof reel from workout video clips + stats | — |
 
@@ -48,32 +48,28 @@ Pillar-by-pillar detail: **[ROADMAP.md](ROADMAP.md)**.
 - **Proof reel** — optional ~15s vertical MP4 from session camera clips + stats (FFmpeg in-browser); share or download
 - **Themes** — automatic time-of-day themes or manual override in Settings
 - **Labs** — isolated feasibility pages for Garmin BLE, pose/camera, canvas compositor, and cast stream (not part of the main session flow)
-- **Android TV (planned)** — companion Compose app controlled by the phone over LAN (replaces the removed web `/tv` route)
+- **Android phone + TV** — Compose apps under `apps/`; pair over LAN; session drives TV HUD (`TvMessage`)
 
-## Apps & Routes
+## Apps & surfaces
 
-| Surface | Route | Role |
+| Surface | Location | Role |
 |---|---|---|
-| Mobile shell | `/` | Phone UX — home, workouts, locker, history, session |
-| Workout prep | `/workouts/prep?ids=…` | Targets, insights, start |
-| Live session | `/session` | Active workout controller |
-| Summary | `/session/summary` or `/history/:id` | Post-workout or historical recap |
-| Labs | `/lab/*` | Architecture experiments |
+| Android phone | `apps/android` | Product UX — home, workouts, locker, history, prep, session, summary, pair |
+| Android TV | `apps/android-tv` | Living-room HUD (idle / prep / setup / session / rest / summary) |
+| Shared domain | `apps/domain` | Session controller, overload, seeds, snapshot models |
+| Contracts / transport / BLE | `apps/contracts`, `apps/transport`, `apps/ble` | Wire schema, WebSocket pairing, HR |
+| React reference | `src/` | Historical phone UX + labs (not the product TV path) |
 
 ## Tech Stack
 
 | Layer | Choice |
 |---|---|
-| UI (reference) | React 19, React Router 7, Tailwind CSS 4, Lucide icons |
-| Build | Vite 8, TypeScript 6, `vite-plugin-pwa` |
-| State & storage | `localStorage` snapshots with stable `useSyncExternalStore` sources |
-| Coach voice | Web Speech API (`src/lib/coach`) |
-| Exercise data | [Wger API](https://wger.de) (`/exerciseinfo/`, `name__search`) |
-| FIT import | `@garmin/fitsdk` |
-| BLE HR | Web Bluetooth API — product HR band + Garmin lab probe (Android native BLE planned) |
-| Pose / form cues | `@mediapipe/tasks-vision` Pose Landmarker (lite), local wasm + model via `postinstall` |
-| Proof reel | `@ffmpeg/ffmpeg` Wasm → ~15s vertical MP4 from camera clips + stats; Web Share API |
-| Android (planned) | Kotlin + Jetpack Compose phone + Android TV, `foss`/`full`, Byte-RB — [docs/native-android-stack.md](docs/native-android-stack.md) · [docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md) |
+| Android phone + TV | Kotlin, Jetpack Compose, Navigation, DataStore, Material 3 |
+| Domain / wire | `:domain`, kotlinx.serialization, `contracts/` goldens |
+| Transport | OkHttp + Java-WebSocket LAN pairing |
+| BLE HR | Android GATT `0x180D` + JVM `FakeBleHrClient` |
+| React reference | React 19, Vite, Tailwind — `localStorage` / Web Bluetooth / MediaPipe / FFmpeg labs |
+| Release | `foss`/`full` flavors, GitHub `preview` Obtainium APKs; F-Droid + Byte-RB later — [docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md) |
 
 ## Getting Started
 
@@ -82,17 +78,15 @@ npm install
 npm run dev
 ```
 
-Open the dev server on your phone or tablet. The web `/tv` receiver has been removed; the living-room board will ship as an **Android TV** app (see the Android development plan).
-
 ```bash
-npm run build    # production build
+npm run build    # production build (reference)
 npm run preview  # preview dist
 npm run lint     # tsc --noEmit
 ```
 
-No server required — all data stays in the browser.
+Product installs: Obtainium → GitHub `preview` release (see Android section below). No cloud server — data stays on-device.
 
-User flows, system diagrams, data stores, and project layout: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+User flows and layout: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ## Privacy & security
 
@@ -102,13 +96,13 @@ User flows, system diagrams, data stores, and project layout: **[ARCHITECTURE.md
 
 ## Android (Compose) + Obtainium
 
-Kotlin + Jetpack Compose on **Android phone + Android TV** (phone controls TV on LAN). **iOS dropped.** React/Vite is reference only.
+Kotlin + Jetpack Compose on **Android phone + Android TV** (phone controls TV on LAN). **iOS dropped.** React/Vite is reference only until native parity covers editor/labs.
 
-Early device installs: **GitHub Releases + Obtainium** (floating `preview` pre-release on `main`). F-Droid/`foss` Byte-RB comes later for store listing.
+Early device installs: **GitHub Releases + Obtainium** (floating `preview` pre-release on `main`). F-Droid/`foss` Byte-RB is Phase 8+.
 
 ```bash
 cd apps
-./gradlew :android:assembleFossDebug :android-tv:assembleFossDebug
+./gradlew :domain:test :android:assembleFossDebug :android-tv:assembleFossDebug
 ```
 
 - Stack research: **[docs/native-android-stack.md](docs/native-android-stack.md)**
