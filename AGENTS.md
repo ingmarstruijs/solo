@@ -24,7 +24,7 @@ Stack research: [docs/native-android-stack.md](docs/native-android-stack.md).
 - Modules under `apps/`: `:contracts`, `:domain`, `:transport`, `:ble`, `:android`, `:android-tv`
 - Phone controls TV over LAN (WebSocket); no Cast required for `foss`
 - **Native BLE** on Android phone (not Web Bluetooth); DataStore snapshot persists sessions across process death
-- Do **not** delete React `src/` until remaining reference flows are ported or explicitly retired
+- Do **not** delete React `src/` until Phase 10 product-parity slices cover those flows (see [docs/ANDROID_DEVELOPMENT_PLAN.md](docs/ANDROID_DEVELOPMENT_PLAN.md))
 - Dual channel: **GitHub Releases** (project key) + **F-Droid** (rebuild; **Byte-RB required**)
 - F-Droid ships **`foss` only** (no GMS / Cast / non-free SDKs)
 - Do not open fdroiddata MRs without green reproducible verification for that tag

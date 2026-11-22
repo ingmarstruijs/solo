@@ -155,6 +155,23 @@ Each phase = one or few PRs. **No merge without its test gate.**
 - Only after Phase 8 green on a tag.
 - Separate listings (or clear dual-APK story) for phone + TV as F-Droid policy allows.
 
+### Phase 10 — Product parity (React → Compose) — **In progress**
+
+Goal: enough native phone UX that `src/` can be deleted. Vertical PRs; each removes or retires a React surface when done.
+
+| Slice | Port | Unlocks deleting |
+| --- | --- | --- |
+| **P1** | Workout CRUD + editor (create / edit / delete / favorite) | `WorkoutEditorPage`, builder parts |
+| **P1** | Locker CRUD (add / edit / delete items) | `LockerPage` forms |
+| **P2** | Prep polish (insights, plate cues) + multi-queue UX | prep panels |
+| **P3** | Session polish (rest overlay, undo, pause, sticky active) | session chrome |
+| **P4** | Summary / history detail (trends) | rich summary |
+| **P5** | Settings themes + coach TTS (Android speech) | coach / theme stores |
+| **P6** | Wger search import + FIT import (optional) | Wger / FIT modules |
+| Later | Camera / pose / proof reel | labs — still non-goals for early foss |
+
+**Gate per slice:** domain unit tests where logic moves; Compose smoke; update ROADMAP checklist; only then delete matching `src/` trees.
+
 ---
 
 ## Testing strategy
@@ -201,12 +218,13 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 | E | E2E pair smoke (loopback WS + Maestro scaffold) | 3 | **Done** |
 | F | BLE + fakes | 4 | **Done** |
 | G | TV HUD | 5 | **Done** |
-| H | Phone UI + DataStore persistence | 6–7 | **This PR** |
-| R | Signing + Byte-RB | 8 | |
-| F-Droid | fdroiddata | 9 | |
+| H | Phone UI + DataStore persistence | 6–7 | **Done** |
+| P1… | Product parity slices (editor, locker, session polish, …) | 10 | **This PR** (P1) |
+| R | Signing + Byte-RB | 8 | Deferred while parity runs |
+| F-Droid | fdroiddata | 9 | After R |
 
 ---
 
 ## Immediate next step
 
-After PR H merges: **Phase 8 / PR R** — real `fdroid_build.sh` + Byte-RB on tags. Optional follow-ups: dual-AVD Maestro E2E, workout editor / Wger port, then remove React `src/` once parity is enough.
+**Phase 10 / product parity** before Phase 8: port workout + locker CRUD first, then session/prep polish, then retire matching React `src/` trees. Byte-RB / F-Droid wait until the product shell is usable day-to-day.

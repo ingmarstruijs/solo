@@ -15,10 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import net.moonbaseone.solo.SoloViewModel
 import net.moonbaseone.solo.ui.navigation.Routes
 import net.moonbaseone.solo.ui.navigation.bottomDestinations
@@ -30,6 +32,7 @@ import net.moonbaseone.solo.ui.screens.PrepScreen
 import net.moonbaseone.solo.ui.screens.SessionScreen
 import net.moonbaseone.solo.ui.screens.SettingsScreen
 import net.moonbaseone.solo.ui.screens.SummaryScreen
+import net.moonbaseone.solo.ui.screens.WorkoutEditorScreen
 import net.moonbaseone.solo.ui.screens.WorkoutsScreen
 
 @Composable
@@ -103,10 +106,70 @@ fun SoloApp(
                         viewModel.prepareSelected(ids)
                         navController.navigate(Routes.PREP)
                     },
+                    onCreate = { navController.navigate(Routes.WORKOUT_NEW) },
+                    onEdit = { id -> navController.navigate(Routes.workoutEdit(id)) },
+                    onToggleFavorite = viewModel::toggleWorkoutFavorite,
                 )
             }
+            composable(Routes.WORKOUT_NEW) {
+                WorkoutEditorScreen(
+                    initial = null,
+                    onSave = { name, description, exercises, sets, rest, rounds, restRounds, favorite ->
+                        viewModel.saveNewWorkout(
+                            name,
+                            description,
+                            exercises,
+                            sets,
+                            rest,
+                            rounds,
+                            restRounds,
+                            favorite,
+                        )
+                        navController.popBackStack()
+                    },
+                    onDelete = null,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.WORKOUT_EDIT,
+                arguments = listOf(navArgument("workoutId") { type = NavType.StringType }),
+            ) { entry ->
+                val id = entry.arguments?.getString("workoutId").orEmpty()
+                val workout = snap.workouts.find { it.id == id }
+                if (workout == null) {
+                    LaunchedEffect(id) { navController.popBackStack() }
+                } else {
+                    WorkoutEditorScreen(
+                        initial = workout,
+                        onSave = { name, description, exercises, sets, rest, rounds, restRounds, favorite ->
+                            viewModel.saveExistingWorkout(
+                                id,
+                                name,
+                                description,
+                                exercises,
+                                sets,
+                                rest,
+                                rounds,
+                                restRounds,
+                                favorite,
+                            )
+                            navController.popBackStack()
+                        },
+                        onDelete = {
+                            viewModel.deleteWorkout(id)
+                            navController.popBackStack()
+                        },
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+            }
             composable(Routes.LOCKER) {
-                LockerScreen(snapshot = snap)
+                LockerScreen(
+                    snapshot = snap,
+                    onSave = viewModel::saveLockerItem,
+                    onDelete = viewModel::deleteLockerItem,
+                )
             }
             composable(Routes.HISTORY) {
                 HistoryScreen(

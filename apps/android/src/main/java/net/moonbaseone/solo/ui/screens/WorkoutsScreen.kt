@@ -12,7 +12,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
@@ -26,6 +28,9 @@ import net.moonbaseone.solo.domain.model.SoloSnapshot
 fun WorkoutsScreen(
     snapshot: SoloSnapshot,
     onPrepare: (List<String>) -> Unit,
+    onCreate: () -> Unit,
+    onEdit: (String) -> Unit,
+    onToggleFavorite: (String) -> Unit,
 ) {
     val selected = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -36,9 +41,18 @@ fun WorkoutsScreen(
                 .padding(16.dp)
                 .testTag("screen_workouts"),
     ) {
-        Text("Workouts", style = MaterialTheme.typography.headlineMedium)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Workouts", style = MaterialTheme.typography.headlineMedium)
+            OutlinedButton(onClick = onCreate, modifier = Modifier.testTag("workouts_new")) {
+                Text("New")
+            }
+        }
         Text(
-            "Select one or more, then prepare",
+            "Select one or more, then prepare — or edit a template",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(bottom = 12.dp),
         )
@@ -52,8 +66,7 @@ fun WorkoutsScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .clickable { selected[workout.id] = !checked }
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = 6.dp)
                             .testTag("workout_${workout.id}"),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -62,10 +75,21 @@ fun WorkoutsScreen(
                         onCheckedChange = { selected[workout.id] = it },
                     )
                     Text(
-                        "${workout.name}\n${workout.exercises.size} exercises · ~${workout.estimatedMinutes} min",
+                        "${if (workout.favorite) "★ " else ""}${workout.name}\n" +
+                            "${workout.exercises.size} exercises · ~${workout.estimatedMinutes} min",
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .clickable { onEdit(workout.id) }
+                                .padding(start = 4.dp),
                     )
+                    TextButton(
+                        onClick = { onToggleFavorite(workout.id) },
+                        modifier = Modifier.testTag("workout_fav_${workout.id}"),
+                    ) {
+                        Text(if (workout.favorite) "★" else "☆")
+                    }
                 }
             }
         }
