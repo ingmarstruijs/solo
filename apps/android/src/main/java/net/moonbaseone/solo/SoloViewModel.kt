@@ -19,6 +19,8 @@ import net.moonbaseone.solo.domain.advanceToNextSet
 import net.moonbaseone.solo.domain.allExercisesDoneInSet
 import net.moonbaseone.solo.domain.clearExpiredRest
 import net.moonbaseone.solo.domain.completeExercise
+import net.moonbaseone.solo.domain.createLockerItem
+import net.moonbaseone.solo.domain.createWorkout
 import net.moonbaseone.solo.domain.finishSession
 import net.moonbaseone.solo.domain.idleTvMessage
 import net.moonbaseone.solo.domain.isLastSet
@@ -30,7 +32,14 @@ import net.moonbaseone.solo.domain.setupTvMessage
 import net.moonbaseone.solo.domain.skipRest
 import net.moonbaseone.solo.domain.startExercises
 import net.moonbaseone.solo.domain.summaryTvMessage
+import net.moonbaseone.solo.domain.toggleFavorite
+import net.moonbaseone.solo.domain.updateLockerItem
+import net.moonbaseone.solo.domain.updateWorkout
+import net.moonbaseone.solo.domain.model.EquipmentCategory
+import net.moonbaseone.solo.domain.model.LockerItem
 import net.moonbaseone.solo.domain.model.SoloSnapshot
+import net.moonbaseone.solo.domain.model.WorkoutExercise
+import net.moonbaseone.solo.domain.model.WorkoutTemplate
 import net.moonbaseone.solo.transport.OkHttpTvSocketClient
 import net.moonbaseone.solo.transport.PairPayload
 import net.moonbaseone.solo.transport.PairingState
@@ -83,6 +92,132 @@ class SoloViewModel(
             repo.update { it.copy(recoveryScore = score.coerceIn(0.0, 100.0)) }
         }
     }
+
+    fun saveNewWorkout(
+        name: String,
+        description: String?,
+        exercises: List<WorkoutExercise>,
+        sets: Int,
+        restBetweenSets: Int,
+        circuitRounds: Int?,
+        restBetweenRounds: Int?,
+        favorite: Boolean,
+    ) {
+        viewModelScope.launch {
+            val workout =
+                createWorkout(
+                    name = name,
+                    description = description,
+                    exercises = exercises,
+                    sets = sets,
+                    restBetweenSets = restBetweenSets,
+                    circuitRounds = circuitRounds,
+                    restBetweenRounds = restBetweenRounds,
+                    favorite = favorite,
+                )
+            repo.update { it.copy(workouts = it.workouts + workout) }
+        }
+    }
+
+    fun saveExistingWorkout(
+        id: String,
+        name: String,
+        description: String?,
+        exercises: List<WorkoutExercise>,
+        sets: Int,
+        restBetweenSets: Int,
+        circuitRounds: Int?,
+        restBetweenRounds: Int?,
+        favorite: Boolean,
+    ) {
+        viewModelScope.launch {
+            repo.update { snap ->
+                val existing = snap.workouts.find { it.id == id } ?: return@update snap
+                val updated =
+                    updateWorkout(
+                        existing = existing,
+                        name = name,
+                        description = description,
+                        exercises = exercises,
+                        sets = sets,
+                        restBetweenSets = restBetweenSets,
+                        circuitRounds = circuitRounds,
+                        restBetweenRounds = restBetweenRounds,
+                        favorite = favorite,
+                    )
+                snap.copy(workouts = snap.workouts.map { if (it.id == id) updated else it })
+            }
+        }
+    }
+
+    fun deleteWorkout(id: String) {
+        viewModelScope.launch {
+            repo.update { it.copy(workouts = it.workouts.filterNot { w -> w.id == id }) }
+        }
+    }
+
+    fun toggleWorkoutFavorite(id: String) {
+        viewModelScope.launch {
+            repo.update { snap ->
+                snap.copy(
+                    workouts =
+                        snap.workouts.map { w ->
+                            if (w.id == id) toggleFavorite(w) else w
+                        },
+                )
+            }
+        }
+    }
+
+    fun saveLockerItem(
+        existingId: String?,
+        name: String,
+        brand: String,
+        category: EquipmentCategory,
+        weightKg: Double?,
+        resistance: String?,
+        notes: String?,
+    ) {
+        viewModelScope.launch {
+            repo.update { snap ->
+                if (existingId == null) {
+                    val item =
+                        createLockerItem(
+                            name = name,
+                            brand = brand,
+                            category = category,
+                            weightKg = weightKg,
+                            resistance = resistance,
+                            notes = notes,
+                        )
+                    snap.copy(locker = snap.locker + item)
+                } else {
+                    val existing = snap.locker.find { it.id == existingId } ?: return@update snap
+                    val updated =
+                        updateLockerItem(
+                            existing,
+                            name = name,
+                            brand = brand,
+                            category = category,
+                            weightKg = weightKg,
+                            resistance = resistance,
+                            notes = notes,
+                        )
+                    snap.copy(locker = snap.locker.map { if (it.id == existingId) updated else it })
+                }
+            }
+        }
+    }
+
+    fun deleteLockerItem(id: String) {
+        viewModelScope.launch {
+            repo.update { it.copy(locker = it.locker.filterNot { item -> item.id == id }) }
+        }
+    }
+
+    fun workoutById(id: String): WorkoutTemplate? = snapshot.value.workouts.find { it.id == id }
+
+    fun lockerById(id: String): LockerItem? = snapshot.value.locker.find { it.id == id }
 
     fun prepareSelected(workoutIds: List<String>) {
         viewModelScope.launch {
