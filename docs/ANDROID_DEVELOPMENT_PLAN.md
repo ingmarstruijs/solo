@@ -117,10 +117,11 @@ Each phase = one or few PRs. **No merge without its test gate.**
 
 ### Phase 5 — TV HUD (slice B)
 
-- Compose for TV modes from `TvMessage` only (idle / prep / session / rest / summary).
-- Port visual intent from the old web TV mockups and phone rest/session UI — not from a live web route.
+- Compose HUD from `TvMessage` only: idle / prep / setup / session / rest / summary.
+- Live WebSocket messages swap pair shell → `TvHudScreen`.
+- Port visual intent from old web TV mockups (dark living-room board), not a live web route.
 
-**Gate:** Compose UI tests per mode; E2E session→rest→session on TV.
+**Gate:** JVM mode-routing tests; Compose UI tests for idle + rest (instrumented); fuller E2E with phone later.
 
 ### Phase 6 — Phone core UI
 
@@ -193,8 +194,8 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 | C | Contracts + codecs | 2 | **Done** |
 | D | Pairing + WebSocket | 3 | **Done** |
 | E | E2E pair smoke (loopback WS + Maestro scaffold) | 3 | **Done** |
-| F | BLE + fakes | 4 | **This PR** |
-| G | TV HUD | 5 | |
+| F | BLE + fakes | 4 | **Done** |
+| G | TV HUD | 5 | **This PR** |
 | H… | Phone UI slices | 6 | |
 | R | Signing + Byte-RB | 8 | |
 | F-Droid | fdroiddata | 9 | |
@@ -203,4 +204,4 @@ Real BLE hardware, real living-room Wi‑Fi quirks, Cast/`full`, pixel-perfect T
 
 ## Immediate next step
 
-After PR F merges: **PR G** — Compose TV HUD from `TvMessage` fixtures.
+After PR G merges: **PR H** — phone core UI slices (nav → workouts → session).
