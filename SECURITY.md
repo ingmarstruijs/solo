@@ -8,7 +8,7 @@ This document describes what is already in place and which GitHub settings are w
 
 - **No secrets in code** — `.env` is gitignored; the deploy workflow does not use `secrets.*`
 - **Minimal workflow permissions** — deploy workflow: `contents: read`, `pages: write`, `id-token: write`
-- **Deploy only from `main`** — GitHub Pages via `.github/workflows/deploy.yml`
+- **Optional web deploy is manual** — GitHub Pages via `.github/workflows/deploy.yml` (`workflow_dispatch` only; not on every push)
 - **CI on pull requests** — `.github/workflows/ci.yml` runs `npm ci` + `npm run build`
 - **Dependabot config** — `.github/dependabot.yml` for npm and GitHub Actions (enable alerts in GitHub settings; see below)
 
@@ -57,9 +57,9 @@ From then on: feature branch → PR → CI green → merge → deploy workflow r
 
 This prevents strangers from running arbitrary workflow code on your repo without review.
 
-### 4. GitHub Pages source
+### 4. GitHub Pages source (optional marketing / reference web)
 
-Confirm Pages uses **GitHub Actions** (not “Deploy from branch”):
+Pages is **not** part of the Android product path. Deploy only when you intentionally run **Deploy web (manual)** (`workflow_dispatch`). Confirm Pages uses **GitHub Actions** (not “Deploy from branch”):
 
 1. **https://github.com/ingmarstruijs/solo/settings/pages**
 2. **Build and deployment** → Source: **GitHub Actions**
