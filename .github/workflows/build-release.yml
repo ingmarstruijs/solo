@@ -196,8 +196,8 @@ jobs:
       contents: write
       actions: read
     # GitHub Releases for Obtainium:
-    #   - floating `preview` on main / dispatch
-    #   - versioned tags only when the commit is already on main
+    #   - unique `0.1.<N>` pre-release on main / dispatch
+    #   - versioned v* tags only when the commit is already on main
     if: >
       always() && needs.build.result == 'success' &&
       (github.event_name == 'workflow_dispatch' ||
