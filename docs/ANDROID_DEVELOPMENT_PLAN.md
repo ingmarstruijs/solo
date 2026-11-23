@@ -87,7 +87,7 @@ Each phase = one or few PRs. **No merge without its test gate.**
 - Gradle: phone + TV shells, `foss`/`full`, `LEANBACK_LAUNCHER` on TV.
 - Pin JDK 21 / AGP / Kotlin; `dependenciesInfo.includeInApk = false`.
 - `android-ci.yml`: unit smoke + assemble `fossDebug`.
-- `build-release.yml` (Kinetic-style): assemble `fossRelease`, publish installable APKs to GitHub Releases for **Obtainium** — floating `preview` pre-release on `main`, versioned `v*` later. **Not F-Droid** for early device testing.
+- `build-release.yml` (Kinetic-style): assemble `fossRelease`, publish installable APKs to GitHub Releases for **Obtainium** — unique pre-release tags `0.1.<N>` on `main`, versioned `v*` later. **Not F-Droid** for early device testing.
 
 **Gate:** assemble both apps; no GMS on `foss` classpath; preview APKs installable via Obtainium.
 

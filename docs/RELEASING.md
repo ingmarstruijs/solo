@@ -6,7 +6,7 @@
 
 | Channel | When | Signing | Consumer |
 | --- | --- | --- | --- |
-| **GitHub `preview`** | Every `main` push that builds Android (and `workflow_dispatch`) | Project keystore if secrets exist; else debug | Obtainium (include pre-releases) |
+| **GitHub preview `0.1.<N>`** | Every `main` push that builds Android (and `workflow_dispatch`) | Project keystore if secrets exist; else debug | Obtainium (include pre-releases) |
 | **GitHub `v*`** | Annotated tag on `main` | Project keystore (CI) | Obtainium / sideload |
 | **F-Droid** | Manual fdroiddata MR after a stable tag + Byte-RB | F-Droid key | Later |
 
@@ -18,7 +18,7 @@ Both phone and TV APKs share the same `versionName` / `versionCode` for a given 
 
 | Channel | GitHub tag | `versionName` | `versionCode` | GitHub Release |
 | --- | --- | --- | --- | --- |
-| **Preview** (early) | floating `preview` (recreated each build) | `0.1.<N>` | `N` = Actions `run_number` | Pre-release; APKs `solo-0.1.<N>-foss.apk` / `solo-tv-0.1.<N>-foss.apk` |
+| **Preview** (early) | `0.1.<N>` (unique each build; **no** `v` prefix) | `0.1.<N>` | `N` = Actions `run_number` | Pre-release; APKs `solo-0.1.<N>-foss.apk` / `solo-tv-0.1.<N>-foss.apk` |
 | **Milestone** | `v0.1.0-android.N` (or `vX.Y.Z-rc.N`) | tag without `v` | Actions `run_number` | Pre-release (`v*-phone` / `v*-tv`) |
 | **Production** | `vX.Y.Z` (no `-` suffix) | `X.Y.Z` | Actions `run_number` | Full release (`v*-phone` / `v*-tv`) |
 
@@ -26,32 +26,36 @@ Rules:
 
 - **`versionCode` always increases** (CI run number) so PackageManager treats the build as newer.
 - **Preview `versionName` is `0.1.<N>`** (not `0.1.0-dev.<N>`). Obtainium’s default GitHub detector often strips SemVer pre-release suffixes after `-`, so `0.1.0-dev.9` and `0.1.0-dev.11` both looked like `0.1.0` and never offered an update.
+- **Preview GitHub tag must equal `versionName` and change every build.** Obtainium’s GitHub source uses **`tag_name` as the version** by default. A floating `preview` tag therefore never looks like an update, even when the release/APK is recreated. Do not reintroduce a floating tag unless every Obtainium install enables “Release title as version”.
+- Preview tags omit the `v` prefix so they do not re-trigger the workflow’s `v*` path.
 - Milestone/production still use normal SemVer; a `-` in the tag → GitHub pre-release.
 - Local builds without `-P` default to `versionName=0.1.0`, `versionCode=1`.
 - First public/F-Droid line: prefer `v1.0.0` (or `v0.9.0` if you want to signal “not 1.0 yet”).
 
-Manual dispatch may pass a custom `version` input as `versionName`; channel stays `preview` and `versionCode` is still the run number.
+Manual dispatch may pass a custom `version` input as `versionName`; channel stays `preview` and `versionCode` is still the run number. Prefer `0.1.<N>`-shaped labels so Obtainium compares cleanly.
 
 ## Early Android installs (Obtainium) — preferred while building PR B→H
 
 Workflow: [`.github/workflows/build-release.yml`](../.github/workflows/build-release.yml).
 
 1. Merge Android work to `main` (or run **Build & Sign Android** → `workflow_dispatch`).
-2. CI **deletes and recreates** the floating pre-release **`preview`** (new GitHub release id + `publishedAt`) with versioned APKs:
+2. CI publishes a **unique** pre-release tag **`0.1.<N>`** (= `versionName`) with versioned APKs:
    - `solo-0.1.<N>-foss.apk` — phone (`net.moonbaseone.solo`)
    - `solo-tv-0.1.<N>-foss.apk` — Android TV (`net.moonbaseone.solo.tv`)
    - `sha256.txt`
    - APK metadata: `versionName=0.1.<N>`, `versionCode=<N>` (`N` = Actions `run_number`)
+   - Legacy floating tag `preview` is deleted if still present
 3. On the phone (and TV box), add the repo in Obtainium:
 
 | Setting | Value |
 | --- | --- |
 | Source | `https://github.com/ingmarstruijs/solo` (this repo) |
-| Include pre-releases | **On** (required for `preview`) |
+| Include pre-releases | **On** (required for `0.1.<N>` preview tags) |
 | APK filter (phone) | `^solo-[0-9].*-foss\.apk$` |
 | APK filter (TV) | `^solo-tv-[0-9].*-foss\.apk$` |
+| Release title as version | Off (not needed — tag == versionName) |
 
-Use **two** Obtainium entries (one phone, one TV) so each app tracks the matching APK. Overwriting the same asset on one long-lived release does **not** notify Obtainium — that is why preview recreates the release and versions the filename.
+Use **two** Obtainium entries (one phone, one TV) so each app tracks the matching APK. After this change, a stuck Obtainium entry that still shows version `preview` should pick up the next `0.1.<N>` tag on refresh (include pre-releases on).
 
 Milestone early builds can also use annotated tags like `v0.1.0-android.1` (GitHub **pre-release** because of the `-` suffix). Obtainium still needs “include pre-releases”.
 

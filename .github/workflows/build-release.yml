@@ -4,9 +4,15 @@ name: Build & Sign Android
 # F-Droid is a later dual-channel step — not used for day-to-day device installs.
 #
 # Triggers:
-#   - push main → refresh floating `preview` pre-release (Obtainium early channel)
+#   - push main → unique pre-release tag `0.1.<N>` (Obtainium early channel)
 #   - tag v* on main → versioned GitHub Releases (phone + TV)
 #   - workflow_dispatch → same as main (optional version label)
+#
+# Obtainium's GitHub source uses tag_name as the version by default. A floating
+# `preview` tag never changes, so Obtainium never offers an update — even when
+# the release is deleted/recreated with a new APK. Preview therefore publishes
+# a unique tag equal to versionName (`0.1.<N>`, no `v` prefix so it does not
+# re-trigger this workflow's `v*` path).
 on:
   push:
     branches: [main]
@@ -252,14 +258,13 @@ jobs:
           set -euo pipefail
           {
             if [ "$CHANNEL" = "preview" ]; then
-              echo "## SOLO preview (early Android)"
+              echo "## SOLO preview ${VERSION} (early Android)"
               echo
-              echo "Rolling pre-release for device testing via **Obtainium**."
+              echo "Pre-release for device testing via **Obtainium**."
               echo "\`versionName=${VERSION}\` · \`versionCode=${VERSION_CODE}\`. Not an F-Droid build."
               echo
-              echo "Each \`main\` build **deletes and recreates** the \`preview\` GitHub Release"
-              echo "(new release id + \`publishedAt\`) and ships versioned APK filenames so"
-              echo "Obtainium detects an update."
+              echo "GitHub tag = \`versionName\` (\`${VERSION}\`) so Obtainium's default"
+              echo "detector (tag as version) sees each \`main\` build as a new version."
             elif [ "$CHANNEL" = "prerelease" ]; then
               echo "## SOLO ${VERSION} (pre-release)"
               echo
@@ -288,28 +293,29 @@ jobs:
             echo
             echo "### Obtainium"
             echo "1. Add \`https://github.com/${{ github.repository }}\`"
-            echo "2. Enable **Include pre-releases** for the early \`preview\` channel"
+            echo "2. Enable **Include pre-releases** (preview tags are \`0.1.<N>\`, not \`v*\`)"
             echo "3. APK filter — phone: \`^solo-[0-9].*-foss\\.apk\$\` · TV: \`^solo-tv-[0-9].*-foss\\.apk\$\`"
+            echo "4. Do **not** need \"Release title as version\" — tag == versionName"
           } > release-notes.md
 
-      # Obtainium keys off release identity / asset names. Replacing files on a
-      # long-lived release leaves the same release id and often no "update".
-      - name: Recreate floating preview release
+      # Legacy floating `preview` tag made Obtainium's version always "preview".
+      # Drop it once so unique 0.1.<N> tags become the latest pre-release.
+      - name: Remove legacy floating preview tag
         if: needs.build.outputs.channel == 'preview'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Drop previous release + tag so the next publish gets a fresh id.
           gh release delete preview --yes --cleanup-tag 2>/dev/null || true
-          # Tag may remain if there was no release yet.
           git push origin :refs/tags/preview 2>/dev/null || true
 
-      - name: Publish floating preview release
+      - name: Publish unique preview pre-release
         if: needs.build.outputs.channel == 'preview'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: preview
+          # Tag must change every build — Obtainium uses tag_name as version.
+          # No `v` prefix: avoid re-entering this workflow's tag v* trigger.
+          tag_name: ${{ needs.build.outputs.version_name }}
           name: SOLO Android preview ${{ needs.build.outputs.version_name }}
           prerelease: true
           target_commitish: ${{ github.sha }}

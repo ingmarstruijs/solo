@@ -3,6 +3,7 @@
 //
 // Convention (see docs/RELEASING.md):
 //   preview (main / workflow_dispatch): versionName = 0.1.<N>, versionCode = N (CI run)
+//     GitHub tag must also be 0.1.<N> (Obtainium uses tag_name as version).
 //   milestone tag v0.1.0-android.N:     versionName from tag, versionCode = CI run
 //   production tag vX.Y.Z:              versionName = X.Y.Z, versionCode = CI run
 // Local defaults keep installs working without CI props.
