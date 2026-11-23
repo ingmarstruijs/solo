@@ -311,7 +311,7 @@ jobs:
 
       - name: Publish unique preview pre-release
         if: needs.build.outputs.channel == 'preview'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # Tag must change every build — Obtainium uses tag_name as version.
           # No `v` prefix: avoid re-entering this workflow's tag v* trigger.
@@ -329,7 +329,7 @@ jobs:
 
       - name: Publish phone release
         if: needs.build.outputs.channel != 'preview'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}-phone
           name: SOLO ${{ needs.build.outputs.version_name }} (phone)
@@ -343,7 +343,7 @@ jobs:
 
       - name: Publish TV release
         if: needs.build.outputs.channel != 'preview'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}-tv
           name: SOLO ${{ needs.build.outputs.version_name }} (TV)
