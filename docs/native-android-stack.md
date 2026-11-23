@@ -102,7 +102,7 @@ sequenceDiagram
 
 While the Compose apps are still landing, ship installable `foss` APKs through **GitHub Releases** (Kinetic-style Build & Sign) and install with **Obtainium** — not F-Droid.
 
-- Floating pre-release tag `preview` recreated on each `main` Android build (`solo-0.1.<N>-foss.apk` + `solo-tv-0.1.<N>-foss.apk`) so Obtainium sees a new release/asset and a comparable `versionName`
+- Unique pre-release tag `0.1.<N>` (= `versionName`) on each `main` Android build (`solo-0.1.<N>-foss.apk` + `solo-tv-0.1.<N>-foss.apk`). Obtainium uses `tag_name` as the version by default — a floating `preview` tag never updates.
 - Milestone tags `v0.x.y-android.N` as GitHub pre-releases
 - Stable `vX.Y.Z` later for wider sideload / Obtainium without pre-release flag
 

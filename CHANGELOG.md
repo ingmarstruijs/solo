@@ -10,17 +10,22 @@ F-Droid store notes. Run `./tool/sync_fastlane_changelogs.sh` after editing it.
 
 ## [Unreleased]
 
+### Fixed
+
+- Obtainium preview updates: publish unique GitHub tags `0.1.<N>` (tag == `versionName`) instead of a floating `preview` tag. Obtainium’s GitHub source uses `tag_name` as the version by default, so a recycled `preview` tag never looked newer.
+
 ### Added
 
 - Release / F-Droid scaffolding (CHANGELOG, Fastlane stubs, metadata drafts, AGENTS.md) modeled on Kinetic.
 - Android stack research + [development plan](docs/ANDROID_DEVELOPMENT_PLAN.md): Kotlin + Compose phone + Android TV, iOS dropped, **Byte-RB required**, Capacitor not chosen.
 - Store / display name: **SOLO Home training** (brand mark remains SOLO.).
-- Android Gradle skeleton (`apps/android` + `apps/android-tv`, `foss`/`full`) with CI assemble + **GitHub Releases / Obtainium** early channel (`preview` pre-release).
+- Android Gradle skeleton (`apps/android` + `apps/android-tv`, `foss`/`full`) with CI assemble + **GitHub Releases / Obtainium** early channel.
 - Android versioning: preview `0.1.<N>` / production `vX.Y.Z`; `versionCode` = CI run number (Obtainium-friendly; avoids `-dev` suffix stripping).
 
 ### Removed
 
 - Web `/tv` receiver and BroadcastChannel TV sync (Android TV companion will replace it).
+- Floating GitHub release tag `preview` (replaced by unique `0.1.<N>` pre-releases).
 
 ## [0.1.0] - 2026-09-30
 

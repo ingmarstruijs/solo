@@ -98,7 +98,7 @@ User flows and layout: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 Kotlin + Jetpack Compose on **Android phone + Android TV** (phone controls TV on LAN). **iOS dropped.** React/Vite is reference only until native parity covers editor/labs.
 
-Early device installs: **GitHub Releases + Obtainium** (floating `preview` pre-release on `main`). F-Droid/`foss` Byte-RB is Phase 8+.
+Early device installs: **GitHub Releases + Obtainium** (unique pre-release tags `0.1.<N>` on `main`; include pre-releases). F-Droid/`foss` Byte-RB is Phase 8+.
 
 ```bash
 cd apps

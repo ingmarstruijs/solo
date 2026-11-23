@@ -36,7 +36,7 @@ F-Droid: [metadata/FDROID_SUBMISSION.md](metadata/FDROID_SUBMISSION.md)
 
 Follow [docs/RELEASING.md](docs/RELEASING.md).
 
-**Early Android (while building the Compose apps):** merge to `main` (or `workflow_dispatch` **Build & Sign Android**) → floating GitHub pre-release `preview` → install with **Obtainium** (include pre-releases). Do not wait for F-Droid.
+**Early Android (while building the Compose apps):** merge to `main` (or `workflow_dispatch` **Build & Sign Android**) → unique GitHub pre-release tag `0.1.<N>` → install with **Obtainium** (include pre-releases). Do not wait for F-Droid. Never reintroduce a floating `preview` tag — Obtainium treats `tag_name` as the version.
 
 **Stable / F-Droid later:**
 
